@@ -1,7 +1,8 @@
 using AIInterviewCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-
+using AIInterviewCoach.Application.Interfaces;
+using AIInterviewCoach.Infrastructure.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
