@@ -1,0 +1,126 @@
+1. GÜN
+
+1.ASP.NET Core Web API projesi oluşturuldu (.NET8) :
+	Backend geliştiriyoruz
+	REST API yazacağız
+	Frontend(Next.js) bu API ile iletişim kuracak
+
+2. OpenAPI (Swagger) aktif edildi:
+	Çünkü API'leri tarayıcıda test edebilmemizi sağlayacak
+
+3.  Use Controllers işaretlendi :
+	Çünkü kurumsal .NET projelerinin büyük kısmı Controller yapısı kullanır
+
+4. Katmanlı Mimari kuruldu :
+	Sebebi her katmanın ayrı bir sorumluluğu olsun istedik.
+		AIInterviewCoach
+		AIInterviewCoach.Domain
+		AIInterviewCoach.Application
+		AIInterviewCoach.Infrastructure
+
+5.Domain katmanı oluşturuldu:
+	Bu katman gerçek iş nesneleri için kullanılır.
+
+6. Application katmanı oluşturuldu:
+	Burada olacaklar:
+		DTO'lar : Data Transfer Object
+		Servisler
+		İş kuralları
+		Interfaces
+
+7. Insfrastructure katmanı oluşturuldu:
+	Burada olacaklar:
+		Veritabanı
+		Repository
+		Entity Framework yani SQL server ile iletişim kuran katman
+
+8. Referanslar bağlandı:
+API
+ ↓
+Application
+ ↓
+Domain
+
+Infrastructure
+ ↓
+Application
+ ↓
+Domain
+sebebi: katmanların birbirine kontrollü olarak erişebilmesi gerekiyor
+
+9. Entity Framework paketleri eklendi:
+
+	EntityFrameworkCore: C# sınıflarını veritabanı tablolarıyla ilişkilendirmek için.
+	SqlServer: Entity Framework’ün SQL Server ile çalışabilmesi için.
+	Tools: Migration komutlarını kullanabilmek için.
+
+10. AppContext sınıfı oluşturuldu:
+	Persistance klasörüne AppContext.cs sınıfı ekledik. Bu sınıf projenin veritabanı ile bağlantı kurmasını sağlayan ana sınıftır.
+
+11. AppContext içine Users tablosu tanımlandı
+	public DbSet<User> Users { get; set; } satırı ile EFe dedik ki User entitysi veri tabanında Users tablosu olarak temsil edilecek.
+
+12. appsettings.json içine connection stringi ekledin
+"ConnectionStrings": {
+  "DefaultConnection": "Server=(localdb)\\ProjectModels;Database=AIInterviewCoachDb;Trusted_Connection=True;TrustServerCertificate=True"
+}
+bu satır ile uygulamaya AIInterviewCoachDb isimli veritabanına LocalDB  üzerinden bağlanmasını söyledik.
+
+13. Program.cs dosyasına DbContexti tanıttık:
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"));
+}); ile ASP.NET Core uygulamasına "AppDbContext kullanılacağı zaman SQL Server bağlantısını appsettings.json’dan al." demiş olduk
+
+14.İlk migration komutu çalıştırıldı:
+	Veritabanı oluşturulmuş oldu
+
+15. _EFMigrationHistory tablosu oluşturuldu:
+	Bu tablo EF nin hangi migrationların veritabanına uygulandığındını takip etmesini sağlar
+
+2. GÜN
+
+1.LoginRequestDto oluşturuldu:
+	kod mantığı:
+public class LoginRequestDto
+{
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+} şeklinde. Bunu yapma sebebimiz register işleminde Name, Email, Password alınıyordu. Ama loginde Name gerekmiyor bu yüzden yeni DTO oluşturuldu. 
+	DTO'nun amacı: Kullanıcıdan gelen veriyi düzenli ve kontrollü şekilde karşılamak.
+
+2.IAuthService içine LoginAsync metodu eklendi:
+	Task<string> LoginAsync(LoginRequestDto request);
+	IAuthService bizim sözleşmemiz gibi. Yani diyoruz ki Auth işlemleri yapan her servis, register yapabilmeli ve login yapabilmeli.
+
+3.AuthService içine LoginAsync metodu yazıldı:
+	Bu kısımda mantık şu önce email veritabanında aranıyor, email yoksa hata döndürülüyor. Eğer veritabanında bu emaile sahip kullanıcı yoksa user boş gelir sistem böyle bir kullanıcı yok der. Ama kullanıcıya direkt Bu email kayıtlı değil demiyoruz bunun yerine Email ya da şifre hatalı diyoruz çünkü kötü niyetli  biri sistemde hangi mailler var bunu öğrenemesin istiyoruz.
+
+4. Kullanıcının girdiği şifreyi hashliyoruz. Veri tabanında register işlemi sırasında hashlanip kaydedilmiş olan şifre ile karşılaştırıyoruz doğruysa giriş başarılı dönüyor (şimdilik ileride JWT token dönecek). 
+
+5.AuthController içine login endpoint eklendi:
+[HttpPost("login")]
+public async Task<IActionResult> Login(LoginRequestDto request)
+{
+    var result = await _authService.LoginAsync(request);
+
+    if (result == "Email veya şifre hatalı.")
+    {
+        return Unauthorized(result); 
+// unauthorized: Http tarafında karşılığı 401 Unauthorized Yanlış mail ya da şifre girilirse bu dönüyor.
+    }
+
+    return Ok(result); // Ok işlem başarılı demek HTTP karşılığı: 200 OK
+}
+
+Bu sayede dış dünyadan login isteği alabilmemiz sağlandı.
+
+
+
+
+
+
+
+
+

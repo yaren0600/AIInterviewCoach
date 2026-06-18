@@ -27,4 +27,20 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginRequestDto request)
+    {
+        var result = await _authService.LoginAsync(request);
+
+        if (result == "Email veya şifre hatalı.")
+        {
+            return Unauthorized(result);
+        }
+        return Ok(new
+        {token = result
+        
+        });
+         
+    }
 }

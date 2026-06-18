@@ -16,7 +16,10 @@ namespace AIInterviewCoach.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<string> RegisterAsync(RegisterRequestDto registerRequestDto);
+    Task<string> RegisterAsync(RegisterRequestDto request);
+    Task<string> LoginAsync(LoginRequestDto request);
+    //Bu şu demek: Controller ben login işlemii yapmak istiyorum diyebilecek ama detayı bilmeyecek.
+    //Detay AuthService içinde olacak.
 }
 
 //Burada Task<string> dememizin sebebi:

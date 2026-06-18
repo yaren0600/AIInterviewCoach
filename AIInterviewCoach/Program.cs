@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using AIInterviewCoach.Application.Interfaces;
-using AIInterviewCoach.Application.Services;
+using AIInterviewCoach.Infrastructure.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
