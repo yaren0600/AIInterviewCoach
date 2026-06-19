@@ -85,7 +85,7 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
-});
+}); 
 //Swagger, API'nizin dokümantasyonunu otomatik olarak oluşturur ve test etmenizi sağlar.
 //Burada Swagger'a JWT ile giriş yapabilmek için gerekli ayarları ekliyoruz.
 var app = builder.Build();
