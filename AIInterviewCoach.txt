@@ -236,5 +236,106 @@ Token gönderirse erişir
 ↓
 Token göndermezse 401 Unauthorized alır
 
+3. Gün
+1. Mülakat için ana tabloları oluşturduk
+
+Yeni entity’ler:
+
+Position
+InterviewSession
+Question
+Answer
+
+Bunlar projenin ana iş mantığını taşıyacak.
+
+2. User ile InterviewSession ilişkisini kurduk
+
+User içine şunu ekledik:
+
+public ICollection<InterviewSession> InterviewSessions { get; set; } = new List<InterviewSession>();
+
+Bu şu demek:
+
+Bir kullanıcının birden fazla mülakat oturumu olabilir.
+
+3. AppDbContext’i güncelledik
+
+Şu tabloları ekledik:
+
+public DbSet<Position> Positions { get; set; }
+public DbSet<InterviewSession> InterviewSessions { get; set; }
+public DbSet<Question> Questions { get; set; }
+public DbSet<Answer> Answers { get; set; }
+4. Migration aldık ve veritabanını güncelledik
+
+SQL Server’da artık şu tablolar var:
+
+Users
+Positions
+InterviewSessions
+Questions
+Answers
+__EFMigrationsHistory
+5. Pozisyon modülünü yazdık
+
+Şunları oluşturduk:
+
+PositionDto
+IPositionService
+PositionService
+PositionsController
+
+Endpointler:
+
+GET /api/Positions
+POST /api/Positions/seed
+6. Pozisyonları veritabanına ekledik
+
+Seed endpoint’i ile şu pozisyonları ekledik:
+
+Backend Developer
+Data Analyst
+DevOps Engineer
+Business Analyst
+Software Engineer
+7. Pozisyonları Swagger’dan listeledik
+
+GET /api/Positions ile pozisyonları başarıyla gördük.
+
+8. Mülakat başlatma DTO’larını oluşturduk
+
+Şunları ekledik:
+
+StartInterviewRequestDto
+InterviewSessionDto
+9. Interview servis katmanını yazdık
+
+Şunları oluşturduk:
+
+IInterviewService
+InterviewService
+
+Bu servis artık seçilen pozisyona göre yeni mülakat oturumu oluşturabiliyor.
+
+10. InterviewsController oluşturduk
+
+Yeni endpoint:
+
+POST /api/Interviews/start
+
+Bu endpoint token’dan kullanıcıyı buluyor, seçilen PositionId ile yeni bir mülakat oturumu başlatıyor.
+
+11. Swagger’dan mülakat başlatmayı test ettik
+
+Token ile authorize oldun.
+
+Sonra şu istek çalıştı:
+
+{
+  "positionId": 1
+}
+
+Ve sistem yeni InterviewSession oluşturdu.
+
 
 
