@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace AIInterviewCoach.Domain.Entities;
 
-public class User
+public class Position
 {
     public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
+    public string Name { get; set; }
+
+    public string Description { get; set; }
+
     public ICollection<InterviewSession> InterviewSessions { get; set; } = new List<InterviewSession>();
+
 }

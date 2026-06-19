@@ -16,6 +16,11 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+
+    public DbSet<Position> Positions { get; set; }
+    public DbSet<InterviewSession> InterviewSessions { get; set; }
+    public DbSet<Question> Questions { get; set; }
+    public DbSet<Answer> Answers { get; set; }
 }
 
 //Burada EF'ye şunu diyoruz 'Benim user isminde bir entity'm var' 
