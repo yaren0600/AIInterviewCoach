@@ -1,6 +1,7 @@
 ﻿using AIInterviewCoach.Application.DTOs;
 using AIInterviewCoach.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace AIInterviewCoach.Controllers;
@@ -42,5 +43,25 @@ public class AuthController : ControllerBase
         
         });
          
+    }
+
+    [Authorize]
+    [HttpGet("profile")]
+    public IActionResult Profile()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var name = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+        return Ok(new
+        {
+            UserId = userId,
+            Name = name,
+            Email = email
+        });
+
+        //Bu endpoint , kullanıcının kimlik doğrulaması yapıldıktan sonra profil bilgilerini döndürür.
+        //Kullanıcı giriş yaptıktan sonra, JWT token'ı ile bu endpoint'e erişebilir ve kendi bilgilerini görebilir.
+
     }
 }

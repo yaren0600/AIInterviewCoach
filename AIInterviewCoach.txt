@@ -116,11 +116,125 @@ public async Task<IActionResult> Login(LoginRequestDto request)
 
 Bu sayede dış dünyadan login isteği alabilmemiz sağlandı.
 
+6. Şimdi JWT ekleyeceğiz:
+	JWT, yani JSON Web Token, kullanıcının giriş yaptığını kanıtlayan dijital anahtar gibidir.
 
+Kullanıcı login olur
+↓
+Email ve şifre doğruysa sistem token üretir
+↓
+Kullanıcı bu token’ı saklar
+↓
+Sonraki isteklerde token gönderir
+↓
+Backend token doğruysa kullanıcıya izin verir
 
+Microsoft.AspNetCore.Authentication.JwtBearer paketini kuruyoruz. 
 
+7.API projesindeki appsettings.json dosyasına Jwt bölümü ekliyoruz:
 
+  "Jwt": {
+    "Key": "AIInterviewCoachSuperSecretKey123456789!",
+    "Issuer": "AIInterviewCoach",
+    "Audience": "AIInterviewCoachUsers",
+    "ExpireMinutes": 60
+  },
 
+Key, token’ı imzalamak için kullanılır. Issuer, token’ı kimin ürettiğini belirtir. Audience, token’ın kimler için üretildiğini belirtir. ExpireMinutes, token’ın kaç dakika geçerli olacağını belirtir.
+
+8.AuthService içine IConfiguration eklendi:
+	AuthService içinde appsettings.json dosyasındaki JWT ayarlarını okuyabilmek için IConfiguration kullandık.
+private readonly AppDbContext _context;
+private readonly IConfiguration _configuration;
+
+public AuthService(AppDbContext context, IConfiguration configuration)
+{
+    _context = context;
+    _configuration = configuration;
+}
+
+9.GenerateJwtToken metodu yazıldı: 
+	AuthService içine token üreten özel metodu ekledik. Kullanıcının Id, Name ve Email bilgilerini token içine claim olarak ekledi. appsettings.json içindeki gizli key ile token’ı imzaladı. Token’a geçerlilik süresi verdi. Sonunda string olarak JWT token döndürdü.
+private string GenerateJwtToken(User user)
+{
+    var claims = new[]
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.Name),
+        new Claim(ClaimTypes.Email, user.Email)
+    };
+
+    var key = new SymmetricSecurityKey(
+        Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+
+    var credentials = new SigningCredentials(
+        key,
+        SecurityAlgorithms.HmacSha256);
+
+    var expireMinutes = Convert.ToDouble(_configuration["Jwt:ExpireMinutes"]);
+
+    var token = new JwtSecurityToken(
+        issuer: _configuration["Jwt:Issuer"],
+        audience: _configuration["Jwt:Audience"],
+        claims: claims,
+        expires: DateTime.Now.AddMinutes(expireMinutes),
+        signingCredentials: credentials
+    );
+
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+
+10. LoginAsync metodu token döndürecek şekilde güncellendi:
+return Ok(new
+{
+    token = result
+});
+
+11. Program.cs içine şu kütüphaneleri ekledik:
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+Bunlar JWT token doğrulama işlemleri için gerekliydi.
+
+12.program.cs içine authentication ayarları eklendi:
+builder.Services.AddAuthentication(...)
+    .AddJwtBearer(...);
+Bu kodla ASP.NET Core şunu anladı: Bu projede kullanıcı doğrulama işlemi JWT Token ile yapılacak
+
+13. Token doğrulama kuralları belirlendi:
+ValidateIssuer = true;
+ValidateAudience = true;
+ValidateLifetime = true;
+ValidateIssuerSigningKey = true;
+
+Bunlar şu anlama geliyor: Token doğru sistem tarafından mı üretildi?
+Token doğru kullanıcı grubu için mi üretildi?
+Token’ın süresi dolmuş mu?
+Token doğru gizli key ile mi imzalanmış?
+
+14.Middleware sırası düzenlendi: Program.cs içinde 
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+Burada sıra önemli çünkü Önce kullanıcı kim diye bakılıyor ardından bu kullanıcı bu endpointe girebilir mi kontrolü yapılıyor
+
+Şu ana kadar sistem şu şekilde: 
+
+Kullanıcı login olur
+↓
+Token alır
+↓
+Profile endpoint’ine gitmek ister
+↓
+Token gönderirse erişir
+↓
+Token göndermezse 401 Unauthorized alır
 
 
 

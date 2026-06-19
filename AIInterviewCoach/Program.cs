@@ -7,6 +7,8 @@ using System.Security.Cryptography;
 using System.Text;
 using AIInterviewCoach.Application.Interfaces;
 using AIInterviewCoach.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +25,32 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // Bu ne demek? Biri IAuthService isterse ona AuthService ver.
 // Bu da Dependency Injection mantığıdır.
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
+//Burada ASP.NET Core şunu söylüyoruz: "Eğer bir kullanıcı JWT ile giriş yaparsa, bu token'ı doğrulamak için bu ayarları kullan."
+// Bu ayarlar, token'ın geçerliliğini, imzasını ve diğer bilgilerini kontrol eder.
+// Bu, uygulamanın güvenliğini sağlamak için önemlidir.
+
+builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -37,8 +65,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+//Bu kısımda sıra önemli çünkü önce UseAuthentication() çağrılır, sonra UseAuthorization() çağrılır.
+//Bu, önce kullanıcının kimliğini doğrulamak, sonra yetkilendirme kontrollerini yapmak için gereklidir.
+
