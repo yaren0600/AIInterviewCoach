@@ -59,7 +59,7 @@ public class AuthController : ControllerBase
             Name = name,
             Email = email
         });
-
+         
         //Bu endpoint , kullanıcının kimlik doğrulaması yapıldıktan sonra profil bilgilerini döndürür.
         //Kullanıcı giriş yaptıktan sonra, JWT token'ı ile bu endpoint'e erişebilir ve kendi bilgilerini görebilir.
 
