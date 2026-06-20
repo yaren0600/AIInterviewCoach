@@ -337,5 +337,19 @@ Sonra şu istek çalıştı:
 
 Ve sistem yeni InterviewSession oluşturdu.
 
+4. Gün
+SubmitAnswerRequestDto oluşturduk.
+AnswerDto oluşturduk.
+IInterviewService içine SubmitAnswerAsync metodunu ekledik.
+InterviewService içine cevap kaydetme mantığını yazdık.
+Sorunun gerçekten giriş yapan kullanıcıya ait olup olmadığını kontrol ettik.
+Aynı soruya tekrar cevap verilirse cevabı güncelleyecek yapı kurduk.
+Basit score hesaplama metodu ekledik.
+Basit feedback üretme metodu ekledik.
+InterviewsController içine POST /api/Interviews/answer endpoint’ini ekledik.
+Answer entity’sindeki AnsweredAt alanını düzelttik.
+Gerekirse migration ile veritabanını güncelledik.
+Swagger’dan cevap gönderip veritabanında kaydedildiğini kontrol ettik.
+
 
 

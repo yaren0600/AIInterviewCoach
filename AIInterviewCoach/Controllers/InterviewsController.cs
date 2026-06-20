@@ -39,4 +39,26 @@ public class InterviewsController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpPost("answer")]
+    public async Task<IActionResult> SubmitAnswer(SubmitAnswerRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized("Kullanıcı bilgisi alınamadı.");
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var result = await _interviewService.SubmitAnswerAsync(userId, request);
+
+        if (result is null)
+        {
+            return BadRequest("Soru bulunamadı veya bu kullanıcıya ait değil.");
+        }
+
+        return Ok(result);
+    }
 }

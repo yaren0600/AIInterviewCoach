@@ -68,6 +68,105 @@ public class InterviewService : IInterviewService
         };
     }
 
+    private int CalculateBasicScore(string userAnswer)
+    {
+        if (string.IsNullOrWhiteSpace(userAnswer))
+        {
+            return 0;
+        }
+
+        if (userAnswer.Length < 30)
+        {
+            return 40;
+        }
+
+        if (userAnswer.Length < 100)
+        {
+            return 70;
+        }
+
+        return 85;
+    }
+
+
+    private string GenerateBasicFeedback(string userAnswer)
+    {
+        if (string.IsNullOrWhiteSpace(userAnswer))
+        {
+            return "Cevap boş bırakılmış. Soruyu teknik kavramlarla açıklamaya çalışmalısın.";
+        }
+
+        if (userAnswer.Length < 30)
+        {
+            return "Cevap çok kısa. Daha açıklayıcı ve örnek içeren bir cevap vermelisin.";
+        }
+
+        if (userAnswer.Length < 100)
+        {
+            return "Cevap temel olarak yeterli. Daha teknik detay ve örnek ekleyerek güçlendirebilirsin.";
+        }
+
+        return "Cevap detaylı görünüyor. Teknik doğruluk ve örneklerle destekleme açısından değerlendirilebilir.";
+    }
+
+    public async Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request)
+    {
+        var question = await _context.Questions
+            .Include(q => q.InterviewSession)
+            .FirstOrDefaultAsync(q => 
+            q.Id == request.QuestionId && 
+            q.InterviewSession.UserId == userId);
+
+        if (question is null)
+        {
+            return null;
+        }
+
+        var existingAnswer = await _context.Answers
+            .FirstOrDefaultAsync(a => a.QuestionId == request.QuestionId);
+
+        if (existingAnswer is not null)
+            {
+            existingAnswer.UserAnswer = request.UserAnswer;
+            existingAnswer.Score = CalculateBasicScore(request.UserAnswer);
+            existingAnswer.Feedback = GenerateBasicFeedback(request.UserAnswer);
+            existingAnswer.AnsweredAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return new AnswerDto
+            {
+                Id = existingAnswer.Id,
+                QuestionId = existingAnswer.QuestionId,
+                UserAnswer = existingAnswer.UserAnswer,
+                Score = existingAnswer.Score,
+                Feedback = existingAnswer.Feedback,
+                AnsweredAt = existingAnswer.AnsweredAt
+            };
+        }
+        var answer = new Answer
+        {
+            QuestionId = request.QuestionId,
+            UserAnswer = request.UserAnswer,
+            Score = CalculateBasicScore(request.UserAnswer),
+            Feedback = GenerateBasicFeedback(request.UserAnswer),
+            AnsweredAt = DateTime.Now
+        };
+
+        _context.Answers.Add(answer);
+        await _context.SaveChangesAsync();
+
+        return new AnswerDto
+        {
+            Id = answer.Id,
+            QuestionId = answer.QuestionId,
+            UserAnswer = answer.UserAnswer,
+            Score = answer.Score,
+            Feedback = answer.Feedback,
+            AnsweredAt = answer.AnsweredAt
+        };
+    }
+
     private List<Question> GenerateQuestionsByPosition(string positionName, int sessionId)
     {
         if (positionName == "Backend Developer")

@@ -10,4 +10,5 @@ namespace AIInterviewCoach.Application.Interfaces;
 public interface IInterviewService
 {
     Task<InterviewSessionDto?> StartInterviewAsync(int userId, StartInterviewRequestDto request);
+    Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request);
 }
