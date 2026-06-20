@@ -166,6 +166,67 @@ public class InterviewService : IInterviewService
             AnsweredAt = answer.AnsweredAt
         };
     }
+    //Bu metot, verilen pozisyon adına göre önceden tanımlanmış soruları oluşturur ve bu soruları belirtilen mülakat seansına (sessionId) atar. Eğer pozisyon adı tanımlı değilse, genel bir soru seti döndürür.
+
+    public async Task<InterviewResultDto?> GetInterviewResultAsync(int userId, int sessionId)
+    {
+        var session = await _context.InterviewSessions
+            .Include(s => s.Position)
+            .Include(s => s.Questions)
+                .ThenInclude(q => q.Answer)
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId);//Bu sayede kullanıcı sadece kendi mülakat sonucunu görebilir. Başka bir kullanıcının session sonucunu göremez.
+
+        if (session is null)
+        {
+            return null;
+        }
+
+        var answeredQuestions = session.Questions
+            .Count(q => q.Answer is not null);
+
+        var scores = session.Questions
+            .Where(q => q.Answer is not null && q.Answer.Score.HasValue)
+            .Select(q => q.Answer!.Score!.Value)
+            .ToList();
+
+        int? averageScore = scores.Any()
+            ? Convert.ToInt32(scores.Average())
+            : null;
+
+        session.TotalScore = averageScore;
+
+        if (answeredQuestions == session.Questions.Count && session.CompletedAt is null)
+        {
+            session.CompletedAt = DateTime.Now;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return new InterviewResultDto
+        {
+            SessionId = session.Id,
+            PositionName = session.Position.Name,
+            StartedAt = session.StartedAt,
+            CompletedAt = session.CompletedAt,
+            TotalQuestions = session.Questions.Count,
+            AnsweredQuestions = answeredQuestions,
+            AverageScore = averageScore,
+            Questions = session.Questions.Select(q => new InterviewResultQuestionDto
+            {
+                QuestionId = q.Id,
+                QuestionText = q.QuestionText,
+                Difficulty = q.Difficulty,
+                Category = q.Category,
+                UserAnswer = q.Answer?.UserAnswer,
+                Score = q.Answer?.Score,
+                Feedback = q.Answer?.Feedback,
+                AnsweredAt = q.Answer?.AnsweredAt
+            }).ToList()
+        };
+    }
+    // Bu metot, belirli bir mülakat seansı için kullanıcının verdiği cevapları ve bu cevaplara ilişkin puanları içeren detaylı bir sonuç döndürür. Mülakat seansının hangi pozisyon için yapıldığı, ne zaman başladığı ve tamamlandığı, toplam soru sayısı, cevaplanan soru sayısı ve ortalama puan gibi bilgileri içerir. Ayrıca, her bir sorunun detaylarını içeren InterviewResultQuestionDto türünde bir liste de bulundurur.
+
+
 
     private List<Question> GenerateQuestionsByPosition(string positionName, int sessionId)
     {

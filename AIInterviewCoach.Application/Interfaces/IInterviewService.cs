@@ -11,4 +11,5 @@ public interface IInterviewService
 {
     Task<InterviewSessionDto?> StartInterviewAsync(int userId, StartInterviewRequestDto request);
     Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request);
+    Task<InterviewResultDto?> GetInterviewResultAsync(int userId, int sessionId);
 }

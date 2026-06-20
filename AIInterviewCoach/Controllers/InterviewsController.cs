@@ -61,4 +61,26 @@ public class InterviewsController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("{sessionId}/result")]
+    public async Task<IActionResult> GetResult(int sessionId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized("Kullanıcı bilgisi alınamadı.");
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var result = await _interviewService.GetInterviewResultAsync(userId, sessionId);
+
+        if (result is null)
+        {
+            return NotFound("Mülakat oturmu bulunamadı veya bu kullanıcıya ait değil!!");
+        }
+
+        return Ok(result);
+    }
 }
