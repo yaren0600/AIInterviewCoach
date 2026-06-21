@@ -25,4 +25,6 @@ public class MyInterviewSessionDto
     public string Status { get; set; } = string.Empty;
 }
 
-//Burada status bize oturumun durumunu göstermek için kullanılır. Örneğin, "In Progress", "Completed", "Scheduled" gibi değerler alabilir. Bu sayede kullanıcılar oturumlarının hangi aşamada olduğunu kolayca görebilirler.
+//Burada status bize oturumun durumunu göstermek için kullanılır.
+//Örneğin, "In Progress", "Completed", "Scheduled" gibi değerler alabilir.
+//Bu sayede kullanıcılar oturumlarının hangi aşamada olduğunu kolayca görebilirler.
