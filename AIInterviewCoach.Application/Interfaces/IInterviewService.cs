@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace AIInterviewCoach.Application.Interfaces;
 
+
 public interface IInterviewService
 {
     Task<InterviewSessionDto?> StartInterviewAsync(int userId, StartInterviewRequestDto request);
