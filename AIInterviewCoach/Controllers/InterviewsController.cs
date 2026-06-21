@@ -83,4 +83,25 @@ public class InterviewsController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("my-sessions")]
+    public async Task<IActionResult> GetMySessions()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized("Kullanıcı bilgisi alınamadı.");
+
+        }
+
+        var userId = int.Parse(userIdClaim);//Parse ile string olarak gelen userId'yi int'e çeviriyoruz.
+
+        var result = await _interviewService.GetMySessionsAsync(userId);
+
+        return Ok(result);
+        //Bu controller’ın üstünde zaten [Authorize] olduğu için bu endpoint de token isteyecek.
+
+    }
 }
+

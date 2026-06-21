@@ -68,47 +68,6 @@ public class InterviewService : IInterviewService
         };
     }
 
-    private int CalculateBasicScore(string userAnswer)
-    {
-        if (string.IsNullOrWhiteSpace(userAnswer))
-        {
-            return 0;
-        }
-
-        if (userAnswer.Length < 30)
-        {
-            return 40;
-        }
-
-        if (userAnswer.Length < 100)
-        {
-            return 70;
-        }
-
-        return 85;
-    }
-
-
-    private string GenerateBasicFeedback(string userAnswer)
-    {
-        if (string.IsNullOrWhiteSpace(userAnswer))
-        {
-            return "Cevap boş bırakılmış. Soruyu teknik kavramlarla açıklamaya çalışmalısın.";
-        }
-
-        if (userAnswer.Length < 30)
-        {
-            return "Cevap çok kısa. Daha açıklayıcı ve örnek içeren bir cevap vermelisin.";
-        }
-
-        if (userAnswer.Length < 100)
-        {
-            return "Cevap temel olarak yeterli. Daha teknik detay ve örnek ekleyerek güçlendirebilirsin.";
-        }
-
-        return "Cevap detaylı görünüyor. Teknik doğruluk ve örneklerle destekleme açısından değerlendirilebilir.";
-    }
-
     public async Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request)
     {
         var question = await _context.Questions
@@ -226,7 +185,73 @@ public class InterviewService : IInterviewService
     }
     // Bu metot, belirli bir mülakat seansı için kullanıcının verdiği cevapları ve bu cevaplara ilişkin puanları içeren detaylı bir sonuç döndürür. Mülakat seansının hangi pozisyon için yapıldığı, ne zaman başladığı ve tamamlandığı, toplam soru sayısı, cevaplanan soru sayısı ve ortalama puan gibi bilgileri içerir. Ayrıca, her bir sorunun detaylarını içeren InterviewResultQuestionDto türünde bir liste de bulundurur.
 
+    public async Task<List<MyInterviewSessionDto>> GetMySessionsAsync(int userId)
+    {
+        var sessions = await _context.InterviewSessions
+            .Include(s => s.Position)
+            .Include(s => s.Questions)
+                .ThenInclude(q => q.Answer)
+            .Where(s => s.UserId == userId)
+            .OrderByDescending(s => s.StartedAt)
+            .Select(s => new MyInterviewSessionDto
+            {
+                Id = s.Id,
+                PositionName = s.Position.Name,
+                StartedAt = s.StartedAt,
+                CompletedAt = s.CompletedAt,
+                TotalScore = s.TotalScore,
+                TotalQuestions = s.Questions.Count,
+                AnsweredQuestions = s.Questions.Count(q => q.Answer != null),
+                Status = s.CompletedAt == null ? "In Progress" : "Completed"
+            })
+            .ToListAsync();
 
+        return sessions;
+    }
+    //Bu metot , belirli bir kullanıcıya ait tüm mülakat seanslarını döndürür.
+    //Her bir seans için pozisyon adı, başlangıç ve bitiş zamanı, toplam puan, toplam soru sayısı, cevaplanan soru sayısı ve seansın durumu (In Progress veya Completed)
+    //gibi bilgileri içeren MyInterviewSessionDto türünde bir liste döndürür. Seanslar başlangıç zamanına göre azalan sırayla sıralanır, böylece en son yapılan mülakat seansı ilk olarak görüntülenir.
+
+    private int CalculateBasicScore(string userAnswer)
+    {
+        if (string.IsNullOrWhiteSpace(userAnswer))
+        {
+            return 0;
+        }
+
+        if (userAnswer.Length < 30)
+        {
+            return 40;
+        }
+
+        if (userAnswer.Length < 100)
+        {
+            return 70;
+        }
+
+        return 85;
+    }
+
+
+    private string GenerateBasicFeedback(string userAnswer)
+    {
+        if (string.IsNullOrWhiteSpace(userAnswer))
+        {
+            return "Cevap boş bırakılmış. Soruyu teknik kavramlarla açıklamaya çalışmalısın.";
+        }
+
+        if (userAnswer.Length < 30)
+        {
+            return "Cevap çok kısa. Daha açıklayıcı ve örnek içeren bir cevap vermelisin.";
+        }
+
+        if (userAnswer.Length < 100)
+        {
+            return "Cevap temel olarak yeterli. Daha teknik detay ve örnek ekleyerek güçlendirebilirsin.";
+        }
+
+        return "Cevap detaylı görünüyor. Teknik doğruluk ve örneklerle destekleme açısından değerlendirilebilir.";
+    }
 
     private List<Question> GenerateQuestionsByPosition(string positionName, int sessionId)
     {
