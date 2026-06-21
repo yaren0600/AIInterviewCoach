@@ -9,6 +9,7 @@ using AIInterviewCoach.Domain.Entities;
 using AIInterviewCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace AIInterviewCoach.Infrastructure.Services;
 
 public class InterviewService : IInterviewService
