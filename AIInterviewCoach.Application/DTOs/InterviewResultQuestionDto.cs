@@ -9,19 +9,12 @@ namespace AIInterviewCoach.Application.DTOs;
 public class InterviewResultQuestionDto
 {
     public int QuestionId { get; set; }
-
     public string QuestionText { get; set; } = string.Empty;
-
     public string Difficulty { get; set; } = string.Empty;
-
     public string Category { get; set; } = string.Empty;
-
     public string? UserAnswer { get; set; }
-
     public int? Score { get; set; }
-
     public string? Feedback { get; set; }
-
     public DateTime? AnsweredAt { get; set; }
 }
 
