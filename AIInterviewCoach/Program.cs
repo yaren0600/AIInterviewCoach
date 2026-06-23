@@ -30,6 +30,8 @@ builder.Services.AddScoped<IInterviewService, InterviewService>();
 
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
+builder.Services.AddScoped<IResumeService, ResumeService>();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
