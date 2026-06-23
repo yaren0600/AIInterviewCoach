@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace AIInterviewCoach.Domain.Entities;
 
+/// <summary>
+/// Bir kullanıcının birden fazla CV yükleme kaydı olabilir.
+/// </summary>
 public class User
 {
     public int Id { get; set; }
@@ -14,4 +17,6 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public ICollection<InterviewSession> InterviewSessions { get; set; } = new List<InterviewSession>();
+    public ICollection<Resume> Resumes { get; set; } = new List<Resume>();
+
 }
