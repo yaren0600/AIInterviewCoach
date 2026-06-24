@@ -1,14 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AIInterviewCoach.Application.DTOs;
+﻿using AIInterviewCoach.Application.DTOs;
 using AIInterviewCoach.Application.Interfaces;
 using AIInterviewCoach.Domain.Entities;
 using AIInterviewCoach.Infrastructure.Persistence;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using UglyToad.PdfPig;
 
 namespace AIInterviewCoach.Infrastructure.Services;
 
@@ -54,6 +58,8 @@ public class ResumeService : IResumeService
             await file.CopyToAsync(stream);
         }
 
+        var extractedText = ExtractTextFromFile(filePath, file.ContentType);
+
         var resume = new Resume
         {
             UserId = userId,
@@ -61,7 +67,7 @@ public class ResumeService : IResumeService
             FilePath = filePath,
             ContentType = file.ContentType,
             UploadedAt = DateTime.Now,
-            ExtractedText = null
+            ExtractedText = extractedText
         };
 
         _context.Resumes.Add(resume);
@@ -77,6 +83,7 @@ public class ResumeService : IResumeService
             ExtractedText = resume.ExtractedText
         };
     }
+
 
     public async Task<List<ResumeDto>> GetMyResumesAsync(int userId)
     {
@@ -95,5 +102,60 @@ public class ResumeService : IResumeService
             .ToListAsync();
 
         return resumes;
+    }
+
+    /// <summary>
+    /// Dosya PDF ise → PDF okuma metoduna gönder
+    /// Dosya DOCX ise → DOCX okuma metoduna gönder
+    /// Diğer dosya türüyse → null dön
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="contentType"></param>
+    private string? ExtractTextFromFile(string filePath, string contentType)
+    {
+        if (contentType == "application/pdf")
+        {
+            return ExtractTextFromPdf(filePath);
+        }
+
+        if (contentType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        {
+            return ExtractTextFromDocx(filePath);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Bu metot PDF dosyasını açıyor, sayfaları tek tek dolaşıyor
+    /// sayfanın metnini birleştiriyor OCR işlemi değil bu metin okuma işlemi
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    private string ExtractTextFromPdf(string filePath)
+    {
+        var textBuilder = new StringBuilder();
+
+        using var document = PdfDocument.Open(filePath);
+
+        foreach (var page in document.GetPages())
+        {
+            textBuilder.AppendLine(page.Text);
+        }
+
+        return textBuilder.ToString();
+    }
+
+    /// <summary>
+    /// Bu metot Word dosyasını açıyor ve ana gövdedeki metni alıyor.
+    /// </summary>
+    /// <param name="filePath"></param>
+    private string ExtractTextFromDocx(string filePath)
+    {
+        using var wordDocument = WordprocessingDocument.Open(filePath, false);
+
+        var body = wordDocument.MainDocumentPart?.Document.Body;
+
+        return body?.InnerText ?? string.Empty;
     }
 }
