@@ -343,8 +343,8 @@ public class InterviewService : IInterviewService
         if (existingAnswer is not null)
             {
             existingAnswer.UserAnswer = request.UserAnswer;
-            existingAnswer.Score = CalculateBasicScore(request.UserAnswer);
-            existingAnswer.Feedback = GenerateBasicFeedback(request.UserAnswer);
+            existingAnswer.Score = CalculateSmartScore(request.UserAnswer, question.Category, question.QuestionText);
+            existingAnswer.Feedback = GenerateSmartFeedback(request.UserAnswer, question.Category, question.QuestionText);
             existingAnswer.AnsweredAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -363,8 +363,8 @@ public class InterviewService : IInterviewService
         {
             QuestionId = request.QuestionId,
             UserAnswer = request.UserAnswer,
-            Score = CalculateBasicScore(request.UserAnswer),
-            Feedback = GenerateBasicFeedback(request.UserAnswer),
+            Score = CalculateSmartScore(request.UserAnswer, question.Category, question.QuestionText),
+            Feedback = GenerateSmartFeedback(request.UserAnswer, question.Category, question.QuestionText),
             AnsweredAt = DateTime.Now
         };
 
@@ -468,45 +468,318 @@ public class InterviewService : IInterviewService
     //Her bir seans için pozisyon adı, başlangıç ve bitiş zamanı, toplam puan, toplam soru sayısı, cevaplanan soru sayısı ve seansın durumu (In Progress veya Completed)
     //gibi bilgileri içeren MyInterviewSessionDto türünde bir liste döndürür. Seanslar başlangıç zamanına göre azalan sırayla sıralanır, böylece en son yapılan mülakat seansı ilk olarak görüntülenir.
 
-    private int CalculateBasicScore(string userAnswer)
+    //private int CalculateBasicScore(string userAnswer)
+    //{
+    //    if (string.IsNullOrWhiteSpace(userAnswer))
+    //    {
+    //        return 0;
+    //    }
+
+    //    if (userAnswer.Length < 30)
+    //    {
+    //        return 40;
+    //    }
+
+    //    if (userAnswer.Length < 100)
+    //    {
+    //        return 70;
+    //    }
+
+    //    return 85;
+    //}
+
+    /// <summary>
+    ///     /// Basic Feedback metodu cevap yazıldı yazılmadı şeklinde puanlama yapıyordu
+    /// Bu metot ise uzunluğa kısalığa, teknik olmasına ve örnek olmasına göre puanlama yapıyor
+    /// </summary>
+    /// <param name="userAnswer"></param>
+    /// <param name="category"></param>
+    /// <param name="questionText"></param>
+    /// <returns></returns>
+    private int CalculateSmartScore(
+    string userAnswer,
+    string category,
+    string questionText)
     {
         if (string.IsNullOrWhiteSpace(userAnswer))
         {
             return 0;
         }
 
-        if (userAnswer.Length < 30)
+        var normalizedAnswer = userAnswer.ToLower();
+        var normalizedCategory = category.ToLower();
+        var normalizedQuestion = questionText.ToLower();
+
+        var score = 30;
+
+        if (userAnswer.Length >= 50)
         {
-            return 40;
+            score += 20;
         }
 
-        if (userAnswer.Length < 100)
+        if (userAnswer.Length >= 150)
         {
-            return 70;
+            score += 15;
         }
 
-        return 85;
+        var expectedKeywords = GetExpectedKeywords(normalizedCategory, normalizedQuestion);
+
+        var matchedKeywordCount = expectedKeywords
+            .Count(keyword => normalizedAnswer.Contains(keyword));
+
+        if (matchedKeywordCount >= 1)
+        {
+            score += 15;
+        }
+
+        if (matchedKeywordCount >= 3)
+        {
+            score += 15;
+        }
+
+        if (ContainsExampleExpression(normalizedAnswer))
+        {
+            score += 5;
+        }
+
+        if (score > 100)
+        {
+            score = 100;
+        }
+
+        return score;
     }
 
 
-    private string GenerateBasicFeedback(string userAnswer)
+    //private string GenerateBasicFeedback(string userAnswer)
+    //{
+    //    if (string.IsNullOrWhiteSpace(userAnswer))
+    //    {
+    //        return "Cevap boş bırakılmış. Soruyu teknik kavramlarla açıklamaya çalışmalısın.";
+    //    }
+
+    //    if (userAnswer.Length < 30)
+    //    {
+    //        return "Cevap çok kısa. Daha açıklayıcı ve örnek içeren bir cevap vermelisin.";
+    //    }
+
+    //    if (userAnswer.Length < 100)
+    //    {
+    //        return "Cevap temel olarak yeterli. Daha teknik detay ve örnek ekleyerek güçlendirebilirsin.";
+    //    }
+
+    //    return "Cevap detaylı görünüyor. Teknik doğruluk ve örneklerle destekleme açısından değerlendirilebilir.";
+    //}
+
+    /// <summary>
+    /// Kullanıcıya daha açıklayıcı feedba
+    /// </summary>
+    /// <param name="userAnswer"></param>
+    /// <param name="category"></param>
+    /// <param name="questionText"></param>
+    /// <returns></returns>
+    private string GenerateSmartFeedback(
+    string userAnswer,
+    string category,
+    string questionText)
     {
         if (string.IsNullOrWhiteSpace(userAnswer))
         {
             return "Cevap boş bırakılmış. Soruyu teknik kavramlarla açıklamaya çalışmalısın.";
         }
 
-        if (userAnswer.Length < 30)
+        var normalizedAnswer = userAnswer.ToLower();
+        var normalizedCategory = category.ToLower();
+        var normalizedQuestion = questionText.ToLower();
+
+        var expectedKeywords = GetExpectedKeywords(normalizedCategory, normalizedQuestion);
+
+        var matchedKeywords = expectedKeywords
+            .Where(keyword => normalizedAnswer.Contains(keyword))
+            .ToList();
+
+        if (userAnswer.Length < 50)
         {
-            return "Cevap çok kısa. Daha açıklayıcı ve örnek içeren bir cevap vermelisin.";
+            return "Cevap çok kısa. Daha açıklayıcı olmalı ve teknik kavramlarla desteklenmeli.";
         }
 
-        if (userAnswer.Length < 100)
+        if (!matchedKeywords.Any())
         {
-            return "Cevap temel olarak yeterli. Daha teknik detay ve örnek ekleyerek güçlendirebilirsin.";
+            return "Cevap uzunluk olarak yeterli olabilir ancak ilgili teknik kavramları yeterince içermiyor. Soruyla ilişkili anahtar kavramları eklemelisin.";
         }
 
-        return "Cevap detaylı görünüyor. Teknik doğruluk ve örneklerle destekleme açısından değerlendirilebilir.";
+        if (matchedKeywords.Count < 3)
+        {
+            return $"Cevap temel olarak uygun. Ancak daha güçlü olması için şu kavramları daha detaylı açıklayabilirsin: {string.Join(", ", expectedKeywords.Take(3))}.";
+        }
+
+        if (!ContainsExampleExpression(normalizedAnswer))
+        {
+            return "Cevap teknik olarak iyi görünüyor. Daha güçlü olması için kısa bir örnek veya proje deneyimiyle destekleyebilirsin.";
+        }
+
+        return "Cevap teknik kavramlar içeriyor, yeterince açıklayıcı ve örnekle desteklenmiş görünüyor.";
+    }
+
+    /// <summary>
+    /// Bu metot soruya göre hangi kelimelerin cevapta beklendiğini belirler
+    /// </summary>
+    /// <param name="normalizedCategory"></param>
+    /// <param name="normalizedQuestion"></param>
+    /// <returns></returns>
+    private List<string> GetExpectedKeywords(
+    string normalizedCategory,
+    string normalizedQuestion)
+    {
+        if (normalizedCategory.Contains("api") ||
+            normalizedQuestion.Contains("api") ||
+            normalizedQuestion.Contains("rest"))
+        {
+            return new List<string>
+        {
+            "api",
+            "rest",
+            "endpoint",
+            "request",
+            "response",
+            "http",
+            "get",
+            "post",
+            "json"
+        };
+        }
+
+        if (normalizedCategory.Contains("security") ||
+            normalizedQuestion.Contains("jwt") ||
+            normalizedQuestion.Contains("authentication"))
+        {
+            return new List<string>
+        {
+            "jwt",
+            "token",
+            "authentication",
+            "authorization",
+            "claim",
+            "security",
+            "login"
+        };
+        }
+
+        if (normalizedCategory.Contains("database") ||
+            normalizedCategory.Contains("sql") ||
+            normalizedQuestion.Contains("sql") ||
+            normalizedQuestion.Contains("join"))
+        {
+            return new List<string>
+        {
+            "sql",
+            "database",
+            "table",
+            "join",
+            "inner join",
+            "left join",
+            "primary key",
+            "foreign key",
+            "query"
+        };
+        }
+
+        if (normalizedCategory.Contains("backend") ||
+            normalizedQuestion.Contains("controller") ||
+            normalizedQuestion.Contains("service") ||
+            normalizedQuestion.Contains("repository"))
+        {
+            return new List<string>
+        {
+            "controller",
+            "service",
+            "repository",
+            "layer",
+            "business",
+            "data",
+            "dependency injection",
+            "entity"
+        };
+        }
+
+        if (normalizedCategory.Contains("cv-based") &&
+            normalizedQuestion.Contains("opencv"))
+        {
+            return new List<string>
+        {
+            "opencv",
+            "grayscale",
+            "threshold",
+            "contour",
+            "image",
+            "pixel",
+            "blur",
+            "detection"
+        };
+        }
+
+        if (normalizedCategory.Contains("cv-based") &&
+            normalizedQuestion.Contains("python"))
+        {
+            return new List<string>
+        {
+            "python",
+            "pandas",
+            "numpy",
+            "data",
+            "analysis",
+            "library",
+            "visualization"
+        };
+        }
+
+        if (normalizedCategory.Contains("behavioral"))
+        {
+            return new List<string>
+        {
+            "problem",
+            "research",
+            "learn",
+            "team",
+            "solution",
+            "communication",
+            "project"
+        };
+        }
+
+        return new List<string>
+    {
+        "project",
+        "system",
+        "process",
+        "data",
+        "user",
+        "technology",
+        "example"
+    };
+    }
+
+    /// <summary>
+    /// Bu metot cevapta örnek verilip verilmediğini kontrol eder
+    /// </summary>
+    /// <param name="normalizedAnswer"></param>
+    private bool ContainsExampleExpression(string normalizedAnswer)
+    {
+        var exampleExpressions = new List<string>
+    {
+        "örneğin",
+        "mesela",
+        "example",
+        "for example",
+        "projemde",
+        "projede",
+        "kullandım",
+        "uyguladım",
+        "senaryo"
+    };
+
+        return exampleExpressions.Any(expression =>
+            normalizedAnswer.Contains(expression));
     }
 
     private List<Question> GenerateQuestionsByPosition(string positionName, int sessionId)
