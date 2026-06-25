@@ -154,11 +154,34 @@ public class InterviewService : IInterviewService
     /// <param name="detectedSkills"></param>
     /// <returns></returns>
     private List<Question> GenerateQuestionsByPositionAndSkills(
-    string positionName,
-    int sessionId,
-    List<string> detectedSkills)
+        string positionName,
+        int sessionId,
+        List<string> detectedSkills)
     {
-        var questions = GenerateQuestionsByPosition(positionName, sessionId);
+        var questions = new List<Question>();
+
+        var positionQuestions = GenerateQuestionsByPosition(positionName, sessionId);
+
+        questions.AddRange(positionQuestions.Take(4));
+
+        var cvBasedQuestions = GenerateCvBasedQuestions(sessionId, detectedSkills);
+
+        questions.AddRange(cvBasedQuestions.Take(3));
+
+        var behavioralQuestions = GenerateBehavioralQuestions(sessionId);
+
+        questions.AddRange(behavioralQuestions.Take(1));
+
+        return questions
+            .GroupBy(q => q.QuestionText)
+            .Select(g => g.First())
+            .Take(8)
+            .ToList();
+    }
+
+    private List<Question> GenerateCvBasedQuestions(int sessionId, List<string> detectedSkills)
+    {
+        var questions = new List<Question>();
 
         if (detectedSkills.Contains("ASP.NET Core"))
         {
@@ -171,7 +194,7 @@ public class InterviewService : IInterviewService
             });
         }
 
-        if (detectedSkills.Contains("SQL"))
+        if (detectedSkills.Contains("SQL") || detectedSkills.Contains("SQL Server") || detectedSkills.Contains("SQLite"))
         {
             questions.Add(new Question
             {
@@ -248,9 +271,57 @@ public class InterviewService : IInterviewService
             });
         }
 
-        return questions
-            .Take(8)
-            .ToList();
+        if (detectedSkills.Contains("Machine Learning"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde Machine Learning bilgisi görünüyor. Bir modelin başarısını değerlendirirken hangi metrikleri kullanırsın?",
+                Difficulty = "Medium",
+                Category = "CV-Based"
+            });
+        }
+
+        if (detectedSkills.Contains("Git"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde Git/GitHub yer alıyor. Takım çalışmasında branch, commit ve pull request süreçlerini nasıl yönetirsin?",
+                Difficulty = "Easy",
+                Category = "CV-Based"
+            });
+        }
+
+        return questions;
+    }
+
+    private List<Question> GenerateBehavioralQuestions(int sessionId)
+    {
+        return new List<Question>
+    {
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Daha önce bilmediğin bir teknolojiyle karşılaştığında nasıl öğrenip projeye uyguladın?",
+            Difficulty = "Medium",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Bir projede karşılaştığın teknik bir problemi nasıl analiz edip çözdüğünü anlatır mısın?",
+            Difficulty = "Medium",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Takım çalışmasında fikir ayrılığı yaşandığında nasıl iletişim kurarsın?",
+            Difficulty = "Easy",
+            Category = "Behavioral"
+        }
+    };
     }
 
     public async Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request)
