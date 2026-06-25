@@ -31,6 +31,21 @@ public class InterviewService : IInterviewService
             return null;
         }
 
+        Resume? resume = null;
+
+        if (request.ResumeId.HasValue)
+        {
+            resume = await _context.Resumes
+                .FirstOrDefaultAsync(r =>
+                r.Id == request.ResumeId && 
+                r.UserId == userId);
+
+            if (resume is null)
+            {
+                return null;
+            }
+        }
+
         var session = new InterviewSession
         {
             UserId = userId,
@@ -43,7 +58,15 @@ public class InterviewService : IInterviewService
         _context.InterviewSessions.Add(session);
         await _context.SaveChangesAsync();
 
-        var questions = GenerateQuestionsByPosition(position.Name, session.Id);
+        var detectedSkills = resume?.ExtractedText is not null
+            ? DetectSkillsFromText(resume.ExtractedText)
+            : new List<string>();
+
+        var questions = GenerateQuestionsByPositionAndSkills(
+            position.Name,
+            session.Id,
+            detectedSkills
+            );
 
         _context.Questions.AddRange(questions);
         await _context.SaveChangesAsync();
@@ -66,7 +89,168 @@ public class InterviewService : IInterviewService
                 Category = q.Category
             }).ToList()
 
+
+
         };
+    }
+
+    private List<string> DetectSkillsFromText(string text)
+    {
+        var normalizedText = text.ToLower();
+
+        var skillKeywords = new Dictionary<string, string[]>
+    {
+        { "C#", new[] { "c#", "c sharp", "csharp" } },
+        { "ASP.NET Core", new[] { "asp.net core", ".net core", "aspnet core" } },
+        { "SQL", new[] { "sql", "sql server", "mysql", "sqlite", "postgresql" } },
+        { "Python", new[] { "python" } },
+        { "JavaScript", new[] { "javascript", "js" } },
+        { "TypeScript", new[] { "typescript", "ts" } },
+        { "HTML", new[] { "html", "html5" } },
+        { "CSS", new[] { "css", "css3" } },
+        { "React", new[] { "react", "react.js", "reactjs" } },
+        { "Next.js", new[] { "next.js", "nextjs", "next js" } },
+        { "Entity Framework", new[] { "entity framework", "ef core", "entity framework core" } },
+        { "REST API", new[] { "rest api", "restful", "api" } },
+        { "JWT", new[] { "jwt", "json web token" } },
+        { "Git", new[] { "git", "github", "gitlab" } },
+        { "Docker", new[] { "docker", "container" } },
+        { "Power BI", new[] { "power bi", "powerbi" } },
+        { "Pandas", new[] { "pandas" } },
+        { "NumPy", new[] { "numpy" } },
+        { "OpenCV", new[] { "opencv", "open cv" } },
+        { "Machine Learning", new[] { "machine learning", "makine öğrenmesi", "ml" } },
+        { "Data Analysis", new[] { "data analysis", "veri analizi", "data analytics" } },
+        { "Agile", new[] { "agile", "scrum", "kanban" } },
+        { "Kotlin", new[] { "kotlin" } },
+        { "Android", new[] { "android", "android studio" } },
+        { "MVC", new[] { "mvc", "model view controller" } }
+    };
+
+        var detectedSkills = new List<string>();
+
+        foreach (var skill in skillKeywords)
+        {
+            var isDetected = skill.Value.Any(keyword =>
+                normalizedText.Contains(keyword.ToLower()));
+
+            if (isDetected)
+            {
+                detectedSkills.Add(skill.Key);
+            }
+        }
+
+        return detectedSkills
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Bu metot position ve belirlenen skillere göre soru üretimini sağlar
+    /// </summary>
+    /// <param name="positionName"></param>
+    /// <param name="sessionId"></param>
+    /// <param name="detectedSkills"></param>
+    /// <returns></returns>
+    private List<Question> GenerateQuestionsByPositionAndSkills(
+    string positionName,
+    int sessionId,
+    List<string> detectedSkills)
+    {
+        var questions = GenerateQuestionsByPosition(positionName, sessionId);
+
+        if (detectedSkills.Contains("ASP.NET Core"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde ASP.NET Core deneyimi görünüyor. ASP.NET Core ile geliştirdiğin bir projede controller, service ve repository katmanlarını nasıl ayırdın?",
+                Difficulty = "Medium",
+                Category = "CV-Based"
+            });
+        }
+
+        if (detectedSkills.Contains("SQL"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde SQL bilgisi yer alıyor. INNER JOIN ve LEFT JOIN arasındaki farkı örnek bir senaryo üzerinden açıklar mısın?",
+                Difficulty = "Easy",
+                Category = "CV-Based"
+            });
+        }
+
+        if (detectedSkills.Contains("Python"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde Python yer alıyor. Python ile veri işleme veya analiz yaparken hangi kütüphaneleri kullandın ve neden?",
+                Difficulty = "Medium",
+                Category = "CV-Based"
+            });
+        }
+
+        if (detectedSkills.Contains("OpenCV"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde OpenCV deneyimi görünüyor. Görüntü işleme projenizde grileştirme, threshold veya contour işlemlerini neden kullandığını açıklar mısın?",
+                Difficulty = "Medium",
+                Category = "CV-Based"
+            });
+        }
+
+        if (detectedSkills.Contains("Power BI"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde Power BI yer alıyor. Bir dashboard hazırlarken hangi metrikleri seçersin ve görselleştirmeyi nasıl tasarlarsın?",
+                Difficulty = "Medium",
+                Category = "CV-Based"
+            });
+        }
+
+        if (detectedSkills.Contains("JWT"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde JWT bilgisi görünüyor. JWT tabanlı authentication yapısında token üretme ve doğrulama sürecini açıklar mısın?",
+                Difficulty = "Medium",
+                Category = "CV-Based"
+            });
+        }
+
+        if (detectedSkills.Contains("Docker"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde Docker yer alıyor. Bir uygulamayı container içine almanın avantajları nelerdir?",
+                Difficulty = "Medium",
+                Category = "CV-Based"
+            });
+        }
+
+        if (detectedSkills.Contains("Kotlin") || detectedSkills.Contains("Android"))
+        {
+            questions.Add(new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = "CV'nde Android/Kotlin deneyimi görünüyor. Android uygulamasında kullanıcıdan veri alıp işleme sürecini nasıl yönettin?",
+                Difficulty = "Medium",
+                Category = "CV-Based"
+            });
+        }
+
+        return questions
+            .Take(8)
+            .ToList();
     }
 
     public async Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request)
