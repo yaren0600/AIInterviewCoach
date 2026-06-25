@@ -55,4 +55,33 @@ public class ResumesController : ControllerBase
 
         return Ok(result);
     }
+    
+
+    /// <summary>
+    /// Bu endpoint 1 numaralı CV bu kullanıcıya mı ait? CV metni var mı?
+    /// Becerileri tespit et Eksik becerileri çıkar Pozisyon öner Analiz sonucunu döndür
+    /// </summary>
+    /// <param name="resumeId"></param>
+    /// 
+    [HttpGet("{resumeId}/analysis")]
+    public async Task<IActionResult> AnalyzeResume(int resumeId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized("Kullanıcı bilgisi alınamadı.");
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var result = await _resumeService.AnalyzeResumeAsync(userId, resumeId);
+
+        if (result is null)
+        {
+            return NotFound("CV bulunamadı veya bu kullanıcıya ait değil.");
+        }
+
+        return Ok(result);
+    }
 }

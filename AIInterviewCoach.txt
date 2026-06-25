@@ -351,5 +351,69 @@ Answer entity’sindeki AnsweredAt alanını düzelttik.
 Gerekirse migration ile veritabanını güncelledik.
 Swagger’dan cevap gönderip veritabanında kaydedildiğini kontrol ettik.
 
+5. Gün
+
+	1.Dashboard DTO sınıflarını oluşturduk
+DashboardDto
+DashboardRecentInterviewDto
+DashboardPositionSummaryDto
+	2.Dashboard servis yapısını kurduk
+IDashboardService
+DashboardService
+	3.DashboardController oluşturduk
+	4.Şu endpoint’i yazdık:
+GET /api/Dashboard
+	5.Bu endpoint kullanıcıya şunları döndürüyor:
+Toplam mülakat sayısı
+Tamamlanan mülakat sayısı
+Devam eden mülakat sayısı
+Ortalama skor
+Son mülakatlar
+Pozisyona göre mülakat özetleri
+	6.Swagger’dan test ettik ve sonuçları doğru şekilde aldık.
+
+Kısaca 5. gün sonunda sistem artık kullanıcıya dashboard özeti verebiliyor hale geldi.
+
+6. Gün — CV Yükleme ve CV Analizi
+
+	1.Resume entity’si oluşturduk
+Resume.cs
+	2.User ile Resume ilişkisini kurduk.
+	3.AppDbContext içine Resumes tablosunu ekledik.
+	4.Migration aldık ve SQL Server’da Resumes tablosunu oluşturduk.
+	5.CV yükleme yapısını kurduk
+ResumeDto
+IResumeService
+ResumeService
+ResumesController
+	6.Şu endpointleri yazdık:
+POST /api/Resumes/upload
+GET /api/Resumes/my-resumes
+	7.PDF/DOCX dosyası yüklemeyi yaptık.
+	8.Dosyayı Uploads/Resumes klasörüne kaydettik.
+	9.PDF ve DOCX içinden metin çıkarma ekledik.
+	10.ExtractedText alanını doldurduk.
+	11.CV analiz modülünü ekledik:
+ResumeAnalysisDto
+AnalyzeResumeAsync
+	12.Şu endpoint’i yazdık:
+GET /api/Resumes/{resumeId}/analysis
+	13.Bu endpoint CV’den şunları çıkarıyor:
+Tespit edilen teknik beceriler
+Eksik beceri önerileri
+Önerilen pozisyonlar
+Kısa analiz özeti
+	14.suggestedPositions kısmını genişlettik:
+Backend Developer
+Data Analyst
+Business Analyst
+BI Specialist
+Software Engineer
+Computer Vision Developer
+DevOps Engineer
+Full Stack Developer gibi öneriler ekledik.
+
+Kısaca 6. gün sonunda sistem artık CV yükleyebiliyor, CV metnini okuyabiliyor ve CV’ye göre beceri/pozisyon analizi yapabiliyor hale geldi.
+
 
 

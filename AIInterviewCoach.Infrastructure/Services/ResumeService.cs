@@ -104,6 +104,41 @@ public class ResumeService : IResumeService
         return resumes;
     }
 
+    public async Task<ResumeAnalysisDto?> AnalyzeResumeAsync(int userId, int resumeId)
+    {
+        var resume = await _context.Resumes
+            .FirstOrDefaultAsync(r => r.Id == resumeId && r.UserId == userId);
+
+        if (resume is null)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(resume.ExtractedText))
+        {
+            return new ResumeAnalysisDto
+            {
+                ResumeId = resume.Id,
+                FileName = resume.FileName,
+                Summary = "CV metni çıkarılamadığı için analiz yapılamadı."
+            };
+        }
+
+        var detectedSkills = DetectSkills(resume.ExtractedText);
+        var missingSkills = GetMissingSkills(detectedSkills);
+        var suggestedPositions = SuggestPositions(detectedSkills);
+
+        return new ResumeAnalysisDto
+        {
+            ResumeId = resume.Id,
+            FileName = resume.FileName,
+            DetectedSkills = detectedSkills,
+            MissingSkills = missingSkills,
+            SuggestedPositions = suggestedPositions,
+            Summary = GenerateSummary(detectedSkills, missingSkills, suggestedPositions)
+        };
+    }
+
     /// <summary>
     /// Dosya PDF ise → PDF okuma metoduna gönder
     /// Dosya DOCX ise → DOCX okuma metoduna gönder
@@ -158,4 +193,275 @@ public class ResumeService : IResumeService
 
         return body?.InnerText ?? string.Empty;
     }
+
+    /// <summary>
+    /// Bu metot ile CV metnini küçük harflere çeviriyor. Sonra her beceri için farklı yazım ihtimalleri kontrol ediliyor
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
+    private List<string> DetectSkills(string text)
+    {
+        var normalizedText = text.ToLower();
+
+        var skillKeywords = new Dictionary<string, string[]>
+    {
+
+        { "C#", new[] { "c#", "c sharp", "csharp" } },
+        { "ASP.NET Core", new[] { "asp.net core", ".net core", "aspnet core" } },
+        { "SQL", new[] { "sql", "sql server", "mysql", "sqlite", "postgresql" } },
+        { "Python", new[] { "python" } },
+        { "JavaScript", new[] { "javascript", "js" } },
+        { "TypeScript", new[] { "typescript", "ts" } },
+        { "HTML", new[] { "html", "html5" } },
+        { "CSS", new[] { "css", "css3" } },
+        { "React", new[] { "react", "react.js", "reactjs" } },
+        { "Next.js", new[] { "next.js", "nextjs", "next js" } },
+        { "Entity Framework", new[] { "entity framework", "ef core", "entity framework core" } },
+        { "REST API", new[] { "rest api", "restful", "api" } },
+        { "JWT", new[] { "jwt", "json web token" } },
+        { "Git", new[] { "git", "github", "gitlab" } },
+        { "Docker", new[] { "docker", "container" } },
+        { "Power BI", new[] { "power bi", "powerbi" } },
+        { "Pandas", new[] { "pandas" } },
+        { "NumPy", new[] { "numpy" } },
+        { "OpenCV", new[] { "opencv", "open cv" } },
+        { "Machine Learning", new[] { "machine learning", "makine öğrenmesi", "ml" } },
+        { "Data Analysis", new[] { "data analysis", "veri analizi", "data analytics" } },
+        { "Agile", new[] { "agile", "scrum", "kanban" } },
+        { "C", new[] { " c ", "c programming", "c dili" } },
+        { "Java", new[] { "java" } },
+        { "Kotlin", new[] { "kotlin" } },
+        { "Android", new[] { "android", "android studio" } },
+        { "SQLite", new[] { "sqlite" } },
+        { "SQL Server", new[] { "sql server", "mssql", "ms sql" } },
+        { "MVC", new[] { "mvc", "model view controller" } },
+        { "N-Tier Architecture", new[] { "n-tier", "katmanlı mimari", "layered architecture" } },
+        { "Clean Architecture", new[] { "clean architecture" } },
+        { "Unit Testing", new[] { "unit test", "unit testing", "xunit", "nunit" } },
+        { "CI/CD", new[] { "ci/cd", "continuous integration", "continuous deployment" } },
+        { "Jira", new[] { "jira" } },
+        { "Confluence", new[] { "confluence" } },
+        { "Requirement Analysis", new[] { "requirement", "gereksinim analizi", "requirement analysis" } },
+        { "User Story", new[] { "user story", "kullanıcı hikayesi" } },
+        { "Data Visualization", new[] { "data visualization", "veri görselleştirme", "matplotlib", "seaborn" } }
+
+        };
+
+        var detectedSkills = new List<string>();
+
+        foreach (var skill in skillKeywords)
+        {
+            var isDetected = skill.Value.Any(keyword =>
+                normalizedText.Contains(keyword.ToLower()));
+
+            if (isDetected)
+            {
+                detectedSkills.Add(skill.Key);
+            }
+        }
+
+        return detectedSkills
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Bu metot CV’de tespit edilmeyen ama junior/backend/data pozisyonlarında faydalı olabilecek becerileri öneriyor.
+    /// </summary>
+    /// <param name="detectedSkills"></param>
+    private List<string> GetMissingSkills(List<string> detectedSkills)
+    {
+        var recommendedSkills = new List<string>
+    {
+        "Docker",
+        "Unit Testing",
+        "CI/CD",
+        "Clean Architecture",
+        "Cloud Basics",
+        "Redis",
+        "Message Queue"
+    };
+
+        return recommendedSkills
+            .Where(skill => !detectedSkills.Contains(skill))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Bu metot CV'deki becerilere göre pozisyon önerir 
+    /// </summary>
+    /// <param name="detectedSkills"></param>
+    private List<string> SuggestPositions(List<string> detectedSkills)
+    {
+        var suggestedPositions = new List<string>();
+
+        var backendSkills = new[]
+        {
+        "C#",
+        "ASP.NET Core",
+        "SQL",
+        "Entity Framework",
+        "REST API",
+        "JWT"
+    };
+
+        var dataSkills = new[]
+        {
+        "Python",
+        "SQL",
+        "Pandas",
+        "NumPy",
+        "Power BI",
+        "Data Analysis",
+        "Machine Learning"
+    };
+
+        var frontendSkills = new[]
+        {
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "TypeScript",
+        "React",
+        "Next.js"
+    };
+
+        var devopsSkills = new[]
+        {
+        "Docker",
+        "CI/CD",
+        "Cloud Basics",
+        "Redis",
+        "Message Queue"
+    };
+
+        var businessAnalystSkills = new[]
+        {
+        "SQL",
+        "Agile",
+        "Power BI",
+        "Data Analysis",
+        "REST API"
+    };
+
+        var fullStackSkills = new[]
+        {
+        "C#",
+        "ASP.NET Core",
+        "SQL",
+        "JavaScript",
+        "TypeScript",
+        "React",
+        "Next.js",
+        "HTML",
+        "CSS",
+        "REST API"
+    };
+
+        var computerVisionSkills = new[]
+        {
+        "Python",
+        "OpenCV",
+        "Machine Learning"
+    };
+
+        var biSkills = new[]
+        {
+        "SQL",
+        "Power BI",
+        "Data Analysis"
+    };
+
+        var softwareEngineerSkills = new[]
+        {
+        "C#",
+        "Python",
+        "JavaScript",
+        "SQL",
+        "Git",
+        "REST API"
+    };
+
+        if (detectedSkills.Any(skill => backendSkills.Contains(skill)))
+        {
+            suggestedPositions.Add("Backend Developer");
+        }
+
+        if (detectedSkills.Any(skill => dataSkills.Contains(skill)))
+        {
+            suggestedPositions.Add("Data Analyst");
+        }
+
+        if (detectedSkills.Any(skill => frontendSkills.Contains(skill)))
+        {
+            suggestedPositions.Add("Frontend Developer");
+        }
+
+        if (detectedSkills.Any(skill => devopsSkills.Contains(skill)))
+        {
+            suggestedPositions.Add("DevOps Engineer");
+        }
+
+        if (detectedSkills.Any(skill => businessAnalystSkills.Contains(skill)))
+        {
+            suggestedPositions.Add("Business Analyst");
+        }
+
+        if (detectedSkills.Count(skill => fullStackSkills.Contains(skill)) >= 4)
+        {
+            suggestedPositions.Add("Full Stack Developer");
+        }
+
+        if (detectedSkills.Any(skill => computerVisionSkills.Contains(skill)))
+        {
+            suggestedPositions.Add("Computer Vision Developer");
+        }
+
+        if (detectedSkills.Any(skill => biSkills.Contains(skill)))
+        {
+            suggestedPositions.Add("BI Specialist");
+        }
+
+        if (detectedSkills.Any(skill => softwareEngineerSkills.Contains(skill)))
+        {
+            suggestedPositions.Add("Software Engineer");
+        }
+
+        if (!suggestedPositions.Any())
+        {
+            suggestedPositions.Add("Junior Software Developer");
+        }
+
+        return suggestedPositions
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Bu metot analiz sonucunu okunabilir hale getirir
+    /// </summary>
+    /// <param name="detectedSkills"></param>
+    /// <param name="missingSkills"></param>
+    /// <param name="suggestedPositions"></param>
+    /// <returns></returns>
+    private string GenerateSummary(
+    List<string> detectedSkills,
+    List<string> missingSkills,
+    List<string> suggestedPositions)
+    {
+        if (!detectedSkills.Any())
+        {
+            return "CV içinde teknik beceri tespit edilemedi. CV'ye kullanılan teknolojilerin daha açık yazılması önerilir.";
+        }
+
+        var skillsText = string.Join(", ", detectedSkills);
+        var positionsText = string.Join(", ", suggestedPositions);
+
+        return $"CV içinde {detectedSkills.Count} teknik beceri tespit edildi: {skillsText}. " +
+               $"Bu profile uygun olabilecek pozisyonlar: {positionsText}. " +
+               $"CV'yi güçlendirmek için eksik beceriler alanındaki teknolojiler eklenebilir.";
+    }
+
 }
