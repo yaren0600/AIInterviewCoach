@@ -20,13 +20,23 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register(RegisterRequestDto request)
     {
         var result = await _authService.RegisterAsync(request);
-        
-        if(result == "Bu email adresi zaten kayıtlı.")
+
+        if (result == "Bu email adresi zaten kayıtlı.")
         {
-            return BadRequest(result);
+            return BadRequest(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = result,
+                Data = null
+            });
         }
 
-        return Ok(result);
+        return Ok(new ApiResponseDto<string>
+        {
+            Success = true,
+            Message = result,
+            Data = result
+        });
     }
 
     [HttpPost("login")]
@@ -36,13 +46,23 @@ public class AuthController : ControllerBase
 
         if (result == "Email veya şifre hatalı.")
         {
-            return Unauthorized(result);
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = result,
+                Data = null
+            });
         }
-        return Ok(new
-        {token = result
-        
+
+        return Ok(new ApiResponseDto<LoginResponseDto>
+        {
+            Success = true,
+            Message = "Giriş başarılı.",
+            Data = new LoginResponseDto
+            {
+                Token = result
+            }
         });
-         
     }
 
     [Authorize]
@@ -53,15 +73,18 @@ public class AuthController : ControllerBase
         var name = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
         var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
 
-        return Ok(new
+        var profile = new ProfileResponseDto
         {
             UserId = userId,
             Name = name,
             Email = email
-        });
-         
-        //Bu endpoint , kullanıcının kimlik doğrulaması yapıldıktan sonra profil bilgilerini döndürür.
-        //Kullanıcı giriş yaptıktan sonra, JWT token'ı ile bu endpoint'e erişebilir ve kendi bilgilerini görebilir.
+        };
 
+        return Ok(new ApiResponseDto<ProfileResponseDto>
+        {
+            Success = true,
+            Message = "Profil bilgileri başarıyla getirildi.",
+            Data = profile
+        });
     }
 }

@@ -1,4 +1,5 @@
-﻿using AIInterviewCoach.Application.Interfaces;
+﻿using AIInterviewCoach.Application.DTOs;
+using AIInterviewCoach.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,7 +21,12 @@ public class PositionsController : ControllerBase
     {
         var positions = await _positionService.GetAllAsync();
 
-        return Ok(positions);
+        return Ok(new ApiResponseDto<List<PositionDto>>
+        {
+            Success = true,
+            Message = "Pozisyonlar listeleniyor.",
+            Data = positions
+        });
     }
 
     [Authorize]
