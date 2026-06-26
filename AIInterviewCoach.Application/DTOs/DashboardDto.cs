@@ -15,7 +15,10 @@ public class DashboardDto
     public int CompletedInterviews { get; set; }
     public int InProgressInterviews { get; set; }
     public int? AverageScore { get; set; }
-
+    public double CompletionRate { get; set; }
+    public string StrongestCategory { get; set; } = string.Empty;
+    public string WeakestCategory {  get; set; } = string.Empty;
+    public string LatestRecommendation { get; set; } = string.Empty;
     public List<DashboardRecentInterviewDto> RecentInterviews { get; set; } = new();
 
     public List<DashboardPositionSummaryDto> PositionSummaries { get; set; } = new();

@@ -523,6 +523,11 @@ public class InterviewService : IInterviewService
             return 0;
         }
 
+        if (IsUnknownAnswer(userAnswer))
+        {
+            return 10;
+        }
+
         var normalizedAnswer = userAnswer.ToLower();
         var normalizedCategory = category.ToLower();
         var normalizedQuestion = questionText.ToLower();
@@ -603,6 +608,11 @@ public class InterviewService : IInterviewService
         if (string.IsNullOrWhiteSpace(userAnswer))
         {
             return "Cevap boş bırakılmış. Soruyu teknik kavramlarla açıklamaya çalışmalısın.";
+        }
+
+        if (IsUnknownAnswer(userAnswer))
+        {
+            return "Bu cevap, sorunun teknik içeriğini açıklamadığı için düşük puanlandı. Konuyu bilmiyorsan bile temel tanım, kullanım amacı ve kısa bir örnek üzerinden cevap vermeye çalışmalısın.";
         }
 
         var normalizedAnswer = userAnswer.ToLower();
@@ -1194,5 +1204,51 @@ public class InterviewService : IInterviewService
             .ToList();
 
         return categoryPerformances;
+    }
+
+    /// <summary>
+    /// Cevap gerçekten teknik cevap mı,
+    /// yoksa "bilmiyorum" tarzı kaçınma cevabı mı? bunu tespit etmeye yarar
+    /// </summary>
+    /// <param name="userAnswer"></param>
+    private bool IsUnknownAnswer(string userAnswer)
+    {
+        if (string.IsNullOrWhiteSpace(userAnswer))
+        {
+            return true;
+        }
+
+        var normalizedAnswer = userAnswer.ToLower().Trim();
+
+        var unknownExpressions = new List<string>
+    {
+        "bilmiyorum",
+        "bilmiyorum.",
+        "bu sorunun cevabını bilmiyorum",
+        "cevabını bilmiyorum",
+        "fikrim yok",
+        "bir fikrim yok",
+        "emin değilim",
+        "bunu bilmiyorum",
+        "bu konuda bilgim yok",
+        "bu konu hakkında bilgim yok",
+        "şu anda bilmiyorum",
+        "şuan bilmiyorum",
+        "şu an bilmiyorum",
+        "söylemek istemem",
+        "bir şey söylemek istemem",
+        "yorum yapamam",
+        "cevaplamak istemiyorum",
+        "pas geçiyorum",
+        "pas",
+        "i don't know",
+        "i dont know",
+        "i do not know",
+        "no idea",
+        "not sure"
+    };
+
+        return unknownExpressions.Any(expression =>
+            normalizedAnswer.Contains(expression));
     }
 }
