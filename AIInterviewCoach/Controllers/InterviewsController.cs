@@ -25,7 +25,12 @@ public class InterviewsController : ControllerBase
 
         if (userIdClaim is null)
         {
-            return Unauthorized("Kullanıcı bilgisi alınamadı.");
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Kullanıcı bilgisi alınamadı.",
+                Data = null
+            });
         }
 
         var userId = int.Parse(userIdClaim);
@@ -34,10 +39,20 @@ public class InterviewsController : ControllerBase
 
         if (result is null)
         {
-            return BadRequest("Geçersiz pozisyon seçimi.");
+            return BadRequest(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Geçersiz pozisyon seçimi veya CV bulunamadı.",
+                Data = null
+            });
         }
 
-        return Ok(result);
+        return Ok(new ApiResponseDto<InterviewSessionDto>
+        {
+            Success = true,
+            Message = "Mülakat başarıyla başlatıldı.",
+            Data = result
+        });
     }
 
     [HttpPost("answer")]
@@ -47,7 +62,12 @@ public class InterviewsController : ControllerBase
 
         if (userIdClaim is null)
         {
-            return Unauthorized("Kullanıcı bilgisi alınamadı.");
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Kullanıcı bilgisi alınamadı.",
+                Data = null
+            });
         }
 
         var userId = int.Parse(userIdClaim);
@@ -56,10 +76,20 @@ public class InterviewsController : ControllerBase
 
         if (result is null)
         {
-            return BadRequest("Soru bulunamadı veya bu kullanıcıya ait değil.");
+            return BadRequest(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Soru bulunamadı veya bu kullanıcıya ait değil.",
+                Data = null
+            });
         }
 
-        return Ok(result);
+        return Ok(new ApiResponseDto<AnswerDto>
+        {
+            Success = true,
+            Message = "Cevap başarıyla kaydedildi ve değerlendirildi.",
+            Data = result
+        });
     }
 
     [HttpGet("{sessionId}/result")]
@@ -69,7 +99,12 @@ public class InterviewsController : ControllerBase
 
         if (userIdClaim is null)
         {
-            return Unauthorized("Kullanıcı bilgisi alınamadı.");
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Kullanıcı bilgisi alınamadı.",
+                Data = null
+            });
         }
 
         var userId = int.Parse(userIdClaim);
@@ -78,10 +113,20 @@ public class InterviewsController : ControllerBase
 
         if (result is null)
         {
-            return NotFound("Mülakat oturmu bulunamadı veya bu kullanıcıya ait değil!!");
+            return NotFound(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Mülakat oturumu bulunamadı veya bu kullanıcıya ait değil.",
+                Data = null
+            });
         }
 
-        return Ok(result);
+        return Ok(new ApiResponseDto<InterviewResultDto>
+        {
+            Success = true,
+            Message = "Mülakat sonucu başarıyla getirildi.",
+            Data = result
+        });
     }
 
     [HttpGet("my-sessions")]
@@ -91,17 +136,24 @@ public class InterviewsController : ControllerBase
 
         if (userIdClaim is null)
         {
-            return Unauthorized("Kullanıcı bilgisi alınamadı.");
-
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Kullanıcı bilgisi alınamadı.",
+                Data = null
+            });
         }
 
-        var userId = int.Parse(userIdClaim);//Parse ile string olarak gelen userId'yi int'e çeviriyoruz.
+        var userId = int.Parse(userIdClaim);
 
         var result = await _interviewService.GetMySessionsAsync(userId);
 
-        return Ok(result);
-        //Bu controller’ın üstünde zaten [Authorize] olduğu için bu endpoint de token isteyecek.
-
+        return Ok(new ApiResponseDto<List<MyInterviewSessionDto>>
+        {
+            Success = true,
+            Message = "Mülakat oturumları başarıyla getirildi.",
+            Data = result
+        });
     }
 }
 

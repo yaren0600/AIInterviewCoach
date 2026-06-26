@@ -1,4 +1,5 @@
-﻿using AIInterviewCoach.Application.Interfaces;
+﻿using AIInterviewCoach.Application.DTOs;
+using AIInterviewCoach.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -29,13 +30,23 @@ public class DashboardController : ControllerBase
 
         if (userIdClaim is null)
         {
-            return Unauthorized("Kullanıcı bilgisi alınamadı.");
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Kullanıcı bilgisi alınamadı.",
+                Data = null
+            });
         }
 
         var userId = int.Parse(userIdClaim);
 
         var result = await _dashboardService.GetDashboardAsync(userId);
 
-        return Ok(result);
+        return Ok(new ApiResponseDto<DashboardDto>
+        {
+            Success = true,
+            Message = "Dashboard bilgileri başarıyla getirildi.",
+            Data = result
+        });
     }
 }
