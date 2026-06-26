@@ -15,6 +15,11 @@ public class InterviewResultDto
     public int TotalQuestions { get; set; }
     public int AnsweredQuestions { get; set; }
     public int? AverageScore { get; set; }
+    public List<string> StrongAreas { get; set; } = new(); // cv sahibinin iyi olduğu alanlar
+    public List<string> ImprovementAreas { get; set; } = new(); // geliştirilmesi gereken alanlar
+    public List<string> StudyRecommendations {  get; set; } = new(); // çalışma önerileri
+    public string GeneralEvaluation { get; set; } = string.Empty; // genel sonuç yorumu
+    public List<CategoryPerformanceDto> CategoryPerformances { get; set; } = new();
     public List<InterviewResultQuestionDto> Questions { get; set; } = new();
 
 }

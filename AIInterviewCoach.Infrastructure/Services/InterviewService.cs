@@ -408,6 +408,19 @@ public class InterviewService : IInterviewService
             ? Convert.ToInt32(scores.Average())
             : null;
 
+        var strongAreas = GetStrongAreas(session.Questions.ToList());
+
+        var improvementAreas = GetImprovementAreas(session.Questions.ToList());
+
+        var studyRecommendations = GetStudyRecommendations(improvementAreas);
+
+        var generalEvaluation = GenerateGeneralEvaluation(averageScore, 
+            answeredQuestions, 
+            session.Questions.Count
+            );
+
+        var categoryPerformances = GetCategoryPerformances(session.Questions.ToList());
+
         session.TotalScore = averageScore;
 
         if (answeredQuestions == session.Questions.Count && session.CompletedAt is null)
@@ -426,6 +439,10 @@ public class InterviewService : IInterviewService
             TotalQuestions = session.Questions.Count,
             AnsweredQuestions = answeredQuestions,
             AverageScore = averageScore,
+            ImprovementAreas = improvementAreas,
+            StudyRecommendations = studyRecommendations,
+            GeneralEvaluation = generalEvaluation,
+            CategoryPerformances = categoryPerformances,
             Questions = session.Questions.Select(q => new InterviewResultQuestionDto
             {
                 QuestionId = q.Id,
@@ -990,5 +1007,192 @@ public class InterviewService : IInterviewService
             Category = "Problem Solving"
         }
     };
+    }
+
+    /// <summary>
+    /// Bu metot skoru 75 ve üzeri olan soruların kategorilerini alıyor
+    /// Bu alanları güçlü alan olarak gösteriyor
+    /// </summary>
+    /// <param name="questions"></param>
+    private List<string> GetStrongAreas(List<Question> questions)
+    {
+        var strongAreas = questions
+            .Where(q => q.Answer is not null &&
+                        q.Answer.Score.HasValue &&
+                        q.Answer.Score.Value >= 75)
+            .GroupBy(q => q.Category)
+            .Select(g => g.Key)
+            .Distinct()
+            .ToList();
+
+        if (!strongAreas.Any())
+        {
+            return new List<string>
+        {
+            "Henüz belirgin bir güçlü alan tespit edilemedi."
+        };
+        }
+
+        return strongAreas;
+    }
+
+    /// <summary>
+    /// Bu metot skoru 60 altı olan veya cevaplanmamış soruların kategorilerini belirliyor
+    /// Buna göre geliştirilmesi gereken alanların listesini veriyor
+    /// </summary>
+    /// <param name="questions"></param>
+    /// <returns></returns>
+    private List<string> GetImprovementAreas(List<Question> questions)
+    {
+        var improvementAreas = questions
+            .Where(q => q.Answer is null ||
+                        !q.Answer.Score.HasValue ||
+                        q.Answer.Score.Value < 60)
+            .GroupBy(q => q.Category)
+            .Select(g => g.Key)
+            .Distinct()
+            .ToList();
+
+        if (!improvementAreas.Any())
+        {
+            return new List<string>
+        {
+            "Genel performans iyi görünüyor. Kritik bir geliştirme alanı tespit edilmedi."
+        };
+        }
+
+        return improvementAreas;
+    }
+
+    /// <summary>
+    /// Bu metot kategoriye göre çalışma önerisi üretmeyi sağlıyor
+    /// </summary>
+    /// <param name="improvementAreas"></param>
+    /// <returns>Geliştirilmesi gereken alanlar</returns>
+    private List<string> GetStudyRecommendations(List<string> improvementAreas)
+    {
+        var recommendations = new List<string>();
+
+        foreach (var area in improvementAreas)
+        {
+            var normalizedArea = area.ToLower();
+
+            if (normalizedArea.Contains("api") ||
+                normalizedArea.Contains("backend"))
+            {
+                recommendations.Add("REST API, HTTP metotları, request-response yapısı ve endpoint tasarımı konularını tekrar etmelisin.");
+            }
+            else if (normalizedArea.Contains("security"))
+            {
+                recommendations.Add("JWT, authentication, authorization, claim ve token doğrulama konularını çalışmalısın.");
+            }
+            else if (normalizedArea.Contains("database") ||
+                     normalizedArea.Contains("sql"))
+            {
+                recommendations.Add("SQL JOIN türleri, primary key, foreign key, index ve temel sorgu yazımı konularını tekrar etmelisin.");
+            }
+            else if (normalizedArea.Contains("cv-based"))
+            {
+                recommendations.Add("CV'nde yer verdiğin teknolojileri proje deneyiminle birlikte daha net açıklamaya çalışmalısın.");
+            }
+            else if (normalizedArea.Contains("behavioral"))
+            {
+                recommendations.Add("Davranışsal sorular için STAR tekniğiyle durum, görev, aksiyon ve sonuç şeklinde cevap verme pratiği yapmalısın.");
+            }
+            else if (normalizedArea.Contains("data") ||
+                     normalizedArea.Contains("statistics") ||
+                     normalizedArea.Contains("eda"))
+            {
+                recommendations.Add("Veri analizi, eksik veri, aykırı değer, temel istatistik ve görselleştirme konularını tekrar etmelisin.");
+            }
+            else
+            {
+                recommendations.Add($"{area} alanında temel kavramları tekrar edip örnek cevaplar hazırlamalısın.");
+            }
+        }
+
+        return recommendations
+            .Distinct()
+            .ToList();
+    }
+
+    /// <summary>
+    /// Bu metot genel bir yorum üretir
+    /// </summary>
+    /// <param name="averageScore"></param>
+    /// <param name="answeredQuestions"></param>
+    /// <param name="totalQuestions"></param>
+    private string GenerateGeneralEvaluation(
+    int? averageScore,
+    int answeredQuestions,
+    int totalQuestions)
+    {
+        if (answeredQuestions == 0)
+        {
+            return "Henüz cevap verilmediği için genel değerlendirme oluşturulamadı.";
+        }
+
+        if (answeredQuestions < totalQuestions)
+        {
+            return "Mülakatın bir kısmı cevaplanmış. Daha doğru bir değerlendirme için tüm soruları cevaplamalısın.";
+        }
+
+        if (!averageScore.HasValue)
+        {
+            return "Skor hesaplanamadığı için genel değerlendirme oluşturulamadı.";
+        }
+
+        if (averageScore.Value >= 85)
+        {
+            return "Genel performans oldukça güçlü. Teknik kavramları açıklama ve örnekle destekleme açısından iyi bir seviyedesin.";
+        }
+
+        if (averageScore.Value >= 70)
+        {
+            return "Genel performans iyi. Bazı cevapları daha fazla teknik detay ve proje örneğiyle güçlendirebilirsin.";
+        }
+
+        if (averageScore.Value >= 50)
+        {
+            return "Genel performans orta seviyede. Temel kavramları biliyorsun ancak cevaplarını daha açıklayıcı ve teknik hale getirmen gerekiyor.";
+        }
+
+        return "Genel performans geliştirmeye açık. Öncelikle temel kavramları tekrar edip kısa ama net örnek cevaplar hazırlaman önerilir.";
+    }
+
+    /// <summary>
+    /// Bu metot soruları kategorilere göre gruplandırıyor
+    /// her kategoriden kaç ssoru var kontrolü yappıyor
+    /// kaçı cevaplanmış bakıyor 
+    /// cevaplananların ortalama skorunu hesaplıyor
+    /// </summary>
+    /// <param name="questions"></param>
+    /// <returns></returns>
+    private List<CategoryPerformanceDto> GetCategoryPerformances(List<Question> questions)
+    {
+        var categoryPerformances = questions
+            .GroupBy(q => q.Category)
+            .Select(group =>
+            {
+                var answeredQuestions = group
+                    .Where(q => q.Answer is not null && q.Answer.Score.HasValue)
+                    .ToList();
+
+                int? averageScore = answeredQuestions.Any()
+                    ? Convert.ToInt32(answeredQuestions.Average(q => q.Answer!.Score!.Value))
+                    : null;
+
+                return new CategoryPerformanceDto
+                {
+                    Category = group.Key,
+                    QuestionCount = group.Count(),
+                    AnsweredQuestionCount = answeredQuestions.Count,
+                    AverageScore = averageScore
+                };
+            })
+            .OrderBy(x => x.Category)
+            .ToList();
+
+        return categoryPerformances;
     }
 }
