@@ -1,4 +1,4 @@
-export interface ApiResponse<T> {
+﻿export interface ApiResponse<T> {
     success: boolean;
     message: string;
     data: T;
@@ -18,3 +18,33 @@ export interface LoginRequest {
     email: string;
     password: string;
 }
+
+export interface DashboardRecentInterview {
+    sessionId: number;
+    positionName: string;
+    startedAt: string;
+    completedAt: string | null;
+    totalScore: number | null;
+    status: string;
+}
+
+export interface DashboardPositionSummary {
+    positionName: string;
+    interviewCount: number;
+    averageScore: number | null;
+}
+
+//Bu interface backendden gelen dashboard datasının ana şekli 
+export interface DashboardResponse {
+    totalInterviews: number;
+    completedInterviews: number;
+    inProgressInterviews: number;
+    averageScore: number | null;
+    completionRate: number;
+    strongestCategory: string;
+    weakestCategory: string;
+    latestRecommendation: string;
+    recentInterviews: DashboardRecentInterview[];
+    positionSummaries: DashboardPositionSummary[];
+}
+

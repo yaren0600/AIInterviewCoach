@@ -24,3 +24,161 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes floatSlow {
+    0% {
+        transform: translateY(0px) translateX(0px);
+    }
+
+    50% {
+        transform: translateY(-18px) translateX(8px);
+    }
+
+    100% {
+        transform: translateY(0px) translateX(0px);
+    }
+}
+
+@keyframes floatSlowReverse {
+    0% {
+        transform: translateY(0px) translateX(0px);
+    }
+
+    50% {
+        transform: translateY(14px) translateX(-10px);
+    }
+
+    100% {
+        transform: translateY(0px) translateX(0px);
+    }
+}
+
+@keyframes fadeUp {
+    0% {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes softPulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.85;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.85;
+    }
+}
+
+.animate-float-slow {
+    animation: floatSlow 7s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+    animation: floatSlowReverse 8s ease-in-out infinite;
+}
+
+.animate-fade-up {
+    animation: fadeUp 0.7s ease forwards;
+}
+
+.animate-soft-pulse {
+    animation: softPulse 4s ease-in-out infinite;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-gradient-bg {
+    background: 
+        radial-gradient(circle at top left, rgba(244, 114, 182, 0.34), transparent 30%), 
+        radial-gradient(circle at top right, rgba(129, 140, 248, 0.32), transparent 28%), 
+        radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.25), transparent 30%), 
+        linear-gradient(135deg, #fff7fb 0%, #f5f3ff 48%, #effafe 100%);
+}
+
+@keyframes orbitCard {
+    0% {
+        transform: translateY(0px) rotate(-2deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(2deg);
+    }
+
+    100% {
+        transform: translateY(0px) rotate(-2deg);
+    }
+}
+
+@keyframes blinkDot {
+    0% {
+        opacity: 0.35;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.35;
+    }
+}
+
+@keyframes drawLine {
+    0% {
+        width: 0%;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+.interview-studio-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.62)), radial-gradient(circle at top right, rgba(244, 114, 182, 0.22), transparent 32%), radial-gradient(circle at bottom left, rgba(129, 140, 248, 0.18), transparent 34%);
+    border: 1px solid rgba(255, 255, 255, 0.58);
+    box-shadow: 0 24px 70px rgba(79, 70, 229, 0.12);
+    backdrop-filter: blur(18px);
+}
+
+.floating-resume-card {
+    animation: orbitCard 6s ease-in-out infinite;
+}
+
+.live-dot {
+    animation: blinkDot 1.6s ease-in-out infinite;
+}
+
+.flow-line {
+    position: relative;
+    overflow: hidden;
+}
+
+    .flow-line::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        height: 3px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #ec4899, #8b5cf6, #06b6d4);
+        animation: drawLine 1.2s ease forwards;
+    }
