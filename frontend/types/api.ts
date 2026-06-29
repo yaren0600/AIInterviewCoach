@@ -48,3 +48,20 @@ export interface DashboardResponse {
     positionSummaries: DashboardPositionSummary[];
 }
 
+export interface Resume {
+    id: number;
+    fileName: string;
+    filePath: string;
+    contentType: string;
+    uploadedAt: string;
+    extractedText: string | null;
+}
+
+export interface ResumeAnalysis {
+    resumeId: number;
+    fileName: string;
+    detectedSkills: string[];
+    missingSkills: string[];
+    suggestedPositions: string[];
+    summary: string;
+}
