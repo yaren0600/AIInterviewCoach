@@ -37,10 +37,10 @@ export default function DashboardPage() {
                     setMessage(
                         error.response?.data?.message ||
                         error.message ||
-                        "Dashboard bilgileri alınırken bir hata oluştu."
+                        "An error occurred while loading dashboard data."
                     );
                 } else {
-                    setMessage("Dashboard bilgileri alınırken bir hata oluştu.");
+                    setMessage("An error occurred while loading dashboard data.");
                 }
             } finally {
                 setIsLoading(false);
@@ -60,7 +60,7 @@ export default function DashboardPage() {
             <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center">
                 <div className="glass-card rounded-3xl px-8 py-6 text-center animate-fade-up">
                     <p className="text-slate-700 text-lg font-medium">
-                        Dashboard yükleniyor...
+                        Loading dashboard...
                     </p>
                 </div>
             </main>
@@ -71,7 +71,9 @@ export default function DashboardPage() {
         return (
             <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center px-4">
                 <div className="glass-card rounded-3xl p-8 max-w-md w-full text-center animate-fade-up">
-                    <h2 className="text-2xl font-bold text-slate-900">Oops 💫</h2>
+                    <h2 className="text-2xl font-bold text-slate-900">
+                        Something went wrong
+                    </h2>
 
                     <p className="text-rose-600 mt-3">{message}</p>
 
@@ -79,7 +81,7 @@ export default function DashboardPage() {
                         onClick={() => router.push("/login")}
                         className="mt-6 rounded-full bg-slate-900 text-white px-6 py-3 font-medium hover:scale-105 transition"
                     >
-                        Login sayfasına dön
+                        Back to login
                     </button>
                 </div>
             </main>
@@ -88,16 +90,16 @@ export default function DashboardPage() {
 
     return (
         <main className="min-h-screen dashboard-gradient-bg relative overflow-hidden px-4 md:px-6 py-8">
-            <div className="absolute top-8 left-8 w-44 h-44 bg-pink-300/35 rounded-full blur-3xl animate-float-slow" />
-            <div className="absolute top-24 right-10 w-56 h-56 bg-violet-300/30 rounded-full blur-3xl animate-float-reverse" />
-            <div className="absolute bottom-10 left-1/4 w-52 h-52 bg-cyan-300/30 rounded-full blur-3xl animate-soft-pulse" />
-            <div className="absolute bottom-16 right-16 w-40 h-40 bg-fuchsia-200/35 rounded-full blur-3xl animate-float-slow" />
+            <div className="absolute top-8 left-8 w-44 h-44 bg-pink-300/30 rounded-full blur-3xl animate-float-slow" />
+            <div className="absolute top-24 right-10 w-56 h-56 bg-violet-300/25 rounded-full blur-3xl animate-float-reverse" />
+            <div className="absolute bottom-10 left-1/4 w-52 h-52 bg-cyan-300/25 rounded-full blur-3xl animate-soft-pulse" />
+            <div className="absolute bottom-16 right-16 w-40 h-40 bg-fuchsia-200/28 rounded-full blur-3xl animate-float-slow" />
 
             <div className="max-w-7xl mx-auto relative z-10">
                 <header className="interview-studio-card rounded-[2rem] p-6 md:p-8 animate-fade-up">
-                    <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+                    <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-8 items-center">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/70 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+                            <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 live-dot" />
                                 Interview Prep Studio
                             </div>
@@ -111,8 +113,9 @@ export default function DashboardPage() {
                             </h1>
 
                             <p className="mt-4 text-slate-600 max-w-2xl text-sm md:text-base leading-7">
-                                Turn your resume into targeted interview questions, practice your answers,
-                                and see exactly which topics need more work before the real interview.
+                                Turn your resume into targeted interview questions, practice
+                                your answers, and see which topics need more work before the
+                                real interview.
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
@@ -125,60 +128,75 @@ export default function DashboardPage() {
 
                                 <button
                                     onClick={() => router.push("/resumes")}
-                                    className="rounded-full bg-white/80 text-slate-800 px-6 py-3 font-semibold shadow hover:scale-105 transition"
+                                    className="rounded-full bg-white/85 text-slate-800 px-6 py-3 font-semibold shadow hover:scale-105 transition"
                                 >
                                     Upload Resume
                                 </button>
 
                                 <button
                                     onClick={handleLogout}
-                                    className="rounded-full border border-slate-300 bg-white/50 text-slate-700 px-6 py-3 font-semibold hover:bg-white transition"
+                                    className="rounded-full border border-slate-300 bg-white/55 text-slate-700 px-6 py-3 font-semibold hover:bg-white transition"
                                 >
                                     Logout
                                 </button>
                             </div>
                         </div>
 
-                        <div className="relative min-h-[330px] rounded-[2rem] bg-white/55 border border-white/60 overflow-hidden p-6">
-                            <div className="absolute top-6 right-6 rounded-full bg-emerald-100 text-emerald-700 px-3 py-1 text-xs font-bold">
-                                Live practice mode
-                            </div>
-
-                            <div className="absolute left-6 top-10 w-56 rounded-3xl bg-slate-900 text-white p-5 shadow-2xl z-20">
-                                <p className="text-xs text-slate-300">Interviewer asks</p>
-                                <p className="mt-3 text-sm font-semibold leading-6">
-                                    “Tell me about your strongest backend project.”
-                                </p>
-                            </div>
-
-                            <div className="absolute right-8 top-24 w-60 rounded-3xl bg-white p-5 shadow-xl border border-slate-100 z-10 floating-resume-card">
-                                <p className="text-xs font-bold text-violet-600">Resume insight</p>
-
-                                <p className="mt-2 text-sm font-semibold text-slate-800 leading-5">
-                                    ASP.NET Core, SQL and REST API detected
+                        <div className="rounded-[2rem] bg-white/55 border border-white/60 p-5 md:p-6">
+                            <div className="flex items-center justify-between gap-4">
+                                <p className="text-sm font-bold text-slate-700">
+                                    Live practice preview
                                 </p>
 
-                                <div className="mt-4 flex gap-2 flex-wrap">
-                                    <span className="rounded-full bg-rose-100 text-rose-600 px-3 py-1 text-xs font-semibold">
-                                        Backend
-                                    </span>
+                                <span className="rounded-full bg-emerald-100 text-emerald-700 px-3 py-1 text-xs font-bold">
+                                    Active
+                                </span>
+                            </div>
 
-                                    <span className="rounded-full bg-violet-100 text-violet-600 px-3 py-1 text-xs font-semibold">
-                                        API
-                                    </span>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-5">
+                                <div className="rounded-3xl bg-slate-900 text-white p-5 shadow-xl min-h-[160px]">
+                                    <p className="text-xs text-slate-300">Interviewer asks</p>
 
-                                    <span className="rounded-full bg-sky-100 text-sky-600 px-3 py-1 text-xs font-semibold">
-                                        SQL
-                                    </span>
+                                    <p className="mt-3 text-base font-semibold leading-7">
+                                        “Tell me about your strongest backend project.”
+                                    </p>
+
+                                    <div className="mt-5 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
+                                        Role-based question
+                                    </div>
+                                </div>
+
+                                <div className="rounded-3xl bg-white p-5 shadow-xl border border-slate-100 min-h-[160px] floating-resume-card">
+                                    <p className="text-xs font-bold text-violet-600">
+                                        Resume insight
+                                    </p>
+
+                                    <p className="mt-2 text-sm font-semibold text-slate-800 leading-6">
+                                        ASP.NET Core, SQL and REST API detected from your resume.
+                                    </p>
+
+                                    <div className="mt-4 flex gap-2 flex-wrap">
+                                        <span className="rounded-full bg-rose-100 text-rose-600 px-3 py-1 text-xs font-semibold">
+                                            Backend
+                                        </span>
+
+                                        <span className="rounded-full bg-violet-100 text-violet-600 px-3 py-1 text-xs font-semibold">
+                                            API
+                                        </span>
+
+                                        <span className="rounded-full bg-sky-100 text-sky-600 px-3 py-1 text-xs font-semibold">
+                                            SQL
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="absolute left-10 bottom-8 right-10 rounded-3xl bg-white/95 border border-slate-100 p-5 shadow-xl z-30">
+                            <div className="rounded-3xl bg-white/95 border border-slate-100 p-5 shadow-xl mt-4">
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.16em]">
                                     Answer feedback
                                 </p>
 
-                                <div className="mt-4 space-y-3">
+                                <div className="mt-4 space-y-4">
                                     <div>
                                         <div className="flex justify-between text-xs font-semibold text-slate-600">
                                             <span>Technical clarity</span>
@@ -243,6 +261,7 @@ export default function DashboardPage() {
                                     <p className="text-sm text-slate-500 font-medium">
                                         Practice Sessions
                                     </p>
+
                                     <span className="rounded-full bg-rose-100 text-rose-600 px-3 py-1 text-xs font-bold">
                                         Sessions
                                     </span>
@@ -251,6 +270,7 @@ export default function DashboardPage() {
                                 <p className="text-4xl font-black text-slate-900 mt-4">
                                     {dashboard.totalInterviews}
                                 </p>
+
                                 <p className="text-xs text-slate-500 mt-2">
                                     Total practice sessions started
                                 </p>
@@ -261,9 +281,7 @@ export default function DashboardPage() {
                                     <p className="text-sm text-slate-500 font-medium">
                                         Completed Sessions
                                     </p>
-                                    <p className="text-xs text-slate-500 mt-2">
-                                        Sessions completed with feedback
-                                    </p>
+
                                     <span className="rounded-full bg-emerald-100 text-emerald-600 px-3 py-1 text-xs font-bold">
                                         Done
                                     </span>
@@ -272,6 +290,10 @@ export default function DashboardPage() {
                                 <p className="text-4xl font-black text-slate-900 mt-4">
                                     {dashboard.completedInterviews}
                                 </p>
+
+                                <p className="text-xs text-slate-500 mt-2">
+                                    Sessions completed with feedback
+                                </p>
                             </div>
 
                             <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
@@ -279,9 +301,7 @@ export default function DashboardPage() {
                                     <p className="text-sm text-slate-500 font-medium">
                                         Interview Readiness
                                     </p>
-                                    <p className="text-xs text-slate-500 mt-2">
-                                        Average score from your answers
-                                    </p>
+
                                     <span className="rounded-full bg-violet-100 text-violet-600 px-3 py-1 text-xs font-bold">
                                         Score
                                     </span>
@@ -290,6 +310,10 @@ export default function DashboardPage() {
                                 <p className="text-4xl font-black text-slate-900 mt-4">
                                     {dashboard.averageScore ?? "-"}
                                 </p>
+
+                                <p className="text-xs text-slate-500 mt-2">
+                                    Average score from your answers
+                                </p>
                             </div>
 
                             <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
@@ -297,9 +321,7 @@ export default function DashboardPage() {
                                     <p className="text-sm text-slate-500 font-medium">
                                         Practice Completion
                                     </p>
-                                    <p className="text-xs text-slate-500 mt-2">
-                                        Progress across all sessions
-                                    </p>
+
                                     <span className="rounded-full bg-sky-100 text-sky-600 px-3 py-1 text-xs font-bold">
                                         Progress
                                     </span>
@@ -307,6 +329,10 @@ export default function DashboardPage() {
 
                                 <p className="text-4xl font-black text-slate-900 mt-4">
                                     {dashboard.completionRate}%
+                                </p>
+
+                                <p className="text-xs text-slate-500 mt-2">
+                                    Progress across all sessions
                                 </p>
                             </div>
                         </section>
@@ -347,8 +373,7 @@ export default function DashboardPage() {
                                 </p>
 
                                 <p className="mt-2 text-sm text-slate-600">
-                                    Harika gidiyorsun! Bu alan senin güçlü tarafın gibi
-                                    görünüyor.
+                                    This is currently your strongest interview area.
                                 </p>
                             </div>
 
@@ -362,8 +387,8 @@ export default function DashboardPage() {
                                 </p>
 
                                 <p className="mt-2 text-sm text-slate-600">
-                                    Bu alanı biraz daha çalışırsan genel performansın daha da
-                                    yükselecek.
+                                    A little more practice here can improve your overall
+                                    performance.
                                 </p>
                             </div>
 
@@ -373,9 +398,8 @@ export default function DashboardPage() {
                                 </p>
 
                                 <p className="mt-4 text-sm leading-6 text-slate-700">
-                                    Her pratik oturumundan sonra sistem güçlü alanlarını,
-                                    geliştirmen gereken konuları ve önerilen çalışma başlıklarını
-                                    günceller.
+                                    After each practice session, your strengths, weak areas, and
+                                    study recommendations are updated automatically.
                                 </p>
                             </div>
                         </section>
@@ -399,10 +423,12 @@ export default function DashboardPage() {
                                     Continue Practice
                                 </button>
                             </div>
+
                             <div className="hidden md:block h-3 flow-line mt-6" />
+
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
                                 <div className="rounded-2xl bg-white/70 border border-white/60 p-5 hover:-translate-y-1 transition">
-                                    <div className="text-2xl">📄</div>
+                                    <div className="text-sm font-black text-rose-500">01</div>
 
                                     <h3 className="font-bold text-slate-900 mt-3">
                                         Upload Resume
@@ -414,7 +440,7 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="rounded-2xl bg-white/70 border border-white/60 p-5 hover:-translate-y-1 transition">
-                                    <div className="text-2xl">🧩</div>
+                                    <div className="text-sm font-black text-violet-500">02</div>
 
                                     <h3 className="font-bold text-slate-900 mt-3">
                                         Analyze Skills
@@ -426,19 +452,19 @@ export default function DashboardPage() {
                                 </div>
 
                                 <div className="rounded-2xl bg-white/70 border border-white/60 p-5 hover:-translate-y-1 transition">
-                                    <div className="text-2xl">🎤</div>
+                                    <div className="text-sm font-black text-sky-500">03</div>
 
                                     <h3 className="font-bold text-slate-900 mt-3">
                                         Practice Interview
                                     </h3>
 
                                     <p className="text-sm text-slate-500 mt-2">
-                                        Answer role-based and CV-based interview questions.
+                                        Answer role-based and resume-based interview questions.
                                     </p>
                                 </div>
 
                                 <div className="rounded-2xl bg-white/70 border border-white/60 p-5 hover:-translate-y-1 transition">
-                                    <div className="text-2xl">📈</div>
+                                    <div className="text-sm font-black text-emerald-500">04</div>
 
                                     <h3 className="font-bold text-slate-900 mt-3">
                                         Improve Answers
@@ -458,13 +484,15 @@ export default function DashboardPage() {
                                         Recent Interviews
                                     </h2>
 
-                                    <span className="text-xl">🎤</span>
+                                    <span className="rounded-full bg-slate-900 text-white px-3 py-1 text-xs font-bold">
+                                        Sessions
+                                    </span>
                                 </div>
 
                                 <div className="mt-5 space-y-4">
                                     {dashboard.recentInterviews.length === 0 ? (
                                         <div className="rounded-2xl bg-white/70 border border-white/50 p-5 text-sm text-slate-500">
-                                            Henüz mülakat bulunmuyor.
+                                            No interview sessions yet.
                                         </div>
                                     ) : (
                                         dashboard.recentInterviews.map((interview) => (
@@ -499,13 +527,15 @@ export default function DashboardPage() {
                                         Position Summaries
                                     </h2>
 
-                                    <span className="text-xl">📌</span>
+                                    <span className="rounded-full bg-violet-100 text-violet-600 px-3 py-1 text-xs font-bold">
+                                        Roles
+                                    </span>
                                 </div>
 
                                 <div className="mt-5 space-y-4">
                                     {dashboard.positionSummaries.length === 0 ? (
                                         <div className="rounded-2xl bg-white/70 border border-white/50 p-5 text-sm text-slate-500">
-                                            Henüz pozisyon özeti bulunmuyor.
+                                            No position summary yet.
                                         </div>
                                     ) : (
                                         dashboard.positionSummaries.map((position) => (
