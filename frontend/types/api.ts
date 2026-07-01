@@ -65,3 +65,28 @@ export interface ResumeAnalysis {
     suggestedPositions: string[];
     summary: string;
 }
+
+export interface Position {
+    id: number;
+    name: string;
+    description: string;
+}
+
+export interface StartInterviewRequest {
+    positionId: number;
+    resumeId?: number | null;
+}
+
+export interface Question {
+    id: number;
+    text: string;
+    category: string;
+    orderNo: number;
+}
+
+export interface StartInterviewResponse {
+    sessionId: number;
+    positionName: string;
+    resumeFileName: string | null;
+    questions: Question[];
+}
