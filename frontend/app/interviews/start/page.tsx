@@ -87,7 +87,6 @@ export default function StartInterviewPage() {
                     resumeId: selectedResumeId,
                 }
             );
-
             if (response.data.success) {
                 const startedInterview = response.data.data;
 
@@ -103,6 +102,16 @@ export default function StartInterviewPage() {
                     setMessage("Interview started but session id could not be found.");
                     return;
                 }
+
+                const normalizedInterviewSession = {
+                    ...startedInterview,
+                    sessionId: sessionId,
+                };
+
+                sessionStorage.setItem(
+                    `interviewSession-${sessionId}`,
+                    JSON.stringify(normalizedInterviewSession)
+                );
 
                 router.push(`/interviews/${sessionId}`);
             } else {

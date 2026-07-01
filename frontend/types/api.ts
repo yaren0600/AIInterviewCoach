@@ -93,3 +93,71 @@ export interface StartInterviewResponse {
     resumeFileName: string | null;
     questions: Question[];
 }
+
+export interface InterviewQuestion {
+    id: number;
+    text: string;
+    category: string;
+    orderNo: number;
+}
+
+export interface RawInterviewQuestion {
+    id?: number;
+    questionId?: number;
+    text?: string;
+    questionText?: string;
+    title?: string;
+    category?: string;
+    questionCategory?: string;
+    orderNo?: number;
+    orderNumber?: number;
+    order?: number;
+}
+
+export interface InterviewSessionDetail {
+    sessionId: number;
+    positionName: string;
+    resumeFileName: string | null;
+    questions: InterviewQuestion[];
+}
+
+export interface RawInterviewSessionDetail {
+    sessionId?: number;
+    id?: number;
+    interviewSessionId?: number;
+    interviewId?: number;
+    positionName?: string;
+    resumeFileName?: string | null;
+    questions?: RawInterviewQuestion[];
+}
+
+export interface SubmitAnswerRequest {
+    questionId: number;
+    userAnswer: string;
+}
+
+export interface SubmitAnswerResponse {
+    questionId: number;
+    userAnswer: string;
+    score: number;
+    feedback: string;
+}
+
+export interface InterviewSessionDetail {
+    sessionId: number;
+    positionName: string;
+    resumeFileName: string | null;
+    questions: InterviewQuestion[];
+}
+
+export interface SubmitAnswerRequest {
+    questionId: number;
+    userAnswer: string;
+}
+
+export interface SubmitAnswerResponse {
+    questionId: number;
+    userAnswer: string;
+    score: number;
+    feedback: string;
+}
