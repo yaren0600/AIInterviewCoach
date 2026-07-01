@@ -89,7 +89,17 @@ export default function StartInterviewPage() {
             );
 
             if (response.data.success) {
-                const sessionId = response.data.data.sessionId;
+                const startedInterview = response.data.data;
+
+                console.log("Start interview response:", startedInterview);
+
+                const sessionId = startedInterview.sessionId;
+
+                if (!sessionId) {
+                    setMessage("Interview started but session id could not be found.");
+                    return;
+                }
+
                 router.push(`/interviews/${sessionId}`);
             } else {
                 setMessage(response.data.message);
