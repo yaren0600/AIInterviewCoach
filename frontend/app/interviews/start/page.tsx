@@ -93,7 +93,11 @@ export default function StartInterviewPage() {
 
                 console.log("Start interview response:", startedInterview);
 
-                const sessionId = startedInterview.sessionId;
+                const sessionId =
+                    startedInterview.sessionId ??
+                    startedInterview.id ??
+                    startedInterview.interviewSessionId ??
+                    startedInterview.interviewId;
 
                 if (!sessionId) {
                     setMessage("Interview started but session id could not be found.");

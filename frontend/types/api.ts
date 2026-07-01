@@ -85,7 +85,10 @@ export interface Question {
 }
 
 export interface StartInterviewResponse {
-    sessionId: number;
+    sessionId?: number;
+    id?: number;
+    interviewSessionId?: number;
+    interviewId?: number;
     positionName: string;
     resumeFileName: string | null;
     questions: Question[];
