@@ -161,3 +161,19 @@ export interface SubmitAnswerResponse {
     score: number;
     feedback: string;
 }
+
+export interface CategoryPerformance {
+    category: string;
+    averageScore: number;
+}
+
+export interface InterviewResult {
+    sessionId: number;
+    positionName: string;
+    totalScore: number;
+    generalEvaluation: string;
+    strongAreas: string[];
+    improvementAreas: string[];
+    studyRecommendations: string[];
+    categoryPerformances: CategoryPerformance[];
+}
