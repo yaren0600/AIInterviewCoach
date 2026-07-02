@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
 import {
-    ApiResponse,
     InterviewQuestion,
     InterviewSessionDetail,
     RawInterviewSessionDetail,
@@ -32,15 +31,9 @@ function normalizeInterviewSession(
                     question.questionText ??
                     question.title ??
                     "Question text could not be loaded.",
-                category:
-                    question.category ??
-                    question.questionCategory ??
-                    "General",
+                category: question.category ?? question.questionCategory ?? "General",
                 orderNo:
-                    question.orderNo ??
-                    question.orderNumber ??
-                    question.order ??
-                    index + 1,
+                    question.orderNo ?? question.orderNumber ?? question.order ?? index + 1,
             };
         })
         .filter((question) => question.id !== 0);
@@ -135,8 +128,8 @@ export default function InterviewSessionPage() {
         setMessage("");
 
         try {
-            const response = await api.post<ApiResponse<SubmitAnswerResponse>>(
-                "/Interviews/submit-answer",
+            const response = await api.post(
+                "/Interviews/answer",
                 {
                     questionId: currentQuestion.id,
                     userAnswer: answerText,
@@ -144,7 +137,7 @@ export default function InterviewSessionPage() {
             );
 
             if (response.data.success) {
-                setLastFeedback(response.data.data);
+                setLastFeedback(response.data.data as SubmitAnswerResponse);
                 setAnswerText("");
             } else {
                 setMessage(response.data.message);
@@ -220,8 +213,7 @@ export default function InterviewSessionPage() {
         );
     }
 
-    const currentQuestion: InterviewQuestion | undefined =
-        session?.questions[currentQuestionIndex];
+    const currentQuestion = session?.questions[currentQuestionIndex];
 
     const progressPercentage = session
         ? Math.round(((currentQuestionIndex + 1) / session.questions.length) * 100)
