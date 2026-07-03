@@ -177,3 +177,13 @@ export interface InterviewResult {
     studyRecommendations: string[];
     categoryPerformances: CategoryPerformance[];
 }
+
+export interface InterviewSessionSummary {
+    sessionId: number;
+    positionName: string;
+    resumeFileName: string | null;
+    startedAt: string;
+    completedAt: string | null;
+    totalScore: number | null;
+    status: string;
+}
