@@ -4,8 +4,11 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { ApiResponse, InterviewSessionSummary } from "@/types/api";
-
+import {
+    ApiResponse,
+    InterviewSessionSummary,
+    RawInterviewSessionSummary,
+} from "@/types/api";
 export default function InterviewSessionsPage() {
     const router = useRouter();
 
@@ -23,12 +26,20 @@ export default function InterviewSessionsPage() {
 
         async function loadSessions() {
             try {
-                const response = await api.get<ApiResponse<InterviewSessionSummary[]>>(
+                const response = await api.get<ApiResponse<RawInterviewSessionSummary[]>>(
                     "/Interviews/my-sessions"
                 );
 
                 if (response.data.success) {
-                    setSessions(response.data.data);
+                    console.log("Raw sessions response:", response.data.data);
+
+                    const normalizedSessions = response.data.data
+                        .map((session) => normalizeSessionSummary(session))
+                        .filter((session) => session.sessionId !== 0);
+
+                    console.log("Normalized sessions:", normalizedSessions);
+
+                    setSessions(normalizedSessions);
                 } else {
                     setMessage(response.data.message);
                 }
@@ -298,11 +309,14 @@ export default function InterviewSessionsPage() {
 
                                             {session.status.toLowerCase().includes("completed") ? (
                                                 <button
-                                                    onClick={() =>
-                                                        router.push(
-                                                            `/interviews/${session.sessionId}/result`
-                                                        )
-                                                    }
+                                                    onClick={() => {
+                                                        if (!session.sessionId) {
+                                                            setMessage("Session id could not be found for this interview.");
+                                                            return;
+                                                        }
+
+                                                        router.push(`/interviews/${session.sessionId}/result`);
+                                                    }}
                                                     className="rounded-full bg-white text-slate-700 px-5 py-3 text-sm font-semibold shadow hover:scale-105 transition"
                                                 >
                                                     View Result
@@ -325,4 +339,27 @@ export default function InterviewSessionsPage() {
             </div>
         </main>
     );
+}
+
+function normalizeSessionSummary(
+    rawSession: RawInterviewSessionSummary
+): InterviewSessionSummary {
+    return {
+        sessionId:
+            rawSession.sessionId ??
+            rawSession.id ??
+            rawSession.interviewSessionId ??
+            rawSession.interviewId ??
+            0,
+        positionName: rawSession.positionName ?? "Interview Session",
+        resumeFileName: rawSession.resumeFileName ?? null,
+        startedAt:
+            rawSession.startedAt ??
+            rawSession.startDate ??
+            rawSession.createdAt ??
+            new Date().toISOString(),
+        completedAt: rawSession.completedAt ?? rawSession.completedDate ?? null,
+        totalScore: rawSession.totalScore ?? rawSession.score ?? null,
+        status: rawSession.status ?? "Unknown",
+    };
 }

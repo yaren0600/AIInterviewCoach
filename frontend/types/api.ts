@@ -187,3 +187,20 @@ export interface InterviewSessionSummary {
     totalScore: number | null;
     status: string;
 }
+
+export interface RawInterviewSessionSummary {
+    sessionId?: number;
+    id?: number;
+    interviewSessionId?: number;
+    interviewId?: number;
+    positionName?: string;
+    resumeFileName?: string | null;
+    startedAt?: string;
+    startDate?: string;
+    createdAt?: string;
+    completedAt?: string | null;
+    completedDate?: string | null;
+    totalScore?: number | null;
+    score?: number | null;
+    status?: string;
+}
