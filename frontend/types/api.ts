@@ -75,6 +75,9 @@ export interface Position {
 export interface StartInterviewRequest {
     positionId: number;
     resumeId?: number | null;
+    questionCount: number;
+    difficulty: string;
+    interviewMode: string;
 }
 
 export interface Question {

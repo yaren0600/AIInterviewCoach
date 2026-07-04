@@ -12,11 +12,19 @@ namespace AIInterviewCoach.Application.DTOs;
 /// </summary>
 public class StartInterviewRequestDto
 {
-    [Range(1, int.MaxValue, ErrorMessage = "Geçerli bir pozisyon seçilmelidir.")]
+    [Range(1, int.MaxValue, ErrorMessage = "PositionId must be greater than 0.")]
     public int PositionId { get; set; }
+
     public int? ResumeId { get; set; }
-    // neden int? yaptık: bu sayede CV seçmek zorunlu olmayacak
-    //Yani kullanıcı isterse sadece pozisyon seçip mülakat başlatabilir olacak
+
+    [Range(5, 15, ErrorMessage = "Question count must be between 5 and 15.")]
+    public int QuestionCount { get; set; } = 8;
+
+    [Required]
+    public string Difficulty { get; set; } = "Intermediate";
+
+    [Required]
+    public string InterviewMode { get; set; } = "Mixed";
 }
 //Idye göre kullanıcı hangi pozisyonda mülakat başlatmak istiyoor onu anlayacak
 

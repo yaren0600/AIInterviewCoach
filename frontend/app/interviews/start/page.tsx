@@ -26,6 +26,10 @@ export default function StartInterviewPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isStarting, setIsStarting] = useState(false);
 
+    const [selectedQuestionCount, setSelectedQuestionCount] = useState(8);
+    const [selectedDifficulty, setSelectedDifficulty] = useState("Intermediate");
+    const [selectedInterviewMode, setSelectedInterviewMode] = useState("Mixed");
+
     useEffect(() => {
         const token = localStorage.getItem("token");
 
@@ -85,6 +89,9 @@ export default function StartInterviewPage() {
                 {
                     positionId: selectedPositionId,
                     resumeId: selectedResumeId,
+                    questionCount: selectedQuestionCount,
+                    difficulty: selectedDifficulty,
+                    interviewMode: selectedInterviewMode,
                 }
             );
             if (response.data.success) {
@@ -392,6 +399,91 @@ export default function StartInterviewPage() {
                                     Upload a resume first
                                 </button>
                             )}
+                        </div>
+
+                        <div className="glass-card rounded-3xl p-6 animate-fade-up">
+                            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
+                                Session Settings
+                            </p>
+
+                            <h2 className="mt-3 text-2xl font-black text-slate-900">
+                                Customize your interview
+                            </h2>
+
+                            <p className="mt-2 text-sm text-slate-600 leading-6">
+                                Choose how long and how challenging your practice session should be.
+                            </p>
+
+                            <div className="mt-6">
+                                <p className="text-sm font-bold text-slate-700">Question Count</p>
+
+                                <div className="grid grid-cols-4 gap-2 mt-3">
+                                    {[5, 8, 10, 15].map((count) => {
+                                        const isSelected = selectedQuestionCount === count;
+
+                                        return (
+                                            <button
+                                                key={count}
+                                                onClick={() => setSelectedQuestionCount(count)}
+                                                className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${isSelected
+                                                        ? "bg-slate-900 text-white shadow"
+                                                        : "bg-white/75 text-slate-700 hover:bg-white"
+                                                    }`}
+                                            >
+                                                {count}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                <p className="text-sm font-bold text-slate-700">Difficulty</p>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+                                    {["Beginner", "Intermediate", "Advanced"].map((difficulty) => {
+                                        const isSelected = selectedDifficulty === difficulty;
+
+                                        return (
+                                            <button
+                                                key={difficulty}
+                                                onClick={() => setSelectedDifficulty(difficulty)}
+                                                className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${isSelected
+                                                        ? "bg-slate-900 text-white shadow"
+                                                        : "bg-white/75 text-slate-700 hover:bg-white"
+                                                    }`}
+                                            >
+                                                {difficulty}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                <p className="text-sm font-bold text-slate-700">Interview Mode</p>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                                    {["Role-Based", "CV-Based", "Technical", "Behavioral", "Mixed"].map(
+                                        (mode) => {
+                                            const isSelected = selectedInterviewMode === mode;
+
+                                            return (
+                                                <button
+                                                    key={mode}
+                                                    onClick={() => setSelectedInterviewMode(mode)}
+                                                    className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${isSelected
+                                                            ? "bg-slate-900 text-white shadow"
+                                                            : "bg-white/75 text-slate-700 hover:bg-white"
+                                                        }`}
+                                                >
+                                                    {mode}
+                                                </button>
+                                            );
+                                        }
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         <div className="glass-card rounded-3xl p-6 animate-fade-up">
