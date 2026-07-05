@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -86,6 +86,28 @@ export default function InterviewResultPage() {
         );
     }
 
+    if (!result) {
+        return (
+            <main className="min-h-screen dashboard-gradient-bg px-6 py-10">
+                <div className="mx-auto max-w-5xl">
+                    <div className="glass-card rounded-3xl p-8 text-center">
+                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
+                            Loading
+                        </p>
+
+                        <h1 className="mt-3 text-2xl font-black text-slate-900">
+                            Sonuç bilgileri yükleniyor...
+                        </h1>
+
+                        <p className="mt-2 text-sm text-slate-600">
+                            Lütfen birkaç saniye bekle.
+                        </p>
+                    </div>
+                </div>
+            </main>
+        );
+    }
+
     return (
         <main className="min-h-screen dashboard-gradient-bg relative overflow-hidden px-4 md:px-6 py-8">
             <div className="absolute top-8 left-8 w-44 h-44 bg-pink-300/30 rounded-full blur-3xl animate-float-slow" />
@@ -111,6 +133,94 @@ export default function InterviewResultPage() {
                         Review your score, strengths, improvement areas, and personalized
                         study recommendations.
                     </p>
+
+                    <div className="glass-card rounded-3xl p-6 mt-8">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
+                                    Question Review
+                                </p>
+
+                                <h2 className="mt-3 text-2xl font-black text-slate-900">
+                                    Cevaplarının detaylı analizi
+                                </h2>
+
+                                <p className="mt-2 text-sm text-slate-600">
+                                    Her soru için verdiğin cevap, puan ve geri bildirimi buradan inceleyebilirsin.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 space-y-4">
+                            {result.questions && result.questions.length > 0 ? (
+                                result.questions.map((question, index) => (
+                                    <div
+                                        key={question.questionId}
+                                        className="rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm"
+                                    >
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                            <div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-bold text-white">
+                                                        Question {index + 1}
+                                                    </span>
+
+                                                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                                                        {question.category}
+                                                    </span>
+
+                                                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                                                        {question.difficulty}
+                                                    </span>
+                                                </div>
+
+                                                <h3 className="mt-4 text-lg font-black text-slate-900">
+                                                    {question.questionText}
+                                                </h3>
+                                            </div>
+
+                                            <div className="rounded-2xl bg-slate-900 px-4 py-3 text-center text-white">
+                                                <p className="text-xs font-semibold text-white/70">Score</p>
+                                                <p className="text-2xl font-black">
+                                                    {question.score ?? "-"}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                                            <div className="rounded-2xl bg-slate-50 p-4">
+                                                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">
+                                                    Your Answer
+                                                </p>
+
+                                                <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-700">
+                                                    {question.userAnswer && question.userAnswer.trim().length > 0
+                                                        ? question.userAnswer
+                                                        : "Bu soru için henüz cevap bulunmuyor."}
+                                                </p>
+                                            </div>
+
+                                            <div className="rounded-2xl bg-slate-50 p-4">
+                                                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">
+                                                    Feedback
+                                                </p>
+
+                                                <p className="mt-3 text-sm leading-6 text-slate-700">
+                                                    {question.feedback ?? "Bu soru için feedback bulunmuyor."}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="rounded-3xl border border-dashed border-slate-300 bg-white/60 p-6 text-center">
+                                    <p className="font-bold text-slate-700">
+                                        Henüz soru-cevap detayı bulunamadı.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
                     <p className="mt-2 text-sm text-slate-500">
                         Session ID: <span className="font-bold">{sessionId}</span>

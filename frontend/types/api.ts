@@ -170,15 +170,37 @@ export interface CategoryPerformance {
     averageScore: number;
 }
 
+export interface InterviewResultQuestion {
+    questionId: number;
+    questionText: string;
+    difficulty: string;
+    category: string;
+    userAnswer: string | null;
+    score: number | null;
+    feedback: string | null;
+    answeredAt: string | null;
+}
+
 export interface InterviewResult {
     sessionId: number;
     positionName: string;
-    totalScore: number;
+
+    startedAt?: string;
+    completedAt?: string | null;
+
+    totalQuestions?: number;
+    answeredQuestions?: number;
+
+    totalScore?: number | null;
+    averageScore?: number | null;
+
     generalEvaluation: string;
     strongAreas: string[];
     improvementAreas: string[];
     studyRecommendations: string[];
     categoryPerformances: CategoryPerformance[];
+
+    questions: InterviewResultQuestion[];
 }
 
 export interface InterviewSessionSummary {
