@@ -110,7 +110,9 @@ public class InterviewService : IInterviewService
     /// Örnekler:
     /// - Behavioral seçilirse sadece davranışsal sorular gelir.
     /// - CV-Based seçilirse sadece CV/skill bazlı sorular gelir.
-    /// - Mixed seçilirse pozisyon + CV + davranışsal sorular karışık gelir.
+    /// - Technical seçilirse teknik sorular gelir.
+    /// - Role-Based seçilirse pozisyon odaklı sorular gelir.
+    /// - Mixed seçilirse hepsinden karışık gelir.
     /// </summary>
     private List<Question> GenerateQuestionsBySelectedMode(
         string positionName,
@@ -118,89 +120,84 @@ public class InterviewService : IInterviewService
         List<string> detectedSkills,
         StartInterviewRequestDto request)
     {
-        var selectedMode = request.InterviewMode.Trim().ToLower();
-        var selectedQuestionCount = request.QuestionCount;
+        // Frontend'den gelen değerleri güvenli/standart hale getiriyoruz.
+        // Örn: "Behavioral", "behavioral" veya " behavioral " gelse bile doğru çalışır.
+        var selectedMode = NormalizeInterviewMode(request.InterviewMode);
+        var selectedDifficulty = NormalizeDifficulty(request.Difficulty);
 
-        var questions = new List<Question>();
+        // Kullanıcı 5/8/10/15 seçiyor. Yine de güvenlik için 5-15 arasına sıkıştırıyoruz.
+        var selectedQuestionCount = Math.Clamp(request.QuestionCount, 5, 15);
 
-        // 1) Sadece davranışsal mülakat modu
+        // Önce soruları veritabanı entity'si olarak değil, geçici GeneratedQuestion modeliyle topluyoruz.
+        // En sonda Question entity'sine dönüştürüp database'e kaydedeceğiz.
+        var questionDrafts = new List<GeneratedQuestion>();
+
         if (selectedMode == "behavioral")
         {
-            questions.AddRange(GenerateBehavioralQuestions(sessionId));
+            // Behavioral mode seçildiyse pozisyon sorusu üretmiyoruz.
+            // Business Analyst seçili olsa bile sadece davranışsal sorular gelir.
+            questionDrafts.AddRange(GenerateBehavioralQuestions(sessionId).Select(q => new GeneratedQuestion
+            {
+                Text = q.QuestionText,
+                Category = q.Category,
+                Difficulty = selectedDifficulty
+            }));
         }
-
-        // 2) Sadece CV bazlı mülakat modu
         else if (selectedMode == "cv-based")
         {
-            questions.AddRange(GenerateCvBasedQuestions(sessionId, detectedSkills));
+            // CV-Based mode seçildiyse önce CV'den yakalanan skill'lere göre özel sorular üretir.
+            questionDrafts.AddRange(GetSkillBasedCvQuestions(detectedSkills, selectedDifficulty));
 
-            // Eğer CV'den skill yakalanmadıysa boş kalmasın diye genel CV soruları ekliyoruz.
-            if (!questions.Any())
+            // CV'den skill yakalanmadıysa genel CV/proje soruları ekler.
+            if (!questionDrafts.Any())
             {
-                questions.AddRange(new List<Question>
-            {
-                new Question
-                {
-                    InterviewSessionId = sessionId,
-                    QuestionText = "Can you explain one project from your resume and describe your main responsibilities?",
-                    Difficulty = request.Difficulty,
-                    Category = "CV-Based"
-                },
-                new Question
-                {
-                    InterviewSessionId = sessionId,
-                    QuestionText = "Which technical skill in your background do you feel most confident about?",
-                    Difficulty = request.Difficulty,
-                    Category = "CV-Based"
-                },
-                new Question
-                {
-                    InterviewSessionId = sessionId,
-                    QuestionText = "What would you improve in one of your previous projects if you rebuilt it today?",
-                    Difficulty = request.Difficulty,
-                    Category = "CV-Based"
-                }
-            });
+                questionDrafts.AddRange(GetCvBasedQuestions(resumeText: null, difficulty: selectedDifficulty));
             }
         }
-
-        // 3) Technical seçilirse pozisyona göre teknik sorular gelir
         else if (selectedMode == "technical")
         {
-            questions.AddRange(GenerateQuestionsByPosition(positionName, sessionId));
+            // Technical mode seçildiyse sadece teknik sorular gelir.
+            questionDrafts.AddRange(GetTechnicalQuestions(positionName, selectedDifficulty));
         }
-
-        // 4) Role-Based seçilirse pozisyon odaklı sorular gelir
         else if (selectedMode == "role-based")
         {
-            questions.AddRange(GenerateQuestionsByPosition(positionName, sessionId));
+            // Role-Based mode seçildiyse pozisyona özel genel mülakat soruları gelir.
+            questionDrafts.AddRange(GetRoleBasedQuestions(positionName, selectedDifficulty));
         }
-
-        // 5) Mixed seçilirse hepsinden karışık soru gelir
         else
         {
-            var positionQuestions = GenerateQuestionsByPosition(positionName, sessionId);
-            var cvQuestions = GenerateCvBasedQuestions(sessionId, detectedSkills);
-            var behavioralQuestions = GenerateBehavioralQuestions(sessionId);
-
-            questions.AddRange(positionQuestions.Take(4));
-            questions.AddRange(cvQuestions.Take(3));
-            questions.AddRange(behavioralQuestions.Take(4));
+            // Mixed mode: her kategoriden karışık soru üretir.
+            questionDrafts.AddRange(GetRoleBasedQuestions(positionName, selectedDifficulty));
+            questionDrafts.AddRange(GetSkillBasedCvQuestions(detectedSkills, selectedDifficulty));
+            questionDrafts.AddRange(GetTechnicalQuestions(positionName, selectedDifficulty));
+            questionDrafts.AddRange(GenerateBehavioralQuestions(sessionId).Select(q => new GeneratedQuestion
+            {
+                Text = q.QuestionText,
+                Category = q.Category,
+                Difficulty = selectedDifficulty
+            }));
         }
 
-        // Difficulty değerini frontend'deki seçime göre güncelliyoruz.
-        // Böylece Beginner / Intermediate / Advanced seçimi sorulara yansır.
-        foreach (var question in questions)
-        {
-            question.Difficulty = request.Difficulty;
-        }
+        // 10 veya 15 soru seçildiğinde mevcut modda yeterli soru yoksa listeyi tamamlar.
+        AddFallbackQuestionsIfNeeded(
+            questionDrafts,
+            positionName,
+            selectedDifficulty,
+            selectedQuestionCount);
 
-        // Aynı soru yanlışlıkla iki kere gelirse tekilleştiriyoruz.
-        // Sonra kullanıcının seçtiği soru sayısı kadar döndürüyoruz.
-        return questions
-            .GroupBy(q => q.QuestionText)
+        // Aynı soru iki kere oluşursa tekilleştiriyoruz.
+        // Sonra seçilen soru sayısı kadar alıp Question entity'sine dönüştürüyoruz.
+        return questionDrafts
+            .GroupBy(q => q.Text)
             .Select(g => g.First())
             .Take(selectedQuestionCount)
+            .Select(q => new Question
+            {
+                InterviewSessionId = sessionId,
+                QuestionText = q.Text,
+                Category = q.Category,
+                Difficulty = q.Difficulty
+            })
             .ToList();
     }
 
