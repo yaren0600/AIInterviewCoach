@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AIInterviewCoach.Application.DTOs;
+﻿using AIInterviewCoach.Application.DTOs;
 using AIInterviewCoach.Application.Interfaces;
 using AIInterviewCoach.Domain.Entities;
 using AIInterviewCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-
 
 namespace AIInterviewCoach.Infrastructure.Services;
 
@@ -21,8 +15,14 @@ public class InterviewService : IInterviewService
         _context = context;
     }
 
+    /// <summary>
+    /// Yeni bir mülakat oturumu başlatır.
+    /// Bu metot artık sadece position/resume bilgisine göre değil;
+    /// frontend'den gelen QuestionCount, Difficulty ve InterviewMode değerlerine göre soru üretir.
+    /// </summary>
     public async Task<InterviewSessionDto?> StartInterviewAsync(int userId, StartInterviewRequestDto request)
     {
+        // 1) Kullanıcının seçtiği pozisyon veritabanında var mı kontrol ediyoruz.
         var position = await _context.Positions
             .FirstOrDefaultAsync(x => x.Id == request.PositionId);
 
@@ -31,14 +31,16 @@ public class InterviewService : IInterviewService
             return null;
         }
 
+        // 2) Kullanıcı CV seçtiyse, bu CV gerçekten bu kullanıcıya mı ait kontrol ediyoruz.
+        // Böylece başka bir kullanıcının CV'siyle mülakat başlatılması engellenir.
         Resume? resume = null;
 
         if (request.ResumeId.HasValue)
         {
             resume = await _context.Resumes
                 .FirstOrDefaultAsync(r =>
-                r.Id == request.ResumeId && 
-                r.UserId == userId);
+                    r.Id == request.ResumeId.Value &&
+                    r.UserId == userId);
 
             if (resume is null)
             {
@@ -46,6 +48,8 @@ public class InterviewService : IInterviewService
             }
         }
 
+        // 3) Önce mülakat oturumunu oluşturuyoruz.
+        // Soruları bu session.Id ile ilişkilendireceğimiz için önce session kaydedilmeli.
         var session = new InterviewSession
         {
             UserId = userId,
@@ -58,19 +62,29 @@ public class InterviewService : IInterviewService
         _context.InterviewSessions.Add(session);
         await _context.SaveChangesAsync();
 
-        var detectedSkills = resume?.ExtractedText is not null
+        // 4) CV varsa içindeki skill/teknolojileri tespit ediyoruz.
+        // CV yoksa boş liste ile devam ediyoruz.
+        var detectedSkills = !string.IsNullOrWhiteSpace(resume?.ExtractedText)
             ? DetectSkillsFromText(resume.ExtractedText)
             : new List<string>();
 
-        var questions = GenerateQuestionsByPositionAndSkills(
-            position.Name,
-            session.Id,
-            detectedSkills
-            );
+        // 5) Yeni ayarlara göre soru üretiyoruz:
+        // - request.QuestionCount: kaç soru üretilecek?
+        // - request.Difficulty: Beginner / Intermediate / Advanced
+        // - request.InterviewMode: Role-Based / CV-Based / Technical / Behavioral / Mixed
+        // Kullanıcının frontend'de seçtiği mode/difficulty/question count değerlerine göre soru üretir.
+        // Örneğin Behavioral seçildiyse sadece davranışsal sorular gelir.
+        var questions = GenerateQuestionsBySelectedMode(
+            positionName: position.Name,
+            sessionId: session.Id,
+            detectedSkills: detectedSkills,
+            request: request
+        );
 
         _context.Questions.AddRange(questions);
         await _context.SaveChangesAsync();
 
+        // 6) Frontend'e session bilgisini ve oluşturulan soruları dönüyoruz.
         return new InterviewSessionDto
         {
             Id = session.Id,
@@ -81,221 +95,616 @@ public class InterviewService : IInterviewService
             CompletedAt = session.CompletedAt,
             TotalScore = session.TotalScore,
             Questions = questions.Select(q => new QuestionDto
-
             {
                 Id = q.Id,
                 QuestionText = q.QuestionText,
                 Difficulty = q.Difficulty,
                 Category = q.Category
             }).ToList()
-
-
-
         };
     }
 
-    private List<string> DetectSkillsFromText(string text)
+    /// <summary>
+    /// Frontend'den gelen InterviewMode değerine göre hangi soru tiplerinin üretileceğini belirler.
+    /// 
+    /// Örnekler:
+    /// - Behavioral seçilirse sadece davranışsal sorular gelir.
+    /// - CV-Based seçilirse sadece CV/skill bazlı sorular gelir.
+    /// - Mixed seçilirse pozisyon + CV + davranışsal sorular karışık gelir.
+    /// </summary>
+    private List<Question> GenerateQuestionsBySelectedMode(
+        string positionName,
+        int sessionId,
+        List<string> detectedSkills,
+        StartInterviewRequestDto request)
     {
-        var normalizedText = text.ToLower();
+        var selectedMode = request.InterviewMode.Trim().ToLower();
+        var selectedQuestionCount = request.QuestionCount;
 
-        var skillKeywords = new Dictionary<string, string[]>
-    {
-        { "C#", new[] { "c#", "c sharp", "csharp" } },
-        { "ASP.NET Core", new[] { "asp.net core", ".net core", "aspnet core" } },
-        { "SQL", new[] { "sql", "sql server", "mysql", "sqlite", "postgresql" } },
-        { "Python", new[] { "python" } },
-        { "JavaScript", new[] { "javascript", "js" } },
-        { "TypeScript", new[] { "typescript", "ts" } },
-        { "HTML", new[] { "html", "html5" } },
-        { "CSS", new[] { "css", "css3" } },
-        { "React", new[] { "react", "react.js", "reactjs" } },
-        { "Next.js", new[] { "next.js", "nextjs", "next js" } },
-        { "Entity Framework", new[] { "entity framework", "ef core", "entity framework core" } },
-        { "REST API", new[] { "rest api", "restful", "api" } },
-        { "JWT", new[] { "jwt", "json web token" } },
-        { "Git", new[] { "git", "github", "gitlab" } },
-        { "Docker", new[] { "docker", "container" } },
-        { "Power BI", new[] { "power bi", "powerbi" } },
-        { "Pandas", new[] { "pandas" } },
-        { "NumPy", new[] { "numpy" } },
-        { "OpenCV", new[] { "opencv", "open cv" } },
-        { "Machine Learning", new[] { "machine learning", "makine öğrenmesi", "ml" } },
-        { "Data Analysis", new[] { "data analysis", "veri analizi", "data analytics" } },
-        { "Agile", new[] { "agile", "scrum", "kanban" } },
-        { "Kotlin", new[] { "kotlin" } },
-        { "Android", new[] { "android", "android studio" } },
-        { "MVC", new[] { "mvc", "model view controller" } }
-    };
+        var questions = new List<Question>();
 
-        var detectedSkills = new List<string>();
-
-        foreach (var skill in skillKeywords)
+        // 1) Sadece davranışsal mülakat modu
+        if (selectedMode == "behavioral")
         {
-            var isDetected = skill.Value.Any(keyword =>
-                normalizedText.Contains(keyword.ToLower()));
+            questions.AddRange(GenerateBehavioralQuestions(sessionId));
+        }
 
-            if (isDetected)
+        // 2) Sadece CV bazlı mülakat modu
+        else if (selectedMode == "cv-based")
+        {
+            questions.AddRange(GenerateCvBasedQuestions(sessionId, detectedSkills));
+
+            // Eğer CV'den skill yakalanmadıysa boş kalmasın diye genel CV soruları ekliyoruz.
+            if (!questions.Any())
             {
-                detectedSkills.Add(skill.Key);
+                questions.AddRange(new List<Question>
+            {
+                new Question
+                {
+                    InterviewSessionId = sessionId,
+                    QuestionText = "Can you explain one project from your resume and describe your main responsibilities?",
+                    Difficulty = request.Difficulty,
+                    Category = "CV-Based"
+                },
+                new Question
+                {
+                    InterviewSessionId = sessionId,
+                    QuestionText = "Which technical skill in your background do you feel most confident about?",
+                    Difficulty = request.Difficulty,
+                    Category = "CV-Based"
+                },
+                new Question
+                {
+                    InterviewSessionId = sessionId,
+                    QuestionText = "What would you improve in one of your previous projects if you rebuilt it today?",
+                    Difficulty = request.Difficulty,
+                    Category = "CV-Based"
+                }
+            });
             }
         }
 
-        return detectedSkills
-            .Distinct()
-            .OrderBy(x => x)
+        // 3) Technical seçilirse pozisyona göre teknik sorular gelir
+        else if (selectedMode == "technical")
+        {
+            questions.AddRange(GenerateQuestionsByPosition(positionName, sessionId));
+        }
+
+        // 4) Role-Based seçilirse pozisyon odaklı sorular gelir
+        else if (selectedMode == "role-based")
+        {
+            questions.AddRange(GenerateQuestionsByPosition(positionName, sessionId));
+        }
+
+        // 5) Mixed seçilirse hepsinden karışık soru gelir
+        else
+        {
+            var positionQuestions = GenerateQuestionsByPosition(positionName, sessionId);
+            var cvQuestions = GenerateCvBasedQuestions(sessionId, detectedSkills);
+            var behavioralQuestions = GenerateBehavioralQuestions(sessionId);
+
+            questions.AddRange(positionQuestions.Take(4));
+            questions.AddRange(cvQuestions.Take(3));
+            questions.AddRange(behavioralQuestions.Take(4));
+        }
+
+        // Difficulty değerini frontend'deki seçime göre güncelliyoruz.
+        // Böylece Beginner / Intermediate / Advanced seçimi sorulara yansır.
+        foreach (var question in questions)
+        {
+            question.Difficulty = request.Difficulty;
+        }
+
+        // Aynı soru yanlışlıkla iki kere gelirse tekilleştiriyoruz.
+        // Sonra kullanıcının seçtiği soru sayısı kadar döndürüyoruz.
+        return questions
+            .GroupBy(q => q.QuestionText)
+            .Select(g => g.First())
+            .Take(selectedQuestionCount)
             .ToList();
     }
 
     /// <summary>
-    /// Bu metot position ve belirlenen skillere göre soru üretimini sağlar
+    /// Frontend'den gelen difficulty değerini standart hale getirir.
+    /// Böylece "beginner", "Beginner", "BEGINNER" gibi değerler sorun çıkarmaz.
     /// </summary>
-    /// <param name="positionName"></param>
-    /// <param name="sessionId"></param>
-    /// <param name="detectedSkills"></param>
-    /// <returns></returns>
-    private List<Question> GenerateQuestionsByPositionAndSkills(
-        string positionName,
-        int sessionId,
-        List<string> detectedSkills)
+    private string NormalizeDifficulty(string? difficulty)
     {
-        var questions = new List<Question>();
+        var normalizedDifficulty = difficulty?.Trim().ToLower();
 
-        var positionQuestions = GenerateQuestionsByPosition(positionName, sessionId);
-
-        questions.AddRange(positionQuestions.Take(4));
-
-        var cvBasedQuestions = GenerateCvBasedQuestions(sessionId, detectedSkills);
-
-        questions.AddRange(cvBasedQuestions.Take(3));
-
-        var behavioralQuestions = GenerateBehavioralQuestions(sessionId);
-
-        questions.AddRange(behavioralQuestions.Take(1));
-
-        return questions
-            .GroupBy(q => q.QuestionText)
-            .Select(g => g.First())
-            .Take(8)
-            .ToList();
+        return normalizedDifficulty switch
+        {
+            "beginner" => "Beginner",
+            "advanced" => "Advanced",
+            _ => "Intermediate"
+        };
     }
 
-    private List<Question> GenerateCvBasedQuestions(int sessionId, List<string> detectedSkills)
+    /// <summary>
+    /// Frontend'den gelen interview mode değerini standart hale getirir.
+    /// </summary>
+    private string NormalizeInterviewMode(string? interviewMode)
     {
-        var questions = new List<Question>();
+        var normalizedMode = interviewMode?.Trim().ToLower();
+
+        return normalizedMode switch
+        {
+            "role-based" => "role-based",
+            "cv-based" => "cv-based",
+            "technical" => "technical",
+            "behavioral" => "behavioral",
+            _ => "mixed"
+        };
+    }
+
+    /// <summary>
+    /// Soru sayısı yetmezse listeyi genel ama mantıklı sorularla tamamlar.
+    /// Bu özellikle 10 veya 15 soru seçildiğinde önemlidir.
+    /// </summary>
+    private void AddFallbackQuestionsIfNeeded(
+        List<GeneratedQuestion> questionDrafts,
+        string positionName,
+        string difficulty,
+        int requestedQuestionCount)
+    {
+        var fallbackQuestions = new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = $"What makes you a good candidate for the {positionName} role?",
+                Category = "Role-Based",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Can you explain a project you are proud of and what you learned from it?",
+                Category = "CV-Based",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "How do you approach solving a problem when you do not know the solution at first?",
+                Category = "Problem Solving",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Can you describe how you would communicate a technical topic to a non-technical stakeholder?",
+                Category = "Communication",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "What would you do if project requirements changed close to the deadline?",
+                Category = "Behavioral",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "How do you organize your work when you have multiple tasks with different priorities?",
+                Category = "Behavioral",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Can you explain how you test or validate that your work is correct?",
+                Category = "Technical",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "What is one technical topic you want to improve, and how are you planning to improve it?",
+                Category = "Learning",
+                Difficulty = difficulty
+            }
+        };
+
+        foreach (var fallbackQuestion in fallbackQuestions)
+        {
+            if (questionDrafts.Count >= requestedQuestionCount)
+            {
+                break;
+            }
+
+            var alreadyExists = questionDrafts.Any(q => q.Text == fallbackQuestion.Text);
+
+            if (!alreadyExists)
+            {
+                questionDrafts.Add(fallbackQuestion);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Pozisyona özel, role-based sorular üretir.
+    /// </summary>
+    private List<GeneratedQuestion> GetRoleBasedQuestions(
+        string positionName,
+        string difficulty)
+    {
+        if (difficulty == "Beginner")
+        {
+            return new List<GeneratedQuestion>
+            {
+                new()
+                {
+                    Text = $"Can you explain why you are interested in the {positionName} position?",
+                    Category = "Role-Based",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = $"What are the main responsibilities of a {positionName}?",
+                    Category = "Role-Based",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = $"Which skills do you think are most important for a {positionName}?",
+                    Category = "Role-Based",
+                    Difficulty = difficulty
+                }
+            };
+        }
+
+        if (difficulty == "Advanced")
+        {
+            return new List<GeneratedQuestion>
+            {
+                new()
+                {
+                    Text = $"How would you handle a complex real-world problem in a {positionName} role?",
+                    Category = "Role-Based",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = $"How would you prioritize tasks when multiple stakeholders expect different outcomes in a {positionName} role?",
+                    Category = "Role-Based",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = $"How would you measure your success as a {positionName} in the first three months?",
+                    Category = "Role-Based",
+                    Difficulty = difficulty
+                }
+            };
+        }
+
+        return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = $"How would your background help you succeed as a {positionName}?",
+                Category = "Role-Based",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = $"Can you describe a project or experience that is relevant to the {positionName} position?",
+                Category = "Role-Based",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = $"What challenges do you expect in a {positionName} role, and how would you handle them?",
+                Category = "Role-Based",
+                Difficulty = difficulty
+            }
+        };
+    }
+
+    /// <summary>
+    /// CV varsa CV'ye göre, CV yoksa genel CV/proje soruları üretir.
+    /// </summary>
+    private List<GeneratedQuestion> GetCvBasedQuestions(
+        string? resumeText,
+        string difficulty)
+    {
+        var hasResume = !string.IsNullOrWhiteSpace(resumeText);
+
+        if (!hasResume)
+        {
+            return new List<GeneratedQuestion>
+            {
+                new()
+                {
+                    Text = "Can you describe one project from your background and explain your role in it?",
+                    Category = "CV-Based",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "Which technical skill in your background do you feel most confident about?",
+                    Category = "CV-Based",
+                    Difficulty = difficulty
+                }
+            };
+        }
+
+        if (difficulty == "Beginner")
+        {
+            return new List<GeneratedQuestion>
+            {
+                new()
+                {
+                    Text = "Can you explain one project from your resume in simple terms?",
+                    Category = "CV-Based",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "Which technology from your resume did you use most actively?",
+                    Category = "CV-Based",
+                    Difficulty = difficulty
+                }
+            };
+        }
+
+        if (difficulty == "Advanced")
+        {
+            return new List<GeneratedQuestion>
+            {
+                new()
+                {
+                    Text = "Choose one project from your resume and explain its architecture, technical decisions, and limitations.",
+                    Category = "CV-Based",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "What would you improve in one of the projects listed on your resume if you rebuilt it today?",
+                    Category = "CV-Based",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "Can you defend the technology choices you made in one of your resume projects?",
+                    Category = "CV-Based",
+                    Difficulty = difficulty
+                }
+            };
+        }
+
+        return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "Can you explain one project from your resume and describe your main responsibilities?",
+                Category = "CV-Based",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Which technical challenge did you face in a project from your resume, and how did you solve it?",
+                Category = "CV-Based",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "How did your resume projects help you improve your problem-solving skills?",
+                Category = "CV-Based",
+                Difficulty = difficulty
+            }
+        };
+    }
+
+    /// <summary>
+    /// CV'de tespit edilen skill'lere göre daha özel CV soruları üretir.
+    /// </summary>
+    private List<GeneratedQuestion> GetSkillBasedCvQuestions(
+        List<string> detectedSkills,
+        string difficulty)
+    {
+        var questions = new List<GeneratedQuestion>();
 
         if (detectedSkills.Contains("ASP.NET Core"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde ASP.NET Core deneyimi görünüyor. ASP.NET Core ile geliştirdiğin bir projede controller, service ve repository katmanlarını nasıl ayırdın?",
-                Difficulty = "Medium",
-                Category = "CV-Based"
+                Text = "Your resume includes ASP.NET Core. How did you structure controller, service, and repository layers in one of your projects?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
-        if (detectedSkills.Contains("SQL") || detectedSkills.Contains("SQL Server") || detectedSkills.Contains("SQLite"))
+        if (detectedSkills.Contains("SQL"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde SQL bilgisi yer alıyor. INNER JOIN ve LEFT JOIN arasındaki farkı örnek bir senaryo üzerinden açıklar mısın?",
-                Difficulty = "Easy",
-                Category = "CV-Based"
+                Text = "Your resume includes SQL. Can you explain INNER JOIN and LEFT JOIN with a project-related example?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         if (detectedSkills.Contains("Python"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde Python yer alıyor. Python ile veri işleme veya analiz yaparken hangi kütüphaneleri kullandın ve neden?",
-                Difficulty = "Medium",
-                Category = "CV-Based"
+                Text = "Your resume includes Python. Which libraries did you use for data processing or analysis, and why?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         if (detectedSkills.Contains("OpenCV"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde OpenCV deneyimi görünüyor. Görüntü işleme projenizde grileştirme, threshold veya contour işlemlerini neden kullandığını açıklar mısın?",
-                Difficulty = "Medium",
-                Category = "CV-Based"
+                Text = "Your resume includes OpenCV. Why did you use grayscale, threshold, or contour operations in your image processing project?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         if (detectedSkills.Contains("Power BI"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde Power BI yer alıyor. Bir dashboard hazırlarken hangi metrikleri seçersin ve görselleştirmeyi nasıl tasarlarsın?",
-                Difficulty = "Medium",
-                Category = "CV-Based"
+                Text = "Your resume includes Power BI. How do you choose metrics and visualizations when designing a dashboard?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         if (detectedSkills.Contains("JWT"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde JWT bilgisi görünüyor. JWT tabanlı authentication yapısında token üretme ve doğrulama sürecini açıklar mısın?",
-                Difficulty = "Medium",
-                Category = "CV-Based"
+                Text = "Your resume includes JWT. Can you explain token creation and validation in JWT-based authentication?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         if (detectedSkills.Contains("Docker"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde Docker yer alıyor. Bir uygulamayı container içine almanın avantajları nelerdir?",
-                Difficulty = "Medium",
-                Category = "CV-Based"
+                Text = "Your resume includes Docker. What are the advantages of containerizing an application?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         if (detectedSkills.Contains("Kotlin") || detectedSkills.Contains("Android"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde Android/Kotlin deneyimi görünüyor. Android uygulamasında kullanıcıdan veri alıp işleme sürecini nasıl yönettin?",
-                Difficulty = "Medium",
-                Category = "CV-Based"
+                Text = "Your resume includes Android/Kotlin. How did you manage user input and data processing in an Android application?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         if (detectedSkills.Contains("Machine Learning"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde Machine Learning bilgisi görünüyor. Bir modelin başarısını değerlendirirken hangi metrikleri kullanırsın?",
-                Difficulty = "Medium",
-                Category = "CV-Based"
+                Text = "Your resume includes Machine Learning. Which metrics would you use to evaluate a model?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         if (detectedSkills.Contains("Git"))
         {
-            questions.Add(new Question
+            questions.Add(new GeneratedQuestion
             {
-                InterviewSessionId = sessionId,
-                QuestionText = "CV'nde Git/GitHub yer alıyor. Takım çalışmasında branch, commit ve pull request süreçlerini nasıl yönetirsin?",
-                Difficulty = "Easy",
-                Category = "CV-Based"
+                Text = "Your resume includes Git/GitHub. How do you manage branch, commit, and pull request processes in teamwork?",
+                Category = "CV-Based",
+                Difficulty = difficulty
             });
         }
 
         return questions;
     }
 
+    /// <summary>
+    /// Teknik mülakat soruları üretir.
+    /// </summary>
+    private List<GeneratedQuestion> GetTechnicalQuestions(
+        string positionName,
+        string difficulty)
+    {
+        if (difficulty == "Beginner")
+        {
+            return new List<GeneratedQuestion>
+            {
+                new()
+                {
+                    Text = "What is an API, and why is it used in software applications?",
+                    Category = "Technical",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "What is the difference between frontend and backend?",
+                    Category = "Technical",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "What is a database, and why do applications need one?",
+                    Category = "Technical",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "What is Git used for in software development?",
+                    Category = "Technical",
+                    Difficulty = difficulty
+                }
+            };
+        }
+
+        if (difficulty == "Advanced")
+        {
+            return new List<GeneratedQuestion>
+            {
+                new()
+                {
+                    Text = "How would you design a scalable backend architecture for an interview preparation platform?",
+                    Category = "Technical",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "How would you improve API performance if response times became slow?",
+                    Category = "Technical",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = "How would you handle authentication and authorization securely in a web application?",
+                    Category = "Technical",
+                    Difficulty = difficulty
+                },
+                new()
+                {
+                    Text = $"What technical risks would you consider before starting a {positionName} project?",
+                    Category = "Technical",
+                    Difficulty = difficulty
+                }
+            };
+        }
+
+        return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "Can you explain the controller-service-repository pattern?",
+                Category = "Technical",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "What is the purpose of JWT authentication?",
+                Category = "Technical",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "What is the difference between INNER JOIN and LEFT JOIN in SQL?",
+                Category = "Technical",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "What is dependency injection and why is it useful?",
+                Category = "Technical",
+                Difficulty = difficulty
+            }
+        };
+    }
+
+    /// <summary>
+    /// Davranışsal mülakat sorularını üretir.
+    /// Bu sorular pozisyondan bağımsızdır.
+    /// Yani kullanıcı Business Analyst seçse bile InterviewMode Behavioral ise buradaki sorular gelir.
+    /// </summary>
     private List<Question> GenerateBehavioralQuestions(int sessionId)
     {
         return new List<Question>
@@ -303,34 +712,122 @@ public class InterviewService : IInterviewService
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Daha önce bilmediğin bir teknolojiyle karşılaştığında nasıl öğrenip projeye uyguladın?",
+            QuestionText = "Can you tell me about yourself?",
+            Difficulty = "Easy",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "What are your strengths and how do they help you in a professional environment?",
+            Difficulty = "Easy",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Why should we hire you?",
+            Difficulty = "Easy",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Tell me about a time when you solved a difficult problem.",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Bir projede karşılaştığın teknik bir problemi nasıl analiz edip çözdüğünü anlatır mısın?",
+            QuestionText = "How do you handle learning a technology or topic you do not know?",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Takım çalışmasında fikir ayrılığı yaşandığında nasıl iletişim kurarsın?",
+            QuestionText = "Can you describe a time when you worked as part of a team?",
+            Difficulty = "Medium",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Tell me about a time when you received critical feedback and how you responded.",
+            Difficulty = "Medium",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Describe a situation where you disagreed with a teammate or stakeholder. How did you handle it?",
+            Difficulty = "Advanced",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Tell me about a time when you had to deal with uncertainty in a project.",
+            Difficulty = "Advanced",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "How do you manage stress when you have multiple tasks or deadlines?",
+            Difficulty = "Medium",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Describe a time when you made a mistake. What did you learn from it?",
+            Difficulty = "Medium",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "How do you communicate technical information to a non-technical person?",
+            Difficulty = "Advanced",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "Tell me about a goal you set for yourself and how you achieved it.",
+            Difficulty = "Medium",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "How do you prioritize your work when everything seems urgent?",
+            Difficulty = "Advanced",
+            Category = "Behavioral"
+        },
+        new Question
+        {
+            InterviewSessionId = sessionId,
+            QuestionText = "What motivates you to improve yourself professionally?",
             Difficulty = "Easy",
             Category = "Behavioral"
         }
     };
     }
 
+    /// <summary>
+    /// Cevap kaydetme/değerlendirme metodu.
+    /// Kullanıcı aynı soruya tekrar cevap verirse eski cevabı günceller.
+    /// </summary>
     public async Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request)
     {
         var question = await _context.Questions
             .Include(q => q.InterviewSession)
-            .FirstOrDefaultAsync(q => 
-            q.Id == request.QuestionId && 
-            q.InterviewSession.UserId == userId);
+            .FirstOrDefaultAsync(q =>
+                q.Id == request.QuestionId &&
+                q.InterviewSession.UserId == userId);
 
         if (question is null)
         {
@@ -341,7 +838,7 @@ public class InterviewService : IInterviewService
             .FirstOrDefaultAsync(a => a.QuestionId == request.QuestionId);
 
         if (existingAnswer is not null)
-            {
+        {
             existingAnswer.UserAnswer = request.UserAnswer;
             existingAnswer.Score = CalculateSmartScore(request.UserAnswer, question.Category, question.QuestionText);
             existingAnswer.Feedback = GenerateSmartFeedback(request.UserAnswer, question.Category, question.QuestionText);
@@ -359,6 +856,7 @@ public class InterviewService : IInterviewService
                 AnsweredAt = existingAnswer.AnsweredAt
             };
         }
+
         var answer = new Answer
         {
             QuestionId = request.QuestionId,
@@ -381,15 +879,18 @@ public class InterviewService : IInterviewService
             AnsweredAt = answer.AnsweredAt
         };
     }
-    //Bu metot, verilen pozisyon adına göre önceden tanımlanmış soruları oluşturur ve bu soruları belirtilen mülakat seansına (sessionId) atar. Eğer pozisyon adı tanımlı değilse, genel bir soru seti döndürür.
 
+    /// <summary>
+    /// Belirli bir session için sonuç analizi üretir.
+    /// Skor, güçlü alanlar, gelişim alanları, öneriler ve soru-cevap detaylarını döndürür.
+    /// </summary>
     public async Task<InterviewResultDto?> GetInterviewResultAsync(int userId, int sessionId)
     {
         var session = await _context.InterviewSessions
             .Include(s => s.Position)
             .Include(s => s.Questions)
                 .ThenInclude(q => q.Answer)
-            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId);//Bu sayede kullanıcı sadece kendi mülakat sonucunu görebilir. Başka bir kullanıcının session sonucunu göremez.
+            .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId);
 
         if (session is null)
         {
@@ -409,16 +910,12 @@ public class InterviewService : IInterviewService
             : null;
 
         var strongAreas = GetStrongAreas(session.Questions.ToList());
-
         var improvementAreas = GetImprovementAreas(session.Questions.ToList());
-
         var studyRecommendations = GetStudyRecommendations(improvementAreas);
-
-        var generalEvaluation = GenerateGeneralEvaluation(averageScore, 
-            answeredQuestions, 
-            session.Questions.Count
-            );
-
+        var generalEvaluation = GenerateGeneralEvaluation(
+            averageScore,
+            answeredQuestions,
+            session.Questions.Count);
         var categoryPerformances = GetCategoryPerformances(session.Questions.ToList());
 
         session.TotalScore = averageScore;
@@ -443,21 +940,26 @@ public class InterviewService : IInterviewService
             StudyRecommendations = studyRecommendations,
             GeneralEvaluation = generalEvaluation,
             CategoryPerformances = categoryPerformances,
-            Questions = session.Questions.Select(q => new InterviewResultQuestionDto
-            {
-                QuestionId = q.Id,
-                QuestionText = q.QuestionText,
-                Difficulty = q.Difficulty,
-                Category = q.Category,
-                UserAnswer = q.Answer?.UserAnswer,
-                Score = q.Answer?.Score,
-                Feedback = q.Answer?.Feedback,
-                AnsweredAt = q.Answer?.AnsweredAt
-            }).ToList()
+            Questions = session.Questions
+                .OrderBy(q => q.Id)
+                .Select(q => new InterviewResultQuestionDto
+                {
+                    QuestionId = q.Id,
+                    QuestionText = q.QuestionText,
+                    Difficulty = q.Difficulty,
+                    Category = q.Category,
+                    UserAnswer = q.Answer?.UserAnswer,
+                    Score = q.Answer?.Score,
+                    Feedback = q.Answer?.Feedback,
+                    AnsweredAt = q.Answer?.AnsweredAt
+                }).ToList()
         };
     }
-    // Bu metot, belirli bir mülakat seansı için kullanıcının verdiği cevapları ve bu cevaplara ilişkin puanları içeren detaylı bir sonuç döndürür. Mülakat seansının hangi pozisyon için yapıldığı, ne zaman başladığı ve tamamlandığı, toplam soru sayısı, cevaplanan soru sayısı ve ortalama puan gibi bilgileri içerir. Ayrıca, her bir sorunun detaylarını içeren InterviewResultQuestionDto türünde bir liste de bulundurur.
 
+    /// <summary>
+    /// Kullanıcının tüm mülakat session'larını listeler.
+    /// My Sessions sayfası bu metodu kullanır.
+    /// </summary>
     public async Task<List<MyInterviewSessionDto>> GetMySessionsAsync(int userId)
     {
         var sessions = await _context.InterviewSessions
@@ -481,42 +983,77 @@ public class InterviewService : IInterviewService
 
         return sessions;
     }
-    //Bu metot , belirli bir kullanıcıya ait tüm mülakat seanslarını döndürür.
-    //Her bir seans için pozisyon adı, başlangıç ve bitiş zamanı, toplam puan, toplam soru sayısı, cevaplanan soru sayısı ve seansın durumu (In Progress veya Completed)
-    //gibi bilgileri içeren MyInterviewSessionDto türünde bir liste döndürür. Seanslar başlangıç zamanına göre azalan sırayla sıralanır, böylece en son yapılan mülakat seansı ilk olarak görüntülenir.
-
-    //private int CalculateBasicScore(string userAnswer)
-    //{
-    //    if (string.IsNullOrWhiteSpace(userAnswer))
-    //    {
-    //        return 0;
-    //    }
-
-    //    if (userAnswer.Length < 30)
-    //    {
-    //        return 40;
-    //    }
-
-    //    if (userAnswer.Length < 100)
-    //    {
-    //        return 70;
-    //    }
-
-    //    return 85;
-    //}
 
     /// <summary>
-    ///     /// Basic Feedback metodu cevap yazıldı yazılmadı şeklinde puanlama yapıyordu
-    /// Bu metot ise uzunluğa kısalığa, teknik olmasına ve örnek olmasına göre puanlama yapıyor
+    /// CV metninden skill/teknoloji tespiti yapar.
+    /// Bu şimdilik keyword-based çalışır.
+    /// İleride buraya gerçek AI veya NLP tabanlı analiz ekleyebiliriz.
     /// </summary>
-    /// <param name="userAnswer"></param>
-    /// <param name="category"></param>
-    /// <param name="questionText"></param>
-    /// <returns></returns>
+    private List<string> DetectSkillsFromText(string text)
+    {
+        var normalizedText = text.ToLower();
+
+        var skillKeywords = new Dictionary<string, string[]>
+        {
+            { "C#", new[] { "c#", "c sharp", "csharp" } },
+            { "ASP.NET Core", new[] { "asp.net core", ".net core", "aspnet core" } },
+            { "SQL", new[] { "sql", "sql server", "mysql", "sqlite", "postgresql" } },
+            { "Python", new[] { "python" } },
+            { "JavaScript", new[] { "javascript", "js" } },
+            { "TypeScript", new[] { "typescript", "ts" } },
+            { "HTML", new[] { "html", "html5" } },
+            { "CSS", new[] { "css", "css3" } },
+            { "React", new[] { "react", "react.js", "reactjs" } },
+            { "Next.js", new[] { "next.js", "nextjs", "next js" } },
+            { "Entity Framework", new[] { "entity framework", "ef core", "entity framework core" } },
+            { "REST API", new[] { "rest api", "restful", "api" } },
+            { "JWT", new[] { "jwt", "json web token" } },
+            { "Git", new[] { "git", "github", "gitlab" } },
+            { "Docker", new[] { "docker", "container" } },
+            { "Power BI", new[] { "power bi", "powerbi" } },
+            { "Pandas", new[] { "pandas" } },
+            { "NumPy", new[] { "numpy" } },
+            { "OpenCV", new[] { "opencv", "open cv" } },
+            { "Machine Learning", new[] { "machine learning", "makine öğrenmesi", "ml" } },
+            { "Data Analysis", new[] { "data analysis", "veri analizi", "data analytics" } },
+            { "Agile", new[] { "agile", "scrum", "kanban" } },
+            { "Kotlin", new[] { "kotlin" } },
+            { "Android", new[] { "android", "android studio" } },
+            { "MVC", new[] { "mvc", "model view controller" } }
+        };
+
+        var detectedSkills = new List<string>();
+
+        foreach (var skill in skillKeywords)
+        {
+            var isDetected = skill.Value.Any(keyword =>
+                normalizedText.Contains(keyword.ToLower()));
+
+            if (isDetected)
+            {
+                detectedSkills.Add(skill.Key);
+            }
+        }
+
+        return detectedSkills
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Cevabı puanlar.
+    /// Şu an rule-based çalışır:
+    /// - cevap uzunluğu
+    /// - beklenen keyword kullanımı
+    /// - örnek/proje ifadesi var mı
+    /// - "bilmiyorum" tarzı cevap mı
+    /// İleride GPT/Gemini değerlendirmesi buraya veya ayrı bir AI evaluator servisine bağlanabilir.
+    /// </summary>
     private int CalculateSmartScore(
-    string userAnswer,
-    string category,
-    string questionText)
+        string userAnswer,
+        string category,
+        string questionText)
     {
         if (string.IsNullOrWhiteSpace(userAnswer))
         {
@@ -564,46 +1101,17 @@ public class InterviewService : IInterviewService
             score += 5;
         }
 
-        if (score > 100)
-        {
-            score = 100;
-        }
-
-        return score;
+        return Math.Min(score, 100);
     }
 
-
-    //private string GenerateBasicFeedback(string userAnswer)
-    //{
-    //    if (string.IsNullOrWhiteSpace(userAnswer))
-    //    {
-    //        return "Cevap boş bırakılmış. Soruyu teknik kavramlarla açıklamaya çalışmalısın.";
-    //    }
-
-    //    if (userAnswer.Length < 30)
-    //    {
-    //        return "Cevap çok kısa. Daha açıklayıcı ve örnek içeren bir cevap vermelisin.";
-    //    }
-
-    //    if (userAnswer.Length < 100)
-    //    {
-    //        return "Cevap temel olarak yeterli. Daha teknik detay ve örnek ekleyerek güçlendirebilirsin.";
-    //    }
-
-    //    return "Cevap detaylı görünüyor. Teknik doğruluk ve örneklerle destekleme açısından değerlendirilebilir.";
-    //}
-
     /// <summary>
-    /// Kullanıcıya daha açıklayıcı feedba
+    /// Kullanıcı cevabına açıklayıcı feedback üretir.
+    /// Şu an keyword ve uzunluk bazlı çalışır.
     /// </summary>
-    /// <param name="userAnswer"></param>
-    /// <param name="category"></param>
-    /// <param name="questionText"></param>
-    /// <returns></returns>
     private string GenerateSmartFeedback(
-    string userAnswer,
-    string category,
-    string questionText)
+        string userAnswer,
+        string category,
+        string questionText)
     {
         if (string.IsNullOrWhiteSpace(userAnswer))
         {
@@ -649,31 +1157,28 @@ public class InterviewService : IInterviewService
     }
 
     /// <summary>
-    /// Bu metot soruya göre hangi kelimelerin cevapta beklendiğini belirler
+    /// Soru kategorisine/metnine göre cevapta beklenen anahtar kavramları belirler.
     /// </summary>
-    /// <param name="normalizedCategory"></param>
-    /// <param name="normalizedQuestion"></param>
-    /// <returns></returns>
     private List<string> GetExpectedKeywords(
-    string normalizedCategory,
-    string normalizedQuestion)
+        string normalizedCategory,
+        string normalizedQuestion)
     {
         if (normalizedCategory.Contains("api") ||
             normalizedQuestion.Contains("api") ||
             normalizedQuestion.Contains("rest"))
         {
             return new List<string>
-        {
-            "api",
-            "rest",
-            "endpoint",
-            "request",
-            "response",
-            "http",
-            "get",
-            "post",
-            "json"
-        };
+            {
+                "api",
+                "rest",
+                "endpoint",
+                "request",
+                "response",
+                "http",
+                "get",
+                "post",
+                "json"
+            };
         }
 
         if (normalizedCategory.Contains("security") ||
@@ -681,15 +1186,15 @@ public class InterviewService : IInterviewService
             normalizedQuestion.Contains("authentication"))
         {
             return new List<string>
-        {
-            "jwt",
-            "token",
-            "authentication",
-            "authorization",
-            "claim",
-            "security",
-            "login"
-        };
+            {
+                "jwt",
+                "token",
+                "authentication",
+                "authorization",
+                "claim",
+                "security",
+                "login"
+            };
         }
 
         if (normalizedCategory.Contains("database") ||
@@ -698,17 +1203,17 @@ public class InterviewService : IInterviewService
             normalizedQuestion.Contains("join"))
         {
             return new List<string>
-        {
-            "sql",
-            "database",
-            "table",
-            "join",
-            "inner join",
-            "left join",
-            "primary key",
-            "foreign key",
-            "query"
-        };
+            {
+                "sql",
+                "database",
+                "table",
+                "join",
+                "inner join",
+                "left join",
+                "primary key",
+                "foreign key",
+                "query"
+            };
         }
 
         if (normalizedCategory.Contains("backend") ||
@@ -717,313 +1222,100 @@ public class InterviewService : IInterviewService
             normalizedQuestion.Contains("repository"))
         {
             return new List<string>
-        {
-            "controller",
-            "service",
-            "repository",
-            "layer",
-            "business",
-            "data",
-            "dependency injection",
-            "entity"
-        };
+            {
+                "controller",
+                "service",
+                "repository",
+                "layer",
+                "business",
+                "data",
+                "dependency injection",
+                "entity"
+            };
         }
 
         if (normalizedCategory.Contains("cv-based") &&
             normalizedQuestion.Contains("opencv"))
         {
             return new List<string>
-        {
-            "opencv",
-            "grayscale",
-            "threshold",
-            "contour",
-            "image",
-            "pixel",
-            "blur",
-            "detection"
-        };
+            {
+                "opencv",
+                "grayscale",
+                "threshold",
+                "contour",
+                "image",
+                "pixel",
+                "blur",
+                "detection"
+            };
         }
 
         if (normalizedCategory.Contains("cv-based") &&
             normalizedQuestion.Contains("python"))
         {
             return new List<string>
-        {
-            "python",
-            "pandas",
-            "numpy",
-            "data",
-            "analysis",
-            "library",
-            "visualization"
-        };
+            {
+                "python",
+                "pandas",
+                "numpy",
+                "data",
+                "analysis",
+                "library",
+                "visualization"
+            };
         }
 
         if (normalizedCategory.Contains("behavioral"))
         {
             return new List<string>
-        {
-            "problem",
-            "research",
-            "learn",
-            "team",
-            "solution",
-            "communication",
-            "project"
-        };
+            {
+                "problem",
+                "research",
+                "learn",
+                "team",
+                "solution",
+                "communication",
+                "project"
+            };
         }
 
         return new List<string>
-    {
-        "project",
-        "system",
-        "process",
-        "data",
-        "user",
-        "technology",
-        "example"
-    };
+        {
+            "project",
+            "system",
+            "process",
+            "data",
+            "user",
+            "technology",
+            "example"
+        };
     }
 
     /// <summary>
-    /// Bu metot cevapta örnek verilip verilmediğini kontrol eder
+    /// Cevapta örnek/proje deneyimi ifadesi var mı kontrol eder.
     /// </summary>
-    /// <param name="normalizedAnswer"></param>
     private bool ContainsExampleExpression(string normalizedAnswer)
     {
         var exampleExpressions = new List<string>
-    {
-        "örneğin",
-        "mesela",
-        "example",
-        "for example",
-        "projemde",
-        "projede",
-        "kullandım",
-        "uyguladım",
-        "senaryo"
-    };
+        {
+            "örneğin",
+            "mesela",
+            "example",
+            "for example",
+            "projemde",
+            "projede",
+            "kullandım",
+            "uyguladım",
+            "senaryo"
+        };
 
         return exampleExpressions.Any(expression =>
             normalizedAnswer.Contains(expression));
     }
 
-    private List<Question> GenerateQuestionsByPosition(string positionName, int sessionId)
-    {
-        if (positionName == "Backend Developer")
-        {
-            return new List<Question>
-        {
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "REST API nedir ve neden kullanılır?",
-                Difficulty = "Easy",
-                Category = "Backend"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "GET ve POST HTTP metotları arasındaki fark nedir?",
-                Difficulty = "Easy",
-                Category = "API"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Entity Framework Core nedir ve projede neden kullanılır?",
-                Difficulty = "Medium",
-                Category = "Database"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "JWT Authentication nasıl çalışır?",
-                Difficulty = "Medium",
-                Category = "Security"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Dependency Injection nedir ve ASP.NET Core’da nasıl kullanılır?",
-                Difficulty = "Medium",
-                Category = "Architecture"
-            }
-        };
-        }
-
-        if (positionName == "Data Analyst")
-        {
-            return new List<Question>
-        {
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "SQL'de INNER JOIN ve LEFT JOIN arasındaki fark nedir?",
-                Difficulty = "Easy",
-                Category = "SQL"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Eksik veriyle karşılaştığında nasıl bir analiz süreci izlersin?",
-                Difficulty = "Medium",
-                Category = "Data Cleaning"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Ortalama, medyan ve standart sapma neyi ifade eder?",
-                Difficulty = "Easy",
-                Category = "Statistics"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Power BI'da dashboard hazırlarken nelere dikkat edersin?",
-                Difficulty = "Medium",
-                Category = "BI"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Bir veri setinde aykırı değerleri nasıl tespit edersin?",
-                Difficulty = "Medium",
-                Category = "EDA"
-            }
-        };
-        }
-
-        if (positionName == "DevOps Engineer")
-        {
-            return new List<Question>
-        {
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Docker nedir ve neden kullanılır?",
-                Difficulty = "Easy",
-                Category = "Docker"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "CI/CD nedir?",
-                Difficulty = "Easy",
-                Category = "CI/CD"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Linux'ta temel dosya ve süreç yönetimi komutları nelerdir?",
-                Difficulty = "Medium",
-                Category = "Linux"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Bir uygulama deploy edilirken hangi adımları takip edersin?",
-                Difficulty = "Medium",
-                Category = "Deployment"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Container ile virtual machine arasındaki fark nedir?",
-                Difficulty = "Medium",
-                Category = "Infrastructure"
-            }
-        };
-        }
-
-        if (positionName == "Business Analyst")
-        {
-            return new List<Question>
-        {
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Requirement nedir?",
-                Difficulty = "Easy",
-                Category = "Business Analysis"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Functional ve non-functional requirement arasındaki fark nedir?",
-                Difficulty = "Medium",
-                Category = "Requirement Analysis"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "User story nasıl yazılır?",
-                Difficulty = "Easy",
-                Category = "Agile"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Eksik veya belirsiz bir talep geldiğinde nasıl ilerlersin?",
-                Difficulty = "Medium",
-                Category = "Analysis"
-            },
-            new Question
-            {
-                InterviewSessionId = sessionId,
-                QuestionText = "Acceptance criteria nedir ve neden önemlidir?",
-                Difficulty = "Medium",
-                Category = "Documentation"
-            }
-        };
-        }
-
-        return new List<Question>
-    {
-        new Question
-        {
-            InterviewSessionId = sessionId,
-            QuestionText = "OOP nedir?",
-            Difficulty = "Easy",
-            Category = "Software"
-        },
-        new Question
-        {
-            InterviewSessionId = sessionId,
-            QuestionText = "Veritabanında primary key ve foreign key nedir?",
-            Difficulty = "Easy",
-            Category = "Database"
-        },
-        new Question
-        {
-            InterviewSessionId = sessionId,
-            QuestionText = "REST API nedir?",
-            Difficulty = "Easy",
-            Category = "API"
-        },
-        new Question
-        {
-            InterviewSessionId = sessionId,
-            QuestionText = "Git ve GitHub ne için kullanılır?",
-            Difficulty = "Easy",
-            Category = "Version Control"
-        },
-        new Question
-        {
-            InterviewSessionId = sessionId,
-            QuestionText = "Bir yazılım projesinde hata ayıklama sürecini nasıl yönetirsin?",
-            Difficulty = "Medium",
-            Category = "Problem Solving"
-        }
-    };
-    }
-
     /// <summary>
-    /// Bu metot skoru 75 ve üzeri olan soruların kategorilerini alıyor
-    /// Bu alanları güçlü alan olarak gösteriyor
+    /// Skoru 75 ve üzeri olan kategorileri güçlü alan olarak döndürür.
     /// </summary>
-    /// <param name="questions"></param>
     private List<string> GetStrongAreas(List<Question> questions)
     {
         var strongAreas = questions
@@ -1038,20 +1330,17 @@ public class InterviewService : IInterviewService
         if (!strongAreas.Any())
         {
             return new List<string>
-        {
-            "Henüz belirgin bir güçlü alan tespit edilemedi."
-        };
+            {
+                "Henüz belirgin bir güçlü alan tespit edilemedi."
+            };
         }
 
         return strongAreas;
     }
 
     /// <summary>
-    /// Bu metot skoru 60 altı olan veya cevaplanmamış soruların kategorilerini belirliyor
-    /// Buna göre geliştirilmesi gereken alanların listesini veriyor
+    /// Skoru 60 altı olan veya cevaplanmamış kategorileri gelişim alanı olarak döndürür.
     /// </summary>
-    /// <param name="questions"></param>
-    /// <returns></returns>
     private List<string> GetImprovementAreas(List<Question> questions)
     {
         var improvementAreas = questions
@@ -1066,19 +1355,17 @@ public class InterviewService : IInterviewService
         if (!improvementAreas.Any())
         {
             return new List<string>
-        {
-            "Genel performans iyi görünüyor. Kritik bir geliştirme alanı tespit edilmedi."
-        };
+            {
+                "Genel performans iyi görünüyor. Kritik bir geliştirme alanı tespit edilmedi."
+            };
         }
 
         return improvementAreas;
     }
 
     /// <summary>
-    /// Bu metot kategoriye göre çalışma önerisi üretmeyi sağlıyor
+    /// Geliştirilmesi gereken alanlara göre çalışma önerileri üretir.
     /// </summary>
-    /// <param name="improvementAreas"></param>
-    /// <returns>Geliştirilmesi gereken alanlar</returns>
     private List<string> GetStudyRecommendations(List<string> improvementAreas)
     {
         var recommendations = new List<string>();
@@ -1088,7 +1375,8 @@ public class InterviewService : IInterviewService
             var normalizedArea = area.ToLower();
 
             if (normalizedArea.Contains("api") ||
-                normalizedArea.Contains("backend"))
+                normalizedArea.Contains("backend") ||
+                normalizedArea.Contains("technical"))
             {
                 recommendations.Add("REST API, HTTP metotları, request-response yapısı ve endpoint tasarımı konularını tekrar etmelisin.");
             }
@@ -1127,15 +1415,12 @@ public class InterviewService : IInterviewService
     }
 
     /// <summary>
-    /// Bu metot genel bir yorum üretir
+    /// Ortalama skora ve cevaplanan soru sayısına göre genel değerlendirme üretir.
     /// </summary>
-    /// <param name="averageScore"></param>
-    /// <param name="answeredQuestions"></param>
-    /// <param name="totalQuestions"></param>
     private string GenerateGeneralEvaluation(
-    int? averageScore,
-    int answeredQuestions,
-    int totalQuestions)
+        int? averageScore,
+        int answeredQuestions,
+        int totalQuestions)
     {
         if (answeredQuestions == 0)
         {
@@ -1171,13 +1456,9 @@ public class InterviewService : IInterviewService
     }
 
     /// <summary>
-    /// Bu metot soruları kategorilere göre gruplandırıyor
-    /// her kategoriden kaç ssoru var kontrolü yappıyor
-    /// kaçı cevaplanmış bakıyor 
-    /// cevaplananların ortalama skorunu hesaplıyor
+    /// Kategori bazlı performansı hesaplar.
+    /// Örneğin Behavioral kategorisinde kaç soru var, kaçı cevaplanmış, ortalama skor kaç?
     /// </summary>
-    /// <param name="questions"></param>
-    /// <returns></returns>
     private List<CategoryPerformanceDto> GetCategoryPerformances(List<Question> questions)
     {
         var categoryPerformances = questions
@@ -1208,9 +1489,8 @@ public class InterviewService : IInterviewService
 
     /// <summary>
     /// Cevap gerçekten teknik cevap mı,
-    /// yoksa "bilmiyorum" tarzı kaçınma cevabı mı? bunu tespit etmeye yarar
+    /// yoksa "bilmiyorum" tarzı kaçınma cevabı mı, bunu tespit eder.
     /// </summary>
-    /// <param name="userAnswer"></param>
     private bool IsUnknownAnswer(string userAnswer)
     {
         if (string.IsNullOrWhiteSpace(userAnswer))
@@ -1221,34 +1501,45 @@ public class InterviewService : IInterviewService
         var normalizedAnswer = userAnswer.ToLower().Trim();
 
         var unknownExpressions = new List<string>
-    {
-        "bilmiyorum",
-        "bilmiyorum.",
-        "bu sorunun cevabını bilmiyorum",
-        "cevabını bilmiyorum",
-        "fikrim yok",
-        "bir fikrim yok",
-        "emin değilim",
-        "bunu bilmiyorum",
-        "bu konuda bilgim yok",
-        "bu konu hakkında bilgim yok",
-        "şu anda bilmiyorum",
-        "şuan bilmiyorum",
-        "şu an bilmiyorum",
-        "söylemek istemem",
-        "bir şey söylemek istemem",
-        "yorum yapamam",
-        "cevaplamak istemiyorum",
-        "pas geçiyorum",
-        "pas",
-        "i don't know",
-        "i dont know",
-        "i do not know",
-        "no idea",
-        "not sure"
-    };
+        {
+            "bilmiyorum",
+            "bilmiyorum.",
+            "bu sorunun cevabını bilmiyorum",
+            "cevabını bilmiyorum",
+            "fikrim yok",
+            "bir fikrim yok",
+            "emin değilim",
+            "bunu bilmiyorum",
+            "bu konuda bilgim yok",
+            "bu konu hakkında bilgim yok",
+            "şu anda bilmiyorum",
+            "şuan bilmiyorum",
+            "şu an bilmiyorum",
+            "söylemek istemem",
+            "bir şey söylemek istemem",
+            "yorum yapamam",
+            "cevaplamak istemiyorum",
+            "pas geçiyorum",
+            "pas",
+            "i don't know",
+            "i dont know",
+            "i do not know",
+            "no idea",
+            "not sure"
+        };
 
         return unknownExpressions.Any(expression =>
             normalizedAnswer.Contains(expression));
+    }
+
+    /// <summary>
+    /// Soru üretirken kullandığımız geçici model.
+    /// Veritabanına kaydedilmez; sadece Question entity'sine dönüştürmeden önce kullanılır.
+    /// </summary>
+    private class GeneratedQuestion
+    {
+        public string Text { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Difficulty { get; set; } = "Intermediate";
     }
 }
