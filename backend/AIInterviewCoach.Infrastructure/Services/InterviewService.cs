@@ -248,49 +248,49 @@ public class InterviewService : IInterviewService
         {
             new()
             {
-                Text = $"What makes you a good candidate for the {positionName} role?",
+                Text = $"{positionName} pozisyonu için seni iyi bir aday yapan özellikler nelerdir?",
                 Category = "Role-Based",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "Can you explain a project you are proud of and what you learned from it?",
+                Text = "Gurur duyduğun bir projeyi ve bu projeden neler öğrendiğini anlatır mısın?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "How do you approach solving a problem when you do not know the solution at first?",
+                Text = "Başta çözümünü bilmediğin bir problemle karşılaştığında nasıl ilerlersin?",
                 Category = "Problem Solving",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "Can you describe how you would communicate a technical topic to a non-technical stakeholder?",
+                Text = "Teknik bir konuyu teknik olmayan bir paydaşa nasıl açıklarsın?",
                 Category = "Communication",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "What would you do if project requirements changed close to the deadline?",
+                Text = "Teslim tarihine yakın proje gereksinimleri değişirse nasıl hareket edersin?",
                 Category = "Behavioral",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "How do you organize your work when you have multiple tasks with different priorities?",
+                Text = "Farklı önceliklere sahip birden fazla görevin olduğunda işlerini nasıl organize edersin?",
                 Category = "Behavioral",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "Can you explain how you test or validate that your work is correct?",
+                Text = "Yaptığın işin doğru çalıştığını nasıl test eder veya doğrularsın?",
                 Category = "Technical",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "What is one technical topic you want to improve, and how are you planning to improve it?",
+                Text = "Geliştirmek istediğin bir teknik konu nedir ve bunu nasıl geliştirmeyi planlıyorsun?",
                 Category = "Learning",
                 Difficulty = difficulty
             }
@@ -325,19 +325,19 @@ public class InterviewService : IInterviewService
             {
                 new()
                 {
-                    Text = $"Can you explain why you are interested in the {positionName} position?",
+                    Text = $"{positionName} pozisyonuyla neden ilgilendiğini açıklar mısın?",
                     Category = "Role-Based",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = $"What are the main responsibilities of a {positionName}?",
+                    Text = $"Bir {positionName} pozisyonunun temel sorumlulukları nelerdir?",
                     Category = "Role-Based",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = $"Which skills do you think are most important for a {positionName}?",
+                    Text = $"Bir {positionName} için en önemli beceriler sence nelerdir?",
                     Category = "Role-Based",
                     Difficulty = difficulty
                 }
@@ -350,19 +350,19 @@ public class InterviewService : IInterviewService
             {
                 new()
                 {
-                    Text = $"How would you handle a complex real-world problem in a {positionName} role?",
+                    Text = $"{positionName} rolünde gerçek hayatta karşılaşabileceğin karmaşık bir problemi nasıl ele alırsın?",
                     Category = "Role-Based",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = $"How would you prioritize tasks when multiple stakeholders expect different outcomes in a {positionName} role?",
+                    Text = $"{positionName} rolünde farklı paydaşlar farklı çıktılar beklerse görevleri nasıl önceliklendirirsin?",
                     Category = "Role-Based",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = $"How would you measure your success as a {positionName} in the first three months?",
+                    Text = $"Bir {positionName} olarak ilk üç ayındaki başarını nasıl ölçersin?",
                     Category = "Role-Based",
                     Difficulty = difficulty
                 }
@@ -373,19 +373,19 @@ public class InterviewService : IInterviewService
         {
             new()
             {
-                Text = $"How would your background help you succeed as a {positionName}?",
+                Text = $"Geçmiş deneyimlerin {positionName} pozisyonunda başarılı olmana nasıl katkı sağlar?",
                 Category = "Role-Based",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = $"Can you describe a project or experience that is relevant to the {positionName} position?",
+                Text = $"{positionName} pozisyonuyla ilgili bir proje veya deneyimini anlatır mısın?",
                 Category = "Role-Based",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = $"What challenges do you expect in a {positionName} role, and how would you handle them?",
+                Text = $"{positionName} rolünde hangi zorluklarla karşılaşabileceğini düşünüyorsun ve bunları nasıl yönetirsin?",
                 Category = "Role-Based",
                 Difficulty = difficulty
             }
@@ -407,13 +407,13 @@ public class InterviewService : IInterviewService
             {
                 new()
                 {
-                    Text = "Can you describe one project from your background and explain your role in it?",
+                    Text = "Geçmişindeki bir projeyi ve bu projedeki rolünü anlatır mısın?",
                     Category = "CV-Based",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "Which technical skill in your background do you feel most confident about?",
+                    Text = "Geçmişindeki hangi teknik beceride kendini en güçlü hissediyorsun?",
                     Category = "CV-Based",
                     Difficulty = difficulty
                 }
@@ -426,13 +426,13 @@ public class InterviewService : IInterviewService
             {
                 new()
                 {
-                    Text = "Can you explain one project from your resume in simple terms?",
+                    Text = "CV’ndeki bir projeyi basit ve anlaşılır şekilde açıklar mısın?",
                     Category = "CV-Based",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "Which technology from your resume did you use most actively?",
+                    Text = "CV’ndeki teknolojilerden hangisini en aktif şekilde kullandın?",
                     Category = "CV-Based",
                     Difficulty = difficulty
                 }
@@ -445,19 +445,19 @@ public class InterviewService : IInterviewService
             {
                 new()
                 {
-                    Text = "Choose one project from your resume and explain its architecture, technical decisions, and limitations.",
+                    Text = "CV’ndeki bir projeyi seçip mimarisini, teknik kararlarını ve sınırlılıklarını açıklar mısın?",
                     Category = "CV-Based",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "What would you improve in one of the projects listed on your resume if you rebuilt it today?",
+                    Text = "CV’ndeki projelerden birini bugün yeniden geliştirseydin neyi iyileştirirdin?",
                     Category = "CV-Based",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "Can you defend the technology choices you made in one of your resume projects?",
+                    Text = "CV’ndeki projelerden birinde yaptığın teknoloji seçimlerini gerekçeleriyle açıklayabilir misin?",
                     Category = "CV-Based",
                     Difficulty = difficulty
                 }
@@ -468,19 +468,19 @@ public class InterviewService : IInterviewService
         {
             new()
             {
-                Text = "Can you explain one project from your resume and describe your main responsibilities?",
+                Text = "CV’ndeki bir projeyi ve bu projedeki temel sorumluluklarını anlatır mısın?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "Which technical challenge did you face in a project from your resume, and how did you solve it?",
+                Text = "CV’ndeki bir projede hangi teknik zorlukla karşılaştın ve bunu nasıl çözdün?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "How did your resume projects help you improve your problem-solving skills?",
+                Text = "CV’ndeki projeler problem çözme becerini nasıl geliştirdi?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             }
@@ -500,7 +500,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes ASP.NET Core. How did you structure controller, service, and repository layers in one of your projects?",
+                Text = "CV’nde ASP.NET Core yer alıyor. Bir projende controller, service ve repository katmanlarını nasıl yapılandırdın?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -510,7 +510,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes SQL. Can you explain INNER JOIN and LEFT JOIN with a project-related example?",
+                Text = "CV’nde SQL yer alıyor. INNER JOIN ve LEFT JOIN farkını proje bağlantılı bir örnekle açıklar mısın?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -520,7 +520,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes Python. Which libraries did you use for data processing or analysis, and why?",
+                Text = "CV’nde Python yer alıyor. Veri işleme veya analiz için hangi kütüphaneleri kullandın ve neden?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -530,7 +530,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes OpenCV. Why did you use grayscale, threshold, or contour operations in your image processing project?",
+                Text = "CV’nde OpenCV yer alıyor. Görüntü işleme projende grayscale, threshold veya contour işlemlerini neden kullandın?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -540,7 +540,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes Power BI. How do you choose metrics and visualizations when designing a dashboard?",
+                Text = "CV’nde Power BI yer alıyor. Bir dashboard tasarlarken metrikleri ve görselleştirmeleri nasıl seçersin?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -550,7 +550,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes JWT. Can you explain token creation and validation in JWT-based authentication?",
+                Text = "CV’nde JWT yer alıyor. JWT tabanlı authentication sürecinde token üretme ve doğrulama aşamalarını açıklar mısın?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -560,7 +560,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes Docker. What are the advantages of containerizing an application?",
+                Text = "CV’nde Docker yer alıyor. Bir uygulamayı container içine almanın avantajları nelerdir?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -570,7 +570,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes Android/Kotlin. How did you manage user input and data processing in an Android application?",
+                Text = "CV’nde Android/Kotlin yer alıyor. Android uygulamasında kullanıcı girdisini alma ve veriyi işleme sürecini nasıl yönettin?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -580,7 +580,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes Machine Learning. Which metrics would you use to evaluate a model?",
+                Text = "CV’nde Machine Learning yer alıyor. Bir modeli değerlendirirken hangi metrikleri kullanırsın?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -590,7 +590,7 @@ public class InterviewService : IInterviewService
         {
             questions.Add(new GeneratedQuestion
             {
-                Text = "Your resume includes Git/GitHub. How do you manage branch, commit, and pull request processes in teamwork?",
+                Text = "CV’nde Git/GitHub yer alıyor. Takım çalışmasında branch, commit ve pull request süreçlerini nasıl yönetirsin?",
                 Category = "CV-Based",
                 Difficulty = difficulty
             });
@@ -612,25 +612,25 @@ public class InterviewService : IInterviewService
             {
                 new()
                 {
-                    Text = "What is an API, and why is it used in software applications?",
+                    Text = "API nedir ve yazılım uygulamalarında neden kullanılır?",
                     Category = "Technical",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "What is the difference between frontend and backend?",
+                    Text = "Frontend ve backend arasındaki fark nedir?",
                     Category = "Technical",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "What is a database, and why do applications need one?",
+                    Text = "Veritabanı nedir ve uygulamalar neden veritabanına ihtiyaç duyar?",
                     Category = "Technical",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "What is Git used for in software development?",
+                    Text = "Git yazılım geliştirmede ne için kullanılır?",
                     Category = "Technical",
                     Difficulty = difficulty
                 }
@@ -643,25 +643,25 @@ public class InterviewService : IInterviewService
             {
                 new()
                 {
-                    Text = "How would you design a scalable backend architecture for an interview preparation platform?",
+                    Text = "Bir mülakat hazırlık platformu için ölçeklenebilir bir backend mimarisini nasıl tasarlarsın?",
                     Category = "Technical",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "How would you improve API performance if response times became slow?",
+                    Text = "API cevap süreleri yavaşlarsa performansı iyileştirmek için neler yaparsın?",
                     Category = "Technical",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = "How would you handle authentication and authorization securely in a web application?",
+                    Text = "Bir web uygulamasında authentication ve authorization süreçlerini güvenli şekilde nasıl yönetirsin?",
                     Category = "Technical",
                     Difficulty = difficulty
                 },
                 new()
                 {
-                    Text = $"What technical risks would you consider before starting a {positionName} project?",
+                    Text = $"{positionName} odaklı bir projeye başlamadan önce hangi teknik riskleri değerlendirirsin?",
                     Category = "Technical",
                     Difficulty = difficulty
                 }
@@ -672,25 +672,25 @@ public class InterviewService : IInterviewService
         {
             new()
             {
-                Text = "Can you explain the controller-service-repository pattern?",
+                Text = "Controller-Service-Repository yapısını açıklar mısın?",
                 Category = "Technical",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "What is the purpose of JWT authentication?",
+                Text = "JWT authentication’ın amacı nedir?",
                 Category = "Technical",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "What is the difference between INNER JOIN and LEFT JOIN in SQL?",
+                Text = "SQL’de INNER JOIN ve LEFT JOIN arasındaki fark nedir?",
                 Category = "Technical",
                 Difficulty = difficulty
             },
             new()
             {
-                Text = "What is dependency injection and why is it useful?",
+                Text = "Dependency Injection nedir ve neden faydalıdır?",
                 Category = "Technical",
                 Difficulty = difficulty
             }
@@ -1171,6 +1171,8 @@ public class InterviewService : IInterviewService
                 "endpoint",
                 "request",
                 "response",
+                "istek",
+                "cevap",
                 "http",
                 "get",
                 "post",
@@ -1188,6 +1190,8 @@ public class InterviewService : IInterviewService
                 "token",
                 "authentication",
                 "authorization",
+                "kimlik doğrulama",
+                "yetkilendirme",
                 "claim",
                 "security",
                 "login"
@@ -1203,6 +1207,8 @@ public class InterviewService : IInterviewService
             {
                 "sql",
                 "database",
+                "veritabanı",
+                "tablo",
                 "table",
                 "join",
                 "inner join",
@@ -1223,6 +1229,7 @@ public class InterviewService : IInterviewService
                 "controller",
                 "service",
                 "repository",
+                "katman",
                 "layer",
                 "business",
                 "data",
@@ -1269,9 +1276,14 @@ public class InterviewService : IInterviewService
                 "problem",
                 "research",
                 "learn",
+                "öğren",
+                "takım",
                 "team",
+                "çözüm",
                 "solution",
+                "iletişim",
                 "communication",
+                "proje",
                 "project"
             };
         }
@@ -1279,12 +1291,19 @@ public class InterviewService : IInterviewService
         return new List<string>
         {
             "project",
+            "proje",
             "system",
+            "sistem",
             "process",
+            "süreç",
             "data",
+            "veri",
             "user",
+            "kullanıcı",
             "technology",
-            "example"
+            "teknoloji",
+            "example",
+            "örnek"
         };
     }
 
