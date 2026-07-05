@@ -709,105 +709,105 @@ public class InterviewService : IInterviewService
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Can you tell me about yourself?",
+            QuestionText = "Bize kendinden bahseder misin?",
             Difficulty = "Easy",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "What are your strengths and how do they help you in a professional environment?",
+            QuestionText = "Güçlü yönlerin nelerdir ve bunlar profesyonel hayatta sana nasıl katkı sağlar?",
             Difficulty = "Easy",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Why should we hire you?",
+            QuestionText = "Neden seni işe almalıyız?",
             Difficulty = "Easy",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Tell me about a time when you solved a difficult problem.",
+            QuestionText = "Zor bir problemi çözdüğün bir zamanı anlatır mısın?",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "How do you handle learning a technology or topic you do not know?",
+            QuestionText = "Bilmediğin bir teknoloji veya konu ile karşılaştığında nasıl öğrenirsin?",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Can you describe a time when you worked as part of a team?",
+            QuestionText = "Takım çalışması yaptığın bir deneyimini anlatır mısın?",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Tell me about a time when you received critical feedback and how you responded.",
+            QuestionText = "Eleştirel bir geri bildirim aldığında nasıl tepki verirsin?",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Describe a situation where you disagreed with a teammate or stakeholder. How did you handle it?",
+            QuestionText = "Bir ekip arkadaşı veya paydaşla fikir ayrılığı yaşadığında bunu nasıl yönetirsin?",
             Difficulty = "Advanced",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Tell me about a time when you had to deal with uncertainty in a project.",
+            QuestionText = "Belirsizlik içeren bir projede nasıl ilerlersin?",
             Difficulty = "Advanced",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "How do you manage stress when you have multiple tasks or deadlines?",
+            QuestionText = "Birden fazla görev veya teslim tarihi olduğunda stresini nasıl yönetirsin?",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Describe a time when you made a mistake. What did you learn from it?",
+            QuestionText = "Yaptığın bir hatayı ve bu hatadan ne öğrendiğini anlatır mısın?",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "How do you communicate technical information to a non-technical person?",
+            QuestionText = "Teknik bir konuyu teknik olmayan bir kişiye nasıl açıklarsın?",
             Difficulty = "Advanced",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "Tell me about a goal you set for yourself and how you achieved it.",
+            QuestionText = "Kendine koyduğun bir hedefi ve bu hedefe nasıl ulaştığını anlatır mısın?",
             Difficulty = "Medium",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "How do you prioritize your work when everything seems urgent?",
+            QuestionText = "Her şey acil görünüyorsa işlerini nasıl önceliklendirirsin?",
             Difficulty = "Advanced",
             Category = "Behavioral"
         },
         new Question
         {
             InterviewSessionId = sessionId,
-            QuestionText = "What motivates you to improve yourself professionally?",
+            QuestionText = "Kendini profesyonel olarak geliştirmek için seni motive eden şey nedir?",
             Difficulty = "Easy",
             Category = "Behavioral"
         }
