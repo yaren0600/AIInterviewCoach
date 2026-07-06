@@ -9,10 +9,15 @@ import {
     InterviewSessionSummary,
     RawInterviewSessionSummary,
 } from "@/types/api";
+
 export default function InterviewSessionsPage() {
     const router = useRouter();
 
     const [sessions, setSessions] = useState<InterviewSessionSummary[]>([]);
+    const [selectedStatusFilter, setSelectedStatusFilter] = useState<
+        "All" | "Completed" | "In Progress"
+    >("All");
+
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
@@ -91,6 +96,14 @@ export default function InterviewSessionsPage() {
 
         return "bg-violet-100 text-violet-600";
     };
+
+    const filteredSessions =
+        selectedStatusFilter === "All"
+            ? sessions
+            : sessions.filter(
+                (session: InterviewSessionSummary) =>
+                    session.status === selectedStatusFilter
+            );
 
     if (isLoading) {
         return (
@@ -202,6 +215,27 @@ export default function InterviewSessionsPage() {
                             Start Interview
                         </button>
 
+                        <div className="mt-6 flex flex-wrap gap-3">
+                            {["All", "Completed", "In Progress"].map((status) => {
+                                const isSelected = selectedStatusFilter === status;
+
+                                return (
+                                    <button
+                                        key={status}
+                                        onClick={() =>
+                                            setSelectedStatusFilter(status as "All" | "Completed" | "In Progress")
+                                        }
+                                        className={`rounded-full px-5 py-2 text-sm font-bold transition ${isSelected
+                                                ? "bg-slate-900 text-white shadow"
+                                                : "bg-white/75 text-slate-700 hover:bg-white"
+                                            }`}
+                                    >
+                                        {status}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
                         <button className="rounded-full bg-slate-900 text-white px-5 py-2 text-sm font-semibold">
                             My Sessions
                         </button>
@@ -242,7 +276,7 @@ export default function InterviewSessionsPage() {
                     </div>
 
                     <div className="mt-6 space-y-4">
-                        {sessions.length === 0 ? (
+                        {filteredSessions.length === 0 ? (
                             <div className="rounded-3xl bg-white/75 border border-white/70 p-8 text-center">
                                 <p className="text-lg font-bold text-slate-800">
                                     No interview sessions yet.
@@ -260,7 +294,7 @@ export default function InterviewSessionsPage() {
                                 </button>
                             </div>
                         ) : (
-                            sessions.map((session) => (
+                            filteredSessions.map((session) => (
                                 <div
                                     key={session.sessionId}
                                     className="rounded-3xl bg-white/75 border border-white/70 p-5 hover:scale-[1.01] transition"
