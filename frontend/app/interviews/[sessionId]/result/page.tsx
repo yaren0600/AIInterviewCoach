@@ -135,6 +135,111 @@ export default function InterviewResultPage() {
                     </p>
 
                     <div className="glass-card rounded-3xl p-6 mt-8">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                                <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
+                                    Personal Study Plan
+                                </p>
+
+                                <h2 className="mt-3 text-2xl font-black text-slate-900">
+                                    Sana özel çalışma planı
+                                </h2>
+
+                                <p className="mt-2 text-sm text-slate-600 leading-6">
+                                    Sonuçlarına göre geliştirmen gereken alanları küçük ve uygulanabilir
+                                    çalışma adımlarına böldük.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => router.push("/interviews/start")}
+                                className="rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow hover:bg-slate-700 hover:scale-105 transition"
+                            >
+                                Practice Weak Areas Again
+                            </button>
+                        </div>
+
+                        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+                            <div className="rounded-3xl bg-white/75 border border-white/70 p-5">
+                                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">
+                                    Focus Area
+                                </p>
+
+                                <h3 className="mt-3 text-xl font-black text-slate-900">
+                                    {result.improvementAreas && result.improvementAreas.length > 0
+                                        ? result.improvementAreas[0]
+                                        : "Genel tekrar"}
+                                </h3>
+
+                                <p className="mt-3 text-sm leading-6 text-slate-600">
+                                    Bugünkü ana odağın bu alan olsun. Önce temel kavramları tekrar et,
+                                    sonra kısa örnek cevaplar hazırla.
+                                </p>
+                            </div>
+
+                            <div className="rounded-3xl bg-white/75 border border-white/70 p-5">
+                                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">
+                                    20 Minute Task
+                                </p>
+
+                                <h3 className="mt-3 text-xl font-black text-slate-900">
+                                    Kısa tekrar yap
+                                </h3>
+
+                                <p className="mt-3 text-sm leading-6 text-slate-600">
+                                    Zayıf olduğun alandan 3 temel kavram seç. Her biri için bir tanım,
+                                    bir kullanım amacı ve küçük bir örnek yaz.
+                                </p>
+                            </div>
+
+                            <div className="rounded-3xl bg-white/75 border border-white/70 p-5">
+                                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">
+                                    Practice Method
+                                </p>
+
+                                <h3 className="mt-3 text-xl font-black text-slate-900">
+                                    Sesli cevap pratiği
+                                </h3>
+
+                                <p className="mt-3 text-sm leading-6 text-slate-600">
+                                    Cevaplarını STAR veya tanım-amaç-örnek yapısıyla sesli anlat.
+                                    Kısa, net ve örnekli cevap vermeye çalış.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 rounded-3xl bg-emerald-50/80 border border-emerald-100 p-5">
+                            <p className="text-xs uppercase tracking-[0.18em] text-emerald-700 font-bold">
+                                Recommended Study Steps
+                            </p>
+
+                            <div className="mt-4 space-y-3">
+                                {result.studyRecommendations && result.studyRecommendations.length > 0 ? (
+                                    result.studyRecommendations.map((recommendation, index) => (
+                                        <div
+                                            key={`${recommendation}-${index}`}
+                                            className="flex gap-3 rounded-2xl bg-white/70 p-4"
+                                        >
+                                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-black text-white">
+                                                {index + 1}
+                                            </span>
+
+                                            <p className="text-sm leading-6 text-emerald-950">
+                                                {recommendation}
+                                            </p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm leading-6 text-emerald-950">
+                                        Genel performansın iyi görünüyor. Yine de cevaplarını daha fazla
+                                        örnek ve teknik detayla güçlendirebilirsin.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="glass-card rounded-3xl p-6 mt-8">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                             <div>
                                 <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
