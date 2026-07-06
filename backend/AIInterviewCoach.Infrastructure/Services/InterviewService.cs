@@ -948,7 +948,11 @@ public class InterviewService : IInterviewService
                     UserAnswer = q.Answer?.UserAnswer,
                     Score = q.Answer?.Score,
                     Feedback = q.Answer?.Feedback,
-                    AnsweredAt = q.Answer?.AnsweredAt
+                    AnsweredAt = q.Answer?.AnsweredAt,
+                    BetterAnswerExample = GenerateBetterAnswerExample(
+                        q.QuestionText, 
+                        q.Category, 
+                        q.Difficulty)
                 }).ToList()
         };
     }
@@ -1151,6 +1155,69 @@ public class InterviewService : IInterviewService
         }
 
         return "Cevap teknik kavramlar içeriyor, yeterince açıklayıcı ve örnekle desteklenmiş görünüyor.";
+    }
+
+    /// <summary>
+    /// Her soru için daha güçlü bir cevap örneği üretir.
+    /// Şimdilik rule-based çalışır.
+    /// İleride GPT/Gemini API entegrasyonunda bu metot gerçek AI cevabı dönecek şekilde geliştirilebilir.
+    /// </summary>
+    private string GenerateBetterAnswerExample(
+        string questionText,
+        string category,
+        string difficulty)
+    {
+        var normalizedQuestion = questionText.ToLower();
+        var normalizedCategory = category.ToLower();
+
+        if (normalizedCategory.Contains("behavioral"))
+        {
+            return "Bu soruya STAR tekniğiyle cevap verebilirsin: Önce durumu kısaca anlat, sonra görevini açıkla, hangi aksiyonları aldığını söyle ve sonucu net bir şekilde belirt. Örneğin: 'Bir projede zaman baskısı yaşadığımızda önce öncelikleri belirledim, ekip ile görev dağılımı yaptım ve süreci takip ederek işi zamanında tamamladık.'";
+        }
+
+        if (normalizedCategory.Contains("cv-based"))
+        {
+            return "Bu soruda CV'ndeki bir projeyi somut şekilde anlatman güçlü olur. Projenin amacını, kullandığın teknolojileri, senin sorumluluğunu, karşılaştığın problemi ve elde ettiğin sonucu açıklayabilirsin.";
+        }
+
+        if (normalizedCategory.Contains("technical") ||
+            normalizedCategory.Contains("api") ||
+            normalizedQuestion.Contains("api") ||
+            normalizedQuestion.Contains("rest"))
+        {
+            return "Teknik sorularda önce kavramın kısa tanımını yap, sonra nerede kullanıldığını açıkla ve küçük bir örnek ver. Örneğin API için: 'API, iki sistemin birbiriyle veri alışverişi yapmasını sağlayan arayüzdür. Web uygulamalarında frontend backend'e HTTP istekleri göndererek veri alır veya veri kaydeder.'";
+        }
+
+        if (normalizedQuestion.Contains("jwt") ||
+            normalizedQuestion.Contains("authentication") ||
+            normalizedCategory.Contains("security"))
+        {
+            return "JWT sorularında login sonrası token üretimi, token'ın client tarafında saklanması, sonraki isteklerde Authorization header ile gönderilmesi ve backend'in token'ı doğrulaması adımlarını açıklayabilirsin.";
+        }
+
+        if (normalizedQuestion.Contains("sql") ||
+            normalizedQuestion.Contains("join") ||
+            normalizedCategory.Contains("sql") ||
+            normalizedCategory.Contains("database"))
+        {
+            return "SQL sorularında önce kavramı tanımlayıp sonra örnek senaryo verebilirsin. Örneğin INNER JOIN iki tabloda eşleşen kayıtları getirir, LEFT JOIN ise sol tablodaki tüm kayıtları getirir ve eşleşmeyen sağ tablo alanlarını null gösterir.";
+        }
+
+        if (normalizedQuestion.Contains("controller") ||
+            normalizedQuestion.Contains("service") ||
+            normalizedQuestion.Contains("repository"))
+        {
+            return "Controller-Service-Repository sorusunda katmanların sorumluluklarını ayırarak anlatabilirsin. Controller isteği karşılar, Service iş kurallarını yönetir, Repository veritabanı işlemlerini yapar. Bu yapı kodun daha okunabilir ve sürdürülebilir olmasını sağlar.";
+        }
+
+        if (normalizedQuestion.Contains("requirement") ||
+            normalizedQuestion.Contains("user story") ||
+            normalizedQuestion.Contains("acceptance criteria"))
+        {
+            return "İş analizi sorularında kavramı tanımlayıp örnekle desteklemek güçlü olur. Örneğin requirement için: 'Requirement, kullanıcının veya iş biriminin sistemden beklediği ihtiyaçtır. Bu ihtiyaç netleştirildikten sonra user story ve acceptance criteria ile geliştirilebilir hale getirilir.'";
+        }
+
+        return "Bu soruya daha güçlü cevap vermek için önce kavramı kısa ve net tanımla, ardından kendi proje veya deneyiminden bir örnek ver. Cevabının sonunda bu deneyimin sana ne öğrettiğini veya işe nasıl katkı sağlayacağını belirt.";
     }
 
     /// <summary>

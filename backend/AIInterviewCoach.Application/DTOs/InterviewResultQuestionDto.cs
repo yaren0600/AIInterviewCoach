@@ -16,6 +16,7 @@ public class InterviewResultQuestionDto
     public int? Score { get; set; }
     public string? Feedback { get; set; }
     public DateTime? AnsweredAt { get; set; }
+    public string BetterAnswerExample { get; set; } = string.Empty;
 }
 
 // bu DTO , InterviewResultDto içindeki Questions listesinde kullanılacak ve her bir sorunun detaylarını içerecek şekilde tasarlanmıştır.

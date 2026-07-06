@@ -179,6 +179,7 @@ export interface InterviewResultQuestion {
     score: number | null;
     feedback: string | null;
     answeredAt: string | null;
+    betterAnswerExample: string | null;
 }
 
 export interface InterviewResult {

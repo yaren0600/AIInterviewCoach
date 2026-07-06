@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -375,6 +375,7 @@ export default function InterviewSessionPage() {
                                         technologies used, and result.
                                     </p>
                                 </div>
+
                             ) : (
                                 <div className="mt-5 rounded-3xl bg-white/80 border border-white/70 p-6">
                                     <div className="flex items-center justify-between">

@@ -210,6 +210,16 @@ export default function InterviewResultPage() {
                                                 </p>
                                             </div>
                                         </div>
+                                        <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4">
+                                            <p className="text-xs uppercase tracking-[0.18em] text-emerald-700 font-bold">
+                                                Daha Güçlü Cevap Örneği
+                                            </p>
+
+                                            <p className="mt-3 text-sm leading-6 text-emerald-900">
+                                                {question.betterAnswerExample ||
+                                                    "Bu soru için örnek cevap henüz oluşturulamadı."}
+                                            </p>
+                                        </div>
                                     </div>
                                 ))
                             ) : (
