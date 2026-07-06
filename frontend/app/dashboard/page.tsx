@@ -337,28 +337,98 @@ export default function DashboardPage() {
                             </div>
                         </section>
 
-                        <section className="glass-card rounded-3xl p-6 mt-6 animate-fade-up">
-                            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                                Next Best Action
-                            </p>
+                        <section className="glass-card rounded-[2rem] p-6 mt-6 animate-fade-up overflow-hidden relative">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-violet-300/25 rounded-full blur-3xl" />
+                            <div className="absolute -bottom-12 -left-10 w-44 h-44 bg-pink-300/20 rounded-full blur-3xl" />
 
-                            <div className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[1fr_0.75fr] gap-6 items-stretch">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-900">
-                                        Focus on {dashboard.weakestCategory}
+                                    <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+                                        <span className="w-2 h-2 rounded-full bg-rose-500 live-dot" />
+                                        Today&apos;s Focus
+                                    </div>
+
+                                    <h2 className="mt-5 text-3xl font-black text-slate-900">
+                                        Bugünkü çalışma odağın:
+                                        <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
+                                            {" "}
+                                            {dashboard.weakestCategory}
+                                        </span>
                                     </h2>
 
-                                    <p className="text-slate-600 mt-2 max-w-3xl">
+                                    <p className="mt-4 text-slate-600 max-w-3xl text-sm md:text-base leading-7">
                                         {dashboard.latestRecommendation}
                                     </p>
+
+                                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                                        <button
+                                            onClick={() => router.push("/interviews/start")}
+                                            className="rounded-full bg-slate-900 text-white px-6 py-3 font-semibold shadow hover:bg-slate-700 hover:scale-105 transition"
+                                        >
+                                            Practice This Area
+                                        </button>
+
+                                        <button
+                                            onClick={() => router.push("/interviews/sessions")}
+                                            className="rounded-full bg-white/80 text-slate-800 px-6 py-3 font-semibold shadow hover:bg-white hover:scale-105 transition"
+                                        >
+                                            Review Past Sessions
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <button
-                                    onClick={() => router.push("/interviews/start")}
-                                    className="rounded-full bg-gradient-to-r from-pink-500 to-violet-500 text-white px-6 py-3 font-semibold shadow hover:scale-105 transition"
-                                >
-                                    Practice This Area
-                                </button>
+                                <div className="rounded-[2rem] bg-white/75 border border-white/70 p-5 shadow-xl">
+                                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">
+                                        Mini Study Plan
+                                    </p>
+
+                                    <div className="mt-5 space-y-4">
+                                        <div className="flex gap-3 rounded-2xl bg-slate-50 p-4">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-500 text-xs font-black text-white">
+                                                1
+                                            </span>
+
+                                            <div>
+                                                <p className="font-bold text-slate-900">
+                                                    Konuyu tekrar et
+                                                </p>
+                                                <p className="mt-1 text-sm leading-6 text-slate-600">
+                                                    {dashboard.weakestCategory} alanındaki temel kavramları 10 dakika gözden geçir.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3 rounded-2xl bg-slate-50 p-4">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500 text-xs font-black text-white">
+                                                2
+                                            </span>
+
+                                            <div>
+                                                <p className="font-bold text-slate-900">
+                                                    Örnek cevap hazırla
+                                                </p>
+                                                <p className="mt-1 text-sm leading-6 text-slate-600">
+                                                    Bu alanla ilgili 2 kısa mülakat cevabı yaz ve cevaplarını örnekle güçlendir.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3 rounded-2xl bg-slate-50 p-4">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-500 text-xs font-black text-white">
+                                                3
+                                            </span>
+
+                                            <div>
+                                                <p className="font-bold text-slate-900">
+                                                    Sesli pratik yap
+                                                </p>
+                                                <p className="mt-1 text-sm leading-6 text-slate-600">
+                                                    Cevabını 2 dakika içinde net, sakin ve yapılandırılmış şekilde anlatmaya çalış.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </section>
 
