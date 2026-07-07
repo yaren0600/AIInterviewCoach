@@ -84,6 +84,8 @@ export default function StartInterviewPage() {
         setMessage("");
 
         try {
+            console.log("Selected interview mode:", selectedInterviewMode);
+
             const response = await api.post<ApiResponse<StartInterviewResponse>>(
                 "/Interviews/start",
                 {
@@ -464,7 +466,7 @@ export default function StartInterviewPage() {
                                 <p className="text-sm font-bold text-slate-700">Interview Mode</p>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-                                    {["Role-Based", "CV-Based", "Technical", "Behavioral", "Mixed"].map(
+                                    {["Role-Based", "CV-Based", "Technical", "Behavioral", "Mixed", "SQL Practice"].map(
                                         (mode) => {
                                             const isSelected = selectedInterviewMode === mode;
 

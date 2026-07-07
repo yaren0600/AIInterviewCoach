@@ -159,6 +159,11 @@ public class InterviewService : IInterviewService
             // Technical mode seçildiyse sadece teknik sorular gelir.
             questionDrafts.AddRange(GetTechnicalQuestions(positionName, selectedDifficulty));
         }
+        else if (selectedMode == "sql-practice")
+        {
+            // SQL Practice seçildiyse sadece SQL soru havuzu gelir.
+            questionDrafts.AddRange(GetSqlPracticeQuestions(selectedDifficulty));
+        }
         else if (selectedMode == "role-based")
         {
             // Role-Based mode seçildiyse pozisyona özel genel mülakat soruları gelir.
@@ -230,6 +235,13 @@ public class InterviewService : IInterviewService
             "cv-based" => "cv-based",
             "technical" => "technical",
             "behavioral" => "behavioral",
+            "mixed" => "mixed",
+
+            // Frontend "SQL Practice" gönderdiği için bunu özellikle yakalıyoruz.
+            "sql practice" => "sql-practice",
+            "sql-practice" => "sql-practice",
+            "sql" => "sql-practice",
+
             _ => "mixed"
         };
     }
@@ -695,6 +707,140 @@ public class InterviewService : IInterviewService
                 Difficulty = difficulty
             }
         };
+    }
+
+    /// <summary>
+    /// SQL Practice modu için SQL odaklı mülakat/pratik soruları üretir.
+    /// Şimdilik cevaplar metin olarak değerlendiriliyor.
+    /// İleride burada gerçek SQL sorgusu çalıştırma ve çıktı kontrolü ekleyebiliriz.
+    /// </summary>
+    private List<GeneratedQuestion> GetSqlPracticeQuestions(string difficulty)
+    {
+        if (difficulty == "Beginner")
+        {
+            return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "SELECT komutu SQL'de ne işe yarar? Basit bir örnekle açıklar mısın?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "WHERE koşulu SQL sorgularında neden kullanılır? Örnek bir sorgu yazar mısın?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "ORDER BY komutu ne işe yarar? Artan ve azalan sıralama farkını açıklar mısın?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "COUNT fonksiyonu ne işe yarar? Bir tabloda toplam kayıt sayısını nasıl bulursun?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "SQL'de primary key ve foreign key kavramlarını açıklar mısın?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            }
+        };
+        }
+
+        if (difficulty == "Advanced")
+        {
+            return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "Müşteriler ve siparişler tabloları için, hiç siparişi olmayan müşterileri listeleyen SQL sorgusunu nasıl yazarsın?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "GROUP BY ve HAVING kullanarak toplam sipariş tutarı 10000'den fazla olan müşterileri nasıl listelersin?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Bir tabloda tekrar eden email kayıtlarını tespit etmek için nasıl bir SQL sorgusu yazarsın?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Alt sorgu kullanarak maaşı departman ortalamasının üzerinde olan çalışanları nasıl listelersin?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Index kullanımı sorgu performansını nasıl etkiler? Yanlış index kullanımının olası zararları nelerdir?",
+                Category = "SQL Practice",
+                Difficulty = difficulty
+            }
+        };
+        }
+
+        return new List<GeneratedQuestion>
+    {
+        new()
+        {
+            Text = "INNER JOIN ve LEFT JOIN arasındaki farkı örnek bir senaryo üzerinden açıklar mısın?",
+            Category = "SQL Practice",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "GROUP BY ne işe yarar? Bir satış tablosunda kategoriye göre toplam satış tutarını nasıl hesaplarsın?",
+            Category = "SQL Practice",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Bir tabloda belirli tarih aralığındaki kayıtları filtrelemek için nasıl bir SQL sorgusu yazarsın?",
+            Category = "SQL Practice",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "NULL değerleri SQL sorgularında nasıl kontrol edersin? IS NULL ve IS NOT NULL kullanımını açıklar mısın?",
+            Category = "SQL Practice",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "UPDATE ve DELETE komutlarını kullanırken nelere dikkat etmelisin?",
+            Category = "SQL Practice",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Bir tabloda en yüksek maaşa sahip ilk 5 çalışanı listelemek için nasıl bir sorgu yazarsın?",
+            Category = "SQL Practice",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "SQL'de LIKE operatörü ne işe yarar? İsim içinde belirli bir kelime geçen kayıtları nasıl bulursun?",
+            Category = "SQL Practice",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Bir rapor ekranı için SQL sorgusu yazarken performans açısından nelere dikkat edersin?",
+            Category = "SQL Practice",
+            Difficulty = difficulty
+        }
+    };
     }
 
     /// <summary>
@@ -1200,7 +1346,7 @@ public class InterviewService : IInterviewService
             normalizedCategory.Contains("sql") ||
             normalizedCategory.Contains("database"))
         {
-            return "SQL sorularında önce kavramı tanımlayıp sonra örnek senaryo verebilirsin. Örneğin INNER JOIN iki tabloda eşleşen kayıtları getirir, LEFT JOIN ise sol tablodaki tüm kayıtları getirir ve eşleşmeyen sağ tablo alanlarını null gösterir.";
+            return "SQL sorularında cevabını güçlendirmek için önce kavramı kısa tanımla, sonra küçük bir örnek sorgu yaz. Örneğin JOIN sorusunda INNER JOIN'in sadece eşleşen kayıtları, LEFT JOIN'in ise sol tablodaki tüm kayıtları getirdiğini açıklayıp örnek bir SELECT sorgusu verebilirsin.";
         }
 
         if (normalizedQuestion.Contains("controller") ||
