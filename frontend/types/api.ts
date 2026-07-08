@@ -78,6 +78,7 @@ export interface StartInterviewRequest {
     questionCount: number;
     difficulty: string;
     interviewMode: string;
+    programmingLanguage?: string | null;
 }
 
 export interface Question {

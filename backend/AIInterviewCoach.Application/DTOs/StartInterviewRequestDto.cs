@@ -25,6 +25,8 @@ public class StartInterviewRequestDto
 
     [Required]
     public string InterviewMode { get; set; } = "Mixed";
+
+    public string? ProgrammingLanguage { get; set; } 
 }
 //Idye göre kullanıcı hangi pozisyonda mülakat başlatmak istiyoor onu anlayacak
 

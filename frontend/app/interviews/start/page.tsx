@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -29,6 +29,8 @@ export default function StartInterviewPage() {
     const [selectedQuestionCount, setSelectedQuestionCount] = useState(8);
     const [selectedDifficulty, setSelectedDifficulty] = useState("Intermediate");
     const [selectedInterviewMode, setSelectedInterviewMode] = useState("Mixed");
+    const [selectedProgrammingLanguage, setSelectedProgrammingLanguage] =
+        useState("C#");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -94,6 +96,10 @@ export default function StartInterviewPage() {
                     questionCount: selectedQuestionCount,
                     difficulty: selectedDifficulty,
                     interviewMode: selectedInterviewMode,
+                    programmingLanguage:
+                        selectedInterviewMode === "Coding Practice"
+                            ? selectedProgrammingLanguage
+                            : null,
                 }
             );
             if (response.data.success) {
@@ -465,8 +471,49 @@ export default function StartInterviewPage() {
                             <div className="mt-6">
                                 <p className="text-sm font-bold text-slate-700">Interview Mode</p>
 
+                                {selectedInterviewMode === "Coding Practice" && (
+                                    <div className="mt-6">
+                                        <p className="text-sm font-bold text-slate-700">
+                                            Programming Language
+                                        </p>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+                                            {["C#", "Python", "JavaScript"].map((language) => {
+                                                const isSelected = selectedProgrammingLanguage === language;
+
+                                                return (
+                                                    <button
+                                                        key={language}
+                                                        type="button"
+                                                        onClick={() => setSelectedProgrammingLanguage(language)}
+                                                        className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${isSelected
+                                                                ? "bg-slate-900 text-white shadow"
+                                                                : "bg-white/75 text-slate-700 hover:bg-white"
+                                                            }`}
+                                                    >
+                                                        {language}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <p className="mt-3 text-xs leading-5 text-slate-500">
+                                            Coding Practice modunda sorular seçtiğin dile göre hazırlanır ve cevap
+                                            alanı kod yazma alanı gibi görünür.
+                                        </p>
+                                    </div>
+                                )}
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-                                    {["Role-Based", "CV-Based", "Technical", "Behavioral", "Mixed", "SQL Practice"].map(
+                                    {[
+                                        "Role-Based",
+                                        "CV-Based",
+                                        "Technical",
+                                        "Behavioral",
+                                        "Mixed",
+                                        "SQL Practice",
+                                        "Coding Practice"
+                                    ].map(
                                         (mode) => {
                                             const isSelected = selectedInterviewMode === mode;
 
