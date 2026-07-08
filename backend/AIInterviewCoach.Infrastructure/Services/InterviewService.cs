@@ -164,6 +164,12 @@ public class InterviewService : IInterviewService
             // SQL Practice seçildiyse sadece SQL soru havuzu gelir.
             questionDrafts.AddRange(GetSqlPracticeQuestions(selectedDifficulty));
         }
+        else if (selectedMode == "coding-practice")
+        {
+            questionDrafts.AddRange(GetCodingPracticeQuestions(
+                selectedDifficulty,
+                request.ProgrammingLanguage));
+        }
         else if (selectedMode == "role-based")
         {
             // Role-Based mode seçildiyse pozisyona özel genel mülakat soruları gelir.
@@ -242,7 +248,30 @@ public class InterviewService : IInterviewService
             "sql-practice" => "sql-practice",
             "sql" => "sql-practice",
 
+            "coding practice" => "coding-practice",
+            "coding-practice" => "coding-practice",
+            "coding" => "coding-practice",
+
             _ => "mixed"
+        };
+    }
+
+    /// <summary>
+    /// Frontend'den gelen programlama dili değerini standart hale getirir.
+    /// </summary>
+    private string NormalizeProgrammingLanguage(string? programmingLanguage)
+    {
+        var normalizedLanguage = programmingLanguage?.Trim().ToLower();
+
+        return normalizedLanguage switch
+        {
+            "python" => "Python",
+            "javascript" => "JavaScript",
+            "js" => "JavaScript",
+            "c#" => "C#",
+            "csharp" => "C#",
+            "c sharp" => "C#",
+            _ => "C#"
         };
     }
 
@@ -838,6 +867,418 @@ public class InterviewService : IInterviewService
         {
             Text = "Bir rapor ekranı için SQL sorgusu yazarken performans açısından nelere dikkat edersin?",
             Category = "SQL Practice",
+            Difficulty = difficulty
+        }
+    };
+    }
+
+
+    /// <summary>
+    /// Coding Practice modu için seçilen programlama diline göre kodlama soruları üretir.
+    /// Şimdilik kullanıcı cevabı metin/kod olarak alınır ve rule-based değerlendirilir.
+    /// İleride burada kod çalıştırma veya AI destekli kod değerlendirme eklenebilir.
+    /// </summary>
+    private List<GeneratedQuestion> GetCodingPracticeQuestions(
+        string difficulty,
+        string? programmingLanguage)
+    {
+        var language = NormalizeProgrammingLanguage(programmingLanguage);
+
+        if (language == "Python")
+        {
+            return GetPythonCodingQuestions(difficulty);
+        }
+
+        if (language == "JavaScript")
+        {
+            return GetJavaScriptCodingQuestions(difficulty);
+        }
+
+        return GetCSharpCodingQuestions(difficulty);
+    }
+
+    private List<GeneratedQuestion> GetCSharpCodingQuestions(string difficulty)
+    {
+        if (difficulty == "Beginner")
+        {
+            return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "C# ile verilen bir sayı dizisindeki en büyük sayıyı bulan bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "C# ile verilen bir string ifadenin tersini döndüren bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "C# ile verilen bir sayı dizisindeki çift sayıları listeleyen bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "C# ile verilen bir string içinde kaç tane sesli harf olduğunu bulan bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "C# ile 1'den n'e kadar olan sayıların toplamını döndüren bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            }
+        };
+        }
+
+        if (difficulty == "Advanced")
+        {
+            return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "C# ile bir listedeki tekrar eden elemanları tespit eden ve her elemanın kaç kez geçtiğini döndüren bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "C# ile verilen bir string ifadenin palindrome olup olmadığını kontrol eden bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "C# ile iki sıralı diziyi tek bir sıralı dizi halinde birleştiren bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "C# ile verilen bir listedeki en sık tekrar eden elemanı bulan bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "C# ile bir metindeki kelime frekanslarını Dictionary kullanarak hesaplayan bir metot yaz.",
+                Category = "Coding Practice - C#",
+                Difficulty = difficulty
+            }
+        };
+        }
+
+        return new List<GeneratedQuestion>
+    {
+        new()
+        {
+            Text = "C# ile verilen bir dizideki sayıların ortalamasını hesaplayan bir metot yaz.",
+            Category = "Coding Practice - C#",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "C# ile verilen bir string ifadenin boş veya null olup olmadığını kontrol eden bir metot yaz.",
+            Category = "Coding Practice - C#",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "C# ile bir listedeki tek sayıları filtreleyen bir metot yaz.",
+            Category = "Coding Practice - C#",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "C# ile verilen iki sayıdan büyük olanı döndüren bir metot yaz.",
+            Category = "Coding Practice - C#",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "C# ile bir listedeki string değerleri alfabetik olarak sıralayan bir metot yaz.",
+            Category = "Coding Practice - C#",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "C# ile bir dizide belirli bir elemanın bulunup bulunmadığını kontrol eden bir metot yaz.",
+            Category = "Coding Practice - C#",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "C# ile verilen bir string içindeki boşlukları kaldıran bir metot yaz.",
+            Category = "Coding Practice - C#",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "C# ile bir listedeki eleman sayısını döndüren basit bir metot yaz.",
+            Category = "Coding Practice - C#",
+            Difficulty = difficulty
+        }
+    };
+    }
+
+    private List<GeneratedQuestion> GetPythonCodingQuestions(string difficulty)
+{
+    if (difficulty == "Beginner")
+    {
+        return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "Python ile verilen bir listedeki en büyük sayıyı bulan bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Python ile verilen bir string ifadenin tersini döndüren bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Python ile verilen bir listedeki çift sayıları döndüren bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Python ile 1'den n'e kadar olan sayıların toplamını hesaplayan bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Python ile verilen bir kelimenin kaç karakterden oluştuğunu döndüren bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            }
+        };
+    }
+
+    if (difficulty == "Advanced")
+    {
+        return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "Python ile bir listedeki tekrar eden elemanları ve tekrar sayılarını dictionary olarak döndüren bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Python ile verilen bir string ifadenin palindrome olup olmadığını kontrol eden bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Python ile bir metindeki kelime frekanslarını hesaplayan bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Python ile iki sıralı listeyi tek bir sıralı liste halinde birleştiren bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "Python ile bir listedeki en sık tekrar eden elemanı bulan bir fonksiyon yaz.",
+                Category = "Coding Practice - Python",
+                Difficulty = difficulty
+            }
+        };
+    }
+
+    return new List<GeneratedQuestion>
+    {
+        new()
+        {
+            Text = "Python ile verilen bir listedeki sayıların ortalamasını hesaplayan bir fonksiyon yaz.",
+            Category = "Coding Practice - Python",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Python ile verilen bir listedeki tek sayıları filtreleyen bir fonksiyon yaz.",
+            Category = "Coding Practice - Python",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Python ile verilen iki sayıdan büyük olanı döndüren bir fonksiyon yaz.",
+            Category = "Coding Practice - Python",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Python ile verilen bir string içindeki boşlukları kaldıran bir fonksiyon yaz.",
+            Category = "Coding Practice - Python",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Python ile bir listenin boş olup olmadığını kontrol eden bir fonksiyon yaz.",
+            Category = "Coding Practice - Python",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Python ile bir listedeki string değerleri alfabetik olarak sıralayan bir fonksiyon yaz.",
+            Category = "Coding Practice - Python",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Python ile verilen bir cümlede kaç kelime olduğunu bulan bir fonksiyon yaz.",
+            Category = "Coding Practice - Python",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "Python ile bir listedeki benzersiz elemanları döndüren bir fonksiyon yaz.",
+            Category = "Coding Practice - Python",
+            Difficulty = difficulty
+        }
+    };
+}
+
+    private List<GeneratedQuestion> GetJavaScriptCodingQuestions(string difficulty)
+    {
+        if (difficulty == "Beginner")
+        {
+            return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "JavaScript ile verilen bir dizideki en büyük sayıyı bulan bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "JavaScript ile verilen bir string ifadenin tersini döndüren bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "JavaScript ile verilen bir dizideki çift sayıları döndüren bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "JavaScript ile 1'den n'e kadar olan sayıların toplamını hesaplayan bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "JavaScript ile verilen bir string ifadenin uzunluğunu döndüren bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            }
+        };
+        }
+
+        if (difficulty == "Advanced")
+        {
+            return new List<GeneratedQuestion>
+        {
+            new()
+            {
+                Text = "JavaScript ile bir dizideki tekrar eden elemanları ve tekrar sayılarını object olarak döndüren bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "JavaScript ile verilen bir string ifadenin palindrome olup olmadığını kontrol eden bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "JavaScript ile bir metindeki kelime frekanslarını hesaplayan bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "JavaScript ile iki sıralı diziyi tek bir sıralı dizi halinde birleştiren bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            },
+            new()
+            {
+                Text = "JavaScript ile bir dizide en sık tekrar eden elemanı bulan bir fonksiyon yaz.",
+                Category = "Coding Practice - JavaScript",
+                Difficulty = difficulty
+            }
+        };
+        }
+
+        return new List<GeneratedQuestion>
+    {
+        new()
+        {
+            Text = "JavaScript ile verilen bir dizideki sayıların ortalamasını hesaplayan bir fonksiyon yaz.",
+            Category = "Coding Practice - JavaScript",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "JavaScript ile verilen bir dizideki tek sayıları filtreleyen bir fonksiyon yaz.",
+            Category = "Coding Practice - JavaScript",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "JavaScript ile verilen iki sayıdan büyük olanı döndüren bir fonksiyon yaz.",
+            Category = "Coding Practice - JavaScript",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "JavaScript ile verilen bir string içindeki boşlukları kaldıran bir fonksiyon yaz.",
+            Category = "Coding Practice - JavaScript",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "JavaScript ile bir dizinin boş olup olmadığını kontrol eden bir fonksiyon yaz.",
+            Category = "Coding Practice - JavaScript",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "JavaScript ile bir dizide belirli bir elemanın bulunup bulunmadığını kontrol eden bir fonksiyon yaz.",
+            Category = "Coding Practice - JavaScript",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "JavaScript ile verilen bir cümlede kaç kelime olduğunu bulan bir fonksiyon yaz.",
+            Category = "Coding Practice - JavaScript",
+            Difficulty = difficulty
+        },
+        new()
+        {
+            Text = "JavaScript ile bir dizideki benzersiz elemanları döndüren bir fonksiyon yaz.",
+            Category = "Coding Practice - JavaScript",
             Difficulty = difficulty
         }
     };

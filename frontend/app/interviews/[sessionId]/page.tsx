@@ -219,6 +219,10 @@ export default function InterviewSessionPage() {
     const isSqlPractice =
         currentQuestion?.category?.toLowerCase().includes("sql") ?? false;
 
+    const isCodingPractice =
+        currentQuestion?.category?.toLowerCase().includes("coding practice") ?? false;
+
+    const isCodePractice = isSqlPractice || isCodingPractice;
     const progressPercentage = session
         ? Math.round(((currentQuestionIndex + 1) / session.questions.length) * 100)
         : 0;
@@ -339,15 +343,16 @@ export default function InterviewSessionPage() {
                             </span>
                         </div>
 
-                        {isSqlPractice && (
+                        {isCodePractice && (
                             <div className="mt-5 rounded-3xl border border-sky-100 bg-sky-50/80 p-4">
                                 <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">
-                                    SQL Coding Mode
+                                    {isSqlPractice ? "SQL Coding Mode" : "Coding Practice Mode"}
                                 </p>
 
                                 <p className="mt-2 text-sm leading-6 text-sky-900">
-                                    Bu soruda cevabını mümkünse SQL sorgusu yazarak ver. Önce sorguyu
-                                    yaz, sonra kısa bir cümleyle ne yaptığını açıkla.
+                                    {isSqlPractice
+                                        ? "Bu soruda cevabını mümkünse SQL sorgusu yazarak ver. Önce sorguyu yaz, sonra kısa bir cümleyle ne yaptığını açıkla."
+                                        : "Bu soruda cevabını kod yazarak ver. Fonksiyon/metot adını, parametreleri ve temel algoritma mantığını net göstermeye çalış."}
                                 </p>
                             </div>
                         )}
@@ -359,9 +364,11 @@ export default function InterviewSessionPage() {
                             placeholder={
                                 isSqlPractice
                                     ? "SQL sorgunu buraya yaz...\n\nÖrnek:\nSELECT *\nFROM Customers\nWHERE City = 'Konya';"
-                                    : "Cevabını buraya yaz..."
+                                    : isCodingPractice
+                                        ? "Kodunu buraya yaz...\n\nÖrnek:\npublic int FindMax(int[] numbers)\n{\n    return numbers.Max();\n}"
+                                        : "Cevabını buraya yaz..."
                             }
-                            className={`mt-6 w-full min-h-[240px] rounded-3xl bg-white/80 border border-white/70 p-5 text-slate-800 outline-none focus:ring-4 focus:ring-violet-200 disabled:opacity-70 ${isSqlPractice ? "font-mono text-sm leading-7" : ""
+                            className={`mt-6 w-full min-h-[260px] rounded-3xl bg-white/80 border border-white/70 p-5 text-slate-800 outline-none focus:ring-4 focus:ring-violet-200 disabled:opacity-70 ${isCodePractice ? "font-mono text-sm leading-7" : ""
                                 }`}
                         />
 
@@ -376,11 +383,14 @@ export default function InterviewSessionPage() {
                             disabled={isSubmitting || !!lastFeedback}
                             className="mt-5 w-full rounded-full bg-slate-900 text-white px-6 py-3 font-semibold hover:bg-slate-700 disabled:opacity-60 transition"
                         >
+
                             {isSubmitting
                                 ? "Submitting..."
                                 : isSqlPractice
                                     ? "Submit SQL Answer"
-                                    : "Submit Answer"}
+                                    : isCodingPractice
+                                        ? "Submit Code Answer"
+                                        : "Submit Answer"}
                         </button>
                     </div>
 
@@ -399,7 +409,9 @@ export default function InterviewSessionPage() {
                                     <p className="text-sm text-slate-500 mt-2 leading-6">
                                         {isSqlPractice
                                             ? "SQL cevaplarında sorguyu açık yazmaya çalış. SELECT, FROM, WHERE, JOIN, GROUP BY gibi anahtar kelimeleri doğru kullan."
-                                            : "Try to answer with a clear structure: situation, action, technologies used, and result."}
+                                            : isCodingPractice
+                                                ? "Kod cevaplarında çalışır mantığı göstermeye çalış. Fonksiyon adı, parametreler, döngü/koşul kullanımı ve dönüş değerini net yaz."
+                                                : "Try to answer with a clear structure: situation, action, technologies used, and result."}
                                     </p>
                                 </div>
 
