@@ -1657,6 +1657,25 @@ public class InterviewService : IInterviewService
         var normalizedCategory = category.ToLower();
         var normalizedQuestion = questionText.ToLower();
 
+        // SQL Practice cevapları için özel puanlama yapıyoruz.
+        // Çünkü SQL cevabı normal paragraf gibi değil, sorgu yapısı üzerinden değerlendirilir.
+        if (normalizedCategory.Contains("sql"))
+        {
+            return CalculateSqlAnswerScore(
+                normalizedAnswer,
+                normalizedQuestion);
+        }
+
+        // Coding Practice cevapları için özel puanlama yapıyoruz.
+        // Çünkü kod cevaplarında function/metot, return, koşul/döngü gibi yapılar önemlidir.
+        if (normalizedCategory.Contains("coding practice"))
+        {
+            return CalculateCodingAnswerScore(
+                normalizedAnswer,
+                normalizedQuestion,
+                normalizedCategory);
+        }
+
         var score = 30;
 
         if (userAnswer.Length >= 50)
@@ -1693,6 +1712,203 @@ public class InterviewService : IInterviewService
     }
 
     /// <summary>
+    /// SQL Practice cevaplarını daha mantıklı puanlar.
+    /// SELECT, FROM, WHERE, JOIN, GROUP BY gibi SQL yapılarının kullanımına bakar.
+    /// </summary>
+    private int CalculateSqlAnswerScore(
+        string normalizedAnswer,
+        string normalizedQuestion)
+    {
+        var score = 20;
+
+        if (normalizedAnswer.Contains("select"))
+        {
+            score += 20;
+        }
+
+        if (normalizedAnswer.Contains("from"))
+        {
+            score += 20;
+        }
+
+        if (normalizedQuestion.Contains("where") &&
+            normalizedAnswer.Contains("where"))
+        {
+            score += 15;
+        }
+
+        if ((normalizedQuestion.Contains("join") ||
+             normalizedQuestion.Contains("inner join") ||
+             normalizedQuestion.Contains("left join")) &&
+            normalizedAnswer.Contains("join"))
+        {
+            score += 15;
+        }
+
+        if (normalizedQuestion.Contains("group by") &&
+            normalizedAnswer.Contains("group by"))
+        {
+            score += 15;
+        }
+
+        if (normalizedQuestion.Contains("having") &&
+            normalizedAnswer.Contains("having"))
+        {
+            score += 10;
+        }
+
+        if (normalizedQuestion.Contains("order by") &&
+            normalizedAnswer.Contains("order by"))
+        {
+            score += 10;
+        }
+
+        if (normalizedQuestion.Contains("count") &&
+            normalizedAnswer.Contains("count"))
+        {
+            score += 10;
+        }
+
+        if (normalizedQuestion.Contains("null") &&
+            (normalizedAnswer.Contains("is null") ||
+             normalizedAnswer.Contains("is not null")))
+        {
+            score += 10;
+        }
+
+        if (normalizedAnswer.Contains(";"))
+        {
+            score += 5;
+        }
+
+        return Math.Min(score, 100);
+    }
+
+    /// <summary>
+    /// Coding Practice cevaplarını daha mantıklı puanlar.
+    /// Dil farkına göre temel kod yapılarını kontrol eder.
+    /// </summary>
+    private int CalculateCodingAnswerScore(
+        string normalizedAnswer,
+        string normalizedQuestion,
+        string normalizedCategory)
+    {
+        var score = 20;
+
+        // C# cevabı için temel yapılar
+        if (normalizedCategory.Contains("c#"))
+        {
+            if (normalizedAnswer.Contains("public") ||
+                normalizedAnswer.Contains("private") ||
+                normalizedAnswer.Contains("static"))
+            {
+                score += 15;
+            }
+
+            if (normalizedAnswer.Contains("return"))
+            {
+                score += 20;
+            }
+
+            if (normalizedAnswer.Contains("(") &&
+                normalizedAnswer.Contains(")"))
+            {
+                score += 10;
+            }
+
+            if (normalizedAnswer.Contains("{") &&
+                normalizedAnswer.Contains("}"))
+            {
+                score += 10;
+            }
+        }
+
+        // Python cevabı için temel yapılar
+        else if (normalizedCategory.Contains("python"))
+        {
+            if (normalizedAnswer.Contains("def "))
+            {
+                score += 25;
+            }
+
+            if (normalizedAnswer.Contains("return"))
+            {
+                score += 20;
+            }
+
+            if (normalizedAnswer.Contains(":"))
+            {
+                score += 10;
+            }
+        }
+
+        // JavaScript cevabı için temel yapılar
+        else if (normalizedCategory.Contains("javascript"))
+        {
+            if (normalizedAnswer.Contains("function") ||
+                normalizedAnswer.Contains("=>"))
+            {
+                score += 25;
+            }
+
+            if (normalizedAnswer.Contains("return"))
+            {
+                score += 20;
+            }
+
+            if (normalizedAnswer.Contains("{") &&
+                normalizedAnswer.Contains("}"))
+            {
+                score += 10;
+            }
+        }
+
+        // Genel algoritma işaretleri
+        if (normalizedAnswer.Contains("for") ||
+            normalizedAnswer.Contains("foreach") ||
+            normalizedAnswer.Contains("while"))
+        {
+            score += 15;
+        }
+
+        if (normalizedAnswer.Contains("if"))
+        {
+            score += 10;
+        }
+
+        if (normalizedAnswer.Contains("max") ||
+            normalizedAnswer.Contains("min") ||
+            normalizedAnswer.Contains("sum") ||
+            normalizedAnswer.Contains("count") ||
+            normalizedAnswer.Contains("length"))
+        {
+            score += 10;
+        }
+
+        // Soru palindrome ise cevapta ters çevirme/kıyaslama mantığı beklenir.
+        if (normalizedQuestion.Contains("palindrome") &&
+            (normalizedAnswer.Contains("reverse") ||
+             normalizedAnswer.Contains("[::-1]") ||
+             normalizedAnswer.Contains("sequenceequal")))
+        {
+            score += 15;
+        }
+
+        // Soru tekrar/frekans içeriyorsa dictionary/object mantığı beklenir.
+        if ((normalizedQuestion.Contains("tekrar") ||
+             normalizedQuestion.Contains("frekans")) &&
+            (normalizedAnswer.Contains("dictionary") ||
+             normalizedAnswer.Contains("dict") ||
+             normalizedAnswer.Contains("object") ||
+             normalizedAnswer.Contains("map")))
+        {
+            score += 15;
+        }
+
+        return Math.Min(score, 100);
+    }
+
+    /// <summary>
     /// Kullanıcı cevabına açıklayıcı feedback üretir.
     /// Şu an keyword ve uzunluk bazlı çalışır.
     /// </summary>
@@ -1714,6 +1930,21 @@ public class InterviewService : IInterviewService
         var normalizedAnswer = userAnswer.ToLower();
         var normalizedCategory = category.ToLower();
         var normalizedQuestion = questionText.ToLower();
+
+        if (normalizedCategory.Contains("sql"))
+        {
+            return GenerateSqlAnswerFeedback(
+                normalizedAnswer,
+                normalizedQuestion);
+        }
+
+        if (normalizedCategory.Contains("coding practice"))
+        {
+            return GenerateCodingAnswerFeedback(
+                normalizedAnswer,
+                normalizedQuestion,
+                normalizedCategory);
+        }
 
         var expectedKeywords = GetExpectedKeywords(normalizedCategory, normalizedQuestion);
 
@@ -1742,6 +1973,90 @@ public class InterviewService : IInterviewService
         }
 
         return "Cevap teknik kavramlar içeriyor, yeterince açıklayıcı ve örnekle desteklenmiş görünüyor.";
+    }
+
+    /// <summary>
+    /// SQL cevapları için daha özel feedback üretir.
+    /// </summary>
+    private string GenerateSqlAnswerFeedback(
+        string normalizedAnswer,
+        string normalizedQuestion)
+    {
+        if (!normalizedAnswer.Contains("select"))
+        {
+            return "SQL cevabında SELECT ifadesi eksik görünüyor. Sorgunun hangi alanları getireceğini belirtmelisin.";
+        }
+
+        if (!normalizedAnswer.Contains("from"))
+        {
+            return "SQL cevabında FROM ifadesi eksik görünüyor. Verinin hangi tablodan geleceğini belirtmelisin.";
+        }
+
+        if (normalizedQuestion.Contains("join") &&
+            !normalizedAnswer.Contains("join"))
+        {
+            return "Bu soru JOIN kullanımı gerektiriyor. İlgili tabloları INNER JOIN veya LEFT JOIN ile bağlamalısın.";
+        }
+
+        if (normalizedQuestion.Contains("group by") &&
+            !normalizedAnswer.Contains("group by"))
+        {
+            return "Bu soru gruplama gerektiriyor. GROUP BY kullanarak verileri ilgili alana göre gruplamalısın.";
+        }
+
+        if (normalizedQuestion.Contains("having") &&
+            !normalizedAnswer.Contains("having"))
+        {
+            return "Bu soru HAVING koşulu gerektiriyor. Aggregate sonuçlar üzerinde filtreleme yapmak için HAVING kullanmalısın.";
+        }
+
+        return "SQL cevabın temel sorgu yapısını içeriyor. Daha güçlü olması için tablo/kolon adlarını netleştirip sorgunun ne yaptığını kısa bir cümleyle açıklayabilirsin.";
+    }
+
+    /// <summary>
+    /// Kodlama cevapları için daha özel feedback üretir.
+    /// </summary>
+    private string GenerateCodingAnswerFeedback(
+        string normalizedAnswer,
+        string normalizedQuestion,
+        string normalizedCategory)
+    {
+        if (normalizedCategory.Contains("python") &&
+            !normalizedAnswer.Contains("def "))
+        {
+            return "Python cevabında fonksiyon tanımı eksik görünüyor. Cevabını def ile başlayan bir fonksiyon şeklinde yazman daha doğru olur.";
+        }
+
+        if (normalizedCategory.Contains("javascript") &&
+            !normalizedAnswer.Contains("function") &&
+            !normalizedAnswer.Contains("=>"))
+        {
+            return "JavaScript cevabında fonksiyon yapısı eksik görünüyor. function veya arrow function kullanarak çözümü fonksiyon haline getirebilirsin.";
+        }
+
+        if (normalizedCategory.Contains("c#") &&
+            !normalizedAnswer.Contains("return"))
+        {
+            return "C# cevabında return ifadesi eksik görünüyor. Metodun sonucu nasıl döndürdüğünü göstermelisin.";
+        }
+
+        if (!normalizedAnswer.Contains("return"))
+        {
+            return "Kod cevabında return ifadesi eksik görünüyor. Fonksiyonun hangi sonucu döndürdüğünü net göstermelisin.";
+        }
+
+        if ((normalizedQuestion.Contains("liste") ||
+             normalizedQuestion.Contains("dizi")) &&
+            !normalizedAnswer.Contains("for") &&
+            !normalizedAnswer.Contains("foreach") &&
+            !normalizedAnswer.Contains("while") &&
+            !normalizedAnswer.Contains("map") &&
+            !normalizedAnswer.Contains("filter"))
+        {
+            return "Bu soru liste/dizi üzerinde işlem yapmayı gerektiriyor. Döngü, map, filter veya benzeri bir yapı kullanman beklenir.";
+        }
+
+        return "Kod cevabın temel çözüm yapısını içeriyor. Daha güçlü olması için edge case durumlarını, null/boş liste kontrolünü ve algoritmanın neden doğru çalıştığını kısa bir notla açıklayabilirsin.";
     }
 
     /// <summary>
