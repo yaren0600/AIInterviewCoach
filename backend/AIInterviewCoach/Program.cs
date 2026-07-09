@@ -28,6 +28,9 @@ builder.Services.AddScoped<IPositionService, PositionService>();
 
 builder.Services.AddScoped<IInterviewService, InterviewService>();
 
+// Bu kısımda, uygulamanın farklı bölümlerinde kullanacağımız servisleri Dependency Injection ile ekliyoruz.
+builder.Services.AddScoped<IAiEvaluationService, AiEvaluationService>();
+
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.AddScoped<IResumeService, ResumeService>();
