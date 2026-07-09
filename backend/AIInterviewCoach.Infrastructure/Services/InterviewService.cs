@@ -4,15 +4,21 @@ using AIInterviewCoach.Domain.Entities;
 using AIInterviewCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace AIInterviewCoach.Infrastructure.Services;
 
 public class InterviewService : IInterviewService
 {
-    private readonly AppDbContext _context;
 
-    public InterviewService(AppDbContext context)
+    private readonly AppDbContext _context;
+    private readonly IAiEvaluationService _aiEvaluationService;
+
+    public InterviewService(
+        AppDbContext context,
+        IAiEvaluationService aiEvaluationService)
     {
         _context = context;
+        _aiEvaluationService = aiEvaluationService;
     }
 
     /// <summary>
@@ -1405,10 +1411,13 @@ public class InterviewService : IInterviewService
     /// Cevap kaydetme/değerlendirme metodu.
     /// Kullanıcı aynı soruya tekrar cevap verirse eski cevabı günceller.
     /// </summary>
+
     public async Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request)
     {
         var question = await _context.Questions
             .Include(q => q.InterviewSession)
+                .ThenInclude(s => s.Position)
+            .Include(q => q.Answer)
             .FirstOrDefaultAsync(q =>
                 q.Id == request.QuestionId &&
                 q.InterviewSession.UserId == userId);
@@ -1418,35 +1427,39 @@ public class InterviewService : IInterviewService
             return null;
         }
 
-        var existingAnswer = await _context.Answers
-            .FirstOrDefaultAsync(a => a.QuestionId == request.QuestionId);
+        var aiEvaluation = await _aiEvaluationService.EvaluateAnswerAsync(
+            question.QuestionText,
+            request.UserAnswer,
+            question.Category,
+            question.Difficulty,
+            question.InterviewSession.Position.Name);
 
-        if (existingAnswer is not null)
+        if (question.Answer is not null)
         {
-            existingAnswer.UserAnswer = request.UserAnswer;
-            existingAnswer.Score = CalculateSmartScore(request.UserAnswer, question.Category, question.QuestionText);
-            existingAnswer.Feedback = GenerateSmartFeedback(request.UserAnswer, question.Category, question.QuestionText);
-            existingAnswer.AnsweredAt = DateTime.Now;
+            question.Answer.UserAnswer = request.UserAnswer;
+            question.Answer.Score = aiEvaluation.Score;
+            question.Answer.Feedback = aiEvaluation.Feedback;
+            question.Answer.AnsweredAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
             return new AnswerDto
             {
-                Id = existingAnswer.Id,
-                QuestionId = existingAnswer.QuestionId,
-                UserAnswer = existingAnswer.UserAnswer,
-                Score = existingAnswer.Score,
-                Feedback = existingAnswer.Feedback,
-                AnsweredAt = existingAnswer.AnsweredAt
+                Id = question.Answer.Id,
+                QuestionId = question.Answer.QuestionId,
+                UserAnswer = question.Answer.UserAnswer,
+                Score = question.Answer.Score,
+                Feedback = question.Answer.Feedback,
+                AnsweredAt = question.Answer.AnsweredAt
             };
         }
 
         var answer = new Answer
         {
-            QuestionId = request.QuestionId,
+            QuestionId = question.Id,
             UserAnswer = request.UserAnswer,
-            Score = CalculateSmartScore(request.UserAnswer, question.Category, question.QuestionText),
-            Feedback = GenerateSmartFeedback(request.UserAnswer, question.Category, question.QuestionText),
+            Score = aiEvaluation.Score,
+            Feedback = aiEvaluation.Feedback,
             AnsweredAt = DateTime.Now
         };
 
