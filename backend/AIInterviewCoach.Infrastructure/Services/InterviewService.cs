@@ -160,6 +160,7 @@ public class InterviewService : IInterviewService
                 questionDrafts.AddRange(GetCvBasedQuestions(resumeText: null, difficulty: selectedDifficulty));
             }
 
+
         }
         else if (selectedMode == "technical")
         {
