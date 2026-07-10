@@ -9,6 +9,7 @@ using AIInterviewCoach.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using AIInterviewCoach.Infrastructure.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,9 @@ builder.Services.AddScoped<IInterviewService, InterviewService>();
 
 // Bu kısımda, uygulamanın farklı bölümlerinde kullanacağımız servisleri Dependency Injection ile ekliyoruz.
 builder.Services.AddScoped<IAiEvaluationService, AiEvaluationService>();
+
+builder.Services.Configure<AiProviderSettings>(
+    builder.Configuration.GetSection("AiProvider"));
 
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
