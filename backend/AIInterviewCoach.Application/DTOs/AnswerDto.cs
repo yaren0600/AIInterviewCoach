@@ -13,6 +13,7 @@ public class AnswerDto
     public string UserAnswer { get; set; } = string.Empty;
     public int? Score { get; set; }
     public string Feedback { get; set; } = string.Empty;
+    public string? BetterAnswerExample { get; set; }
     public DateTime AnsweredAt { get; set; }
 
 }

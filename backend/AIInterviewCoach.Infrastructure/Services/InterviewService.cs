@@ -1441,6 +1441,7 @@ public class InterviewService : IInterviewService
             question.Answer.UserAnswer = request.UserAnswer;
             question.Answer.Score = aiEvaluation.Score;
             question.Answer.Feedback = aiEvaluation.Feedback;
+            question.Answer.BetterAnswerExample = aiEvaluation.BetterAnswerExample;
             question.Answer.AnsweredAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -1452,6 +1453,7 @@ public class InterviewService : IInterviewService
                 UserAnswer = question.Answer.UserAnswer,
                 Score = question.Answer.Score,
                 Feedback = question.Answer.Feedback,
+                BetterAnswerExample = question.Answer.BetterAnswerExample,
                 AnsweredAt = question.Answer.AnsweredAt
             };
         }
@@ -1462,6 +1464,7 @@ public class InterviewService : IInterviewService
             UserAnswer = request.UserAnswer,
             Score = aiEvaluation.Score,
             Feedback = aiEvaluation.Feedback,
+            BetterAnswerExample = aiEvaluation.BetterAnswerExample,
             AnsweredAt = DateTime.Now
         };
 
@@ -1475,6 +1478,7 @@ public class InterviewService : IInterviewService
             UserAnswer = answer.UserAnswer,
             Score = answer.Score,
             Feedback = answer.Feedback,
+            BetterAnswerExample = answer.BetterAnswerExample,
             AnsweredAt = answer.AnsweredAt
         };
     }
@@ -1551,10 +1555,11 @@ public class InterviewService : IInterviewService
                     Score = q.Answer?.Score,
                     Feedback = q.Answer?.Feedback,
                     AnsweredAt = q.Answer?.AnsweredAt,
-                    BetterAnswerExample = GenerateBetterAnswerExample(
-                        q.QuestionText, 
-                        q.Category, 
-                        q.Difficulty)
+                    BetterAnswerExample = q.Answer?.BetterAnswerExample
+                        ?? GenerateBetterAnswerExample(
+                            q.QuestionText,
+                            q.Category,
+                            q.Difficulty)
                 }).ToList()
         };
     }
