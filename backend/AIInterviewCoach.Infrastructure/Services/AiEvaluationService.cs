@@ -96,7 +96,7 @@ public class AiEvaluationService : IAiEvaluationService
 
         score = Math.Clamp(score, 0, 100);
 
-        var feedback = GenerateMockFeedback(score, category);
+        var feedback = GenerateMockFeedback(score, category, questionText);
         var betterAnswerExample = GenerateMockBetterAnswerExample(category, questionText);
 
         return Task.FromResult(new AiEvaluationResultDto
@@ -128,12 +128,55 @@ public class AiEvaluationService : IAiEvaluationService
             normalizedAnswer.Contains(expression));
     }
 
-    private static string GenerateMockFeedback(int score, string category)
+    private static string GenerateMockFeedback(int score, string category, string questionText)
     {
         var normalizedCategory = category.ToLower();
+        var normalizedQuestion = questionText.ToLower();
 
         if (normalizedCategory.Contains("coding"))
         {
+            if (normalizedQuestion.Contains("max") || normalizedQuestion.Contains("en büyük"))
+            {
+                if (score >= 70)
+                {
+                    return "Kod cevabın liste/dizi üzerinde maksimum değeri bulma mantığına yaklaşmış görünüyor. Daha güçlü olması için fonksiyonun parametre olarak liste alması, başlangıç maksimum değerini belirlemesi ve tüm elemanları karşılaştırması gerekir.";
+                }
+
+                return "Bu soruda amaç listedeki en büyük sayıyı bulmak. Cevabında fonksiyon yapısı olsa bile listeyi gezme, karşılaştırma yapma ve maksimum değeri return etme mantığını daha net göstermelisin.";
+            }
+
+            if (normalizedQuestion.Contains("reverse") || normalizedQuestion.Contains("ters"))
+            {
+                if (score >= 70)
+                {
+                    return "Kod cevabın ters çevirme problemine yaklaşmış görünüyor. Daha güçlü olması için input değeri alıp ters çevrilmiş sonucu açıkça return etmelisin.";
+                }
+
+                return "Bu soruda amaç metni veya listeyi ters çevirmek. Cevabında fonksiyon yapısının yanında ters çevirme işlemini ve return edilen sonucu daha net göstermelisin.";
+            }
+
+            if (normalizedQuestion.Contains("palindrome"))
+            {
+                if (score >= 70)
+                {
+                    return "Kod cevabın palindrome kontrolü için temel yapıya sahip görünüyor. Daha güçlü olması için değerin ters haliyle karşılaştırılması ve true/false sonuç dönmesi net olmalı.";
+                }
+
+                return "Bu soruda amaç palindrome kontrolü yapmak. Cevabında metni ters çevirme, orijinal değerle karşılaştırma ve boolean sonuç döndürme mantığını göstermelisin.";
+            }
+
+            if (normalizedQuestion.Contains("frekans") ||
+                normalizedQuestion.Contains("tekrar") ||
+                normalizedQuestion.Contains("frequency"))
+            {
+                if (score >= 70)
+                {
+                    return "Kod cevabın frekans sayma problemine yaklaşmış görünüyor. Daha güçlü olması için dictionary/map yapısıyla her elemanın kaç kez geçtiğini saymalısın.";
+                }
+
+                return "Bu soruda amaç tekrar/frekans saymak. Cevabında dictionary, map veya benzeri bir yapı kullanarak elemanların kaç kez geçtiğini hesaplama mantığını göstermelisin.";
+            }
+
             if (score >= 85)
             {
                 return "Kod cevabın güçlü görünüyor. Fonksiyon yapısı, dönüş değeri ve çözüm adımları genel olarak iyi kurulmuş.";
@@ -154,6 +197,24 @@ public class AiEvaluationService : IAiEvaluationService
 
         if (normalizedCategory.Contains("sql"))
         {
+            if (normalizedQuestion.Contains("join"))
+            {
+                return "Bu soru JOIN mantığını ölçüyor. Cevabında tabloları hangi kolonlar üzerinden bağladığını ve neden JOIN kullandığını daha net göstermelisin.";
+            }
+
+            if (normalizedQuestion.Contains("group by") ||
+                normalizedQuestion.Contains("count") ||
+                normalizedQuestion.Contains("ortalama") ||
+                normalizedQuestion.Contains("average"))
+            {
+                return "Bu soru gruplama veya aggregate fonksiyon kullanımını ölçüyor. GROUP BY ile hangi alana göre gruplama yaptığını ve COUNT/AVG gibi fonksiyonları neden kullandığını net göstermelisin.";
+            }
+
+            if (normalizedQuestion.Contains("where") || normalizedQuestion.Contains("filtre"))
+            {
+                return "Bu soru filtreleme mantığını ölçüyor. SELECT ve FROM yapısından sonra WHERE koşulunu soruya uygun şekilde net yazmalısın.";
+            }
+
             if (score >= 85)
             {
                 return "SQL cevabın güçlü görünüyor. Temel sorgu yapısı, filtreleme ve tablo ilişkileri iyi kurulmuş.";
@@ -197,24 +258,71 @@ public class AiEvaluationService : IAiEvaluationService
 
         if (normalizedCategory.Contains("sql"))
         {
-            return "Daha güçlü bir SQL cevabında önce sorguyu yazıp ardından ne yaptığını açıklayabilirsin. Örneğin: SELECT alanlar FROM tablo WHERE koşul; şeklinde temel sorgu yapısını net gösterebilirsin.";
+            if (normalizedQuestion.Contains("join"))
+            {
+                return "Daha güçlü bir cevapta tablolar arasındaki ilişkiyi JOIN ile açıkça kurmalısın. Örneğin: SELECT c.Name, o.OrderDate FROM Customers c INNER JOIN Orders o ON c.Id = o.CustomerId; Bu sorgudan sonra hangi tabloları neden bağladığını kısa bir cümleyle açıklaman cevabı güçlendirir.";
+            }
+
+            if (normalizedQuestion.Contains("group by") || normalizedQuestion.Contains("count") || normalizedQuestion.Contains("average") || normalizedQuestion.Contains("ortalama"))
+            {
+                return "Daha güçlü bir cevapta aggregate fonksiyonları ve GROUP BY yapısını birlikte kullanmalısın. Örneğin: SELECT DepartmentId, COUNT(*) AS EmployeeCount FROM Employees GROUP BY DepartmentId; Ardından gruplamanın hangi alana göre yapıldığını açıklamalısın.";
+            }
+
+            if (normalizedQuestion.Contains("where") || normalizedQuestion.Contains("filtre"))
+            {
+                return "Daha güçlü bir cevapta SELECT ve FROM yapısından sonra WHERE ile filtreleme koşulunu net yazmalısın. Örneğin: SELECT * FROM Customers WHERE City = 'Konya'; Ardından bu koşulun hangi kayıtları getirdiğini açıklamalısın.";
+            }
+
+            return "Daha güçlü bir SQL cevabında önce temel sorguyu net yazmalısın: SELECT alanlar FROM tablo WHERE koşul; Sonra sorgunun hangi veriyi neden getirdiğini kısa bir cümleyle açıklamalısın.";
         }
 
         if (normalizedCategory.Contains("coding"))
         {
-            return "Daha güçlü bir kod cevabında fonksiyon/metot tanımı, parametreler, temel algoritma adımları ve return değeri net olmalı. Ayrıca kısa bir cümleyle çözüm mantığını açıklayabilirsin.";
+            if (normalizedQuestion.Contains("max") || normalizedQuestion.Contains("en büyük"))
+            {
+                return "Daha güçlü bir kod cevabında fonksiyon bir liste/dizi parametresi almalı, ilk elemanı başlangıç maksimum değeri kabul etmeli, döngüyle tüm elemanları gezmeli ve daha büyük değer bulduğunda maksimumu güncellemelidir. Sonunda bulunan maksimum değer return edilmelidir.";
+            }
+
+            if (normalizedQuestion.Contains("reverse") || normalizedQuestion.Contains("ters"))
+            {
+                return "Daha güçlü bir kod cevabında metin veya liste parametre olarak alınmalı, ters çevirme işlemi uygulanmalı ve sonuç return edilmelidir. Ayrıca boş string veya tek karakterli değer gibi edge case durumları düşünmek cevabı güçlendirir.";
+            }
+
+            if (normalizedQuestion.Contains("palindrome"))
+            {
+                return "Daha güçlü bir kod cevabında gelen metin normalize edilmeli, ters çevrilmiş haliyle karşılaştırılmalı ve sonuç true/false olarak döndürülmelidir. Büyük-küçük harf farkı ve boşluklar gibi edge case durumları da dikkate alınabilir.";
+            }
+
+            if (normalizedQuestion.Contains("frekans") || normalizedQuestion.Contains("tekrar") || normalizedQuestion.Contains("frequency"))
+            {
+                return "Daha güçlü bir kod cevabında dictionary/map yapısı kullanılabilir. Liste veya metindeki her eleman gezilir, eleman daha önce eklendiyse sayacı artırılır, yoksa başlangıç değeri 1 yapılır. Sonuç olarak frekans tablosu return edilir.";
+            }
+
+            return "Daha güçlü bir kod cevabında fonksiyon/metot adı, parametreler, algoritma adımları ve return değeri net olmalıdır. Cevabını sadece kodla bırakmak yerine, çözüm mantığını bir cümleyle açıklaman da cevabı güçlendirir.";
         }
 
         if (normalizedCategory.Contains("behavioral"))
         {
-            return "Daha güçlü bir davranışsal cevap için STAR tekniğini kullanabilirsin: Durum, Görev, Aksiyon ve Sonuç. Cevabında somut bir olay ve bu olaydan ne öğrendiğini belirtmen iyi olur.";
+            return "Daha güçlü bir davranışsal cevap için STAR tekniğini kullanabilirsin: Önce durumu anlat, sonra görevini açıkla, ardından hangi aksiyonu aldığını söyle ve en sonda sonucu belirt. Örneğin bir ekip çalışması, problem çözme veya zaman yönetimi deneyimini somut bir olay üzerinden anlatman daha etkili olur.";
         }
 
         if (normalizedQuestion.Contains("api") || normalizedQuestion.Contains("rest"))
         {
-            return "Daha güçlü bir cevapta API kavramını kısaca tanımlayıp, frontend-backend iletişiminde nasıl kullanıldığını açıklayabilir ve kısa bir request-response örneği verebilirsin.";
+            return "Daha güçlü bir cevapta API'nin iki sistemin birbiriyle iletişim kurmasını sağlayan yapı olduğunu söyleyebilirsin. REST API için HTTP metotlarından bahsedip GET, POST, PUT ve DELETE örnekleri verebilirsin. Son olarak kendi projende frontend ile backend arasında veri alışverişini REST endpointleriyle yaptığını anlatman cevabı güçlendirir.";
         }
 
-        return "Daha güçlü bir cevap için önce kavramı kısa ve net tanımla, ardından kendi proje veya deneyiminden somut bir örnek ver. Son olarak bu deneyimin işe veya projeye nasıl katkı sağladığını belirt.";
+        if (normalizedQuestion.Contains("jwt"))
+        {
+            return "Daha güçlü bir cevapta JWT'nin kullanıcı doğrulama ve yetkilendirme için kullanılan token tabanlı bir yapı olduğunu açıklayabilirsin. Login sonrası backend token üretir, frontend bu token'ı saklar ve sonraki isteklerde Authorization header içinde gönderir. Böylece kullanıcı kimliği doğrulanabilir.";
+        }
+
+        if (normalizedQuestion.Contains("controller") ||
+            normalizedQuestion.Contains("service") ||
+            normalizedQuestion.Contains("repository"))
+        {
+            return "Daha güçlü bir cevapta controller'ın HTTP isteklerini karşıladığını, service katmanının iş kurallarını yönettiğini, repository veya data access katmanının ise veritabanı işlemlerini yaptığını açıklayabilirsin. Bu ayrım kodun daha temiz, test edilebilir ve sürdürülebilir olmasını sağlar.";
+        }
+
+        return "Daha güçlü bir cevap için önce kavramı kısa ve net tanımla, ardından kendi proje veya deneyiminden somut bir örnek ver. Son olarak bu deneyimin işe, projeye veya kullanıcıya nasıl katkı sağladığını belirt.";
     }
 }
