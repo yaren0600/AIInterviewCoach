@@ -1,14 +1,47 @@
 ﻿using AIInterviewCoach.Application.DTOs;
 using AIInterviewCoach.Application.Interfaces;
+using AIInterviewCoach.Infrastructure.Settings;
+using Microsoft.Extensions.Options;
 
 namespace AIInterviewCoach.Infrastructure.Services;
 
 public class AiEvaluationService : IAiEvaluationService
-
-//Bu dosya şimdilik gerçek AI değil ama AI servisinin taklit versiyonu.
-//Sonra bunun içini GPT/Gemini API ile değiştireceğiz.
 {
+    private readonly AiProviderSettings _aiProviderSettings;
+    public AiEvaluationService(IOptions<AiProviderSettings> aiProviderSettings)
+    {
+        _aiProviderSettings = aiProviderSettings.Value;
+    }
+
+    //Bu dosya şimdilik gerçek AI değil ama AI servisinin taklit versiyonu.
+    //Sonra bunun içini GPT/Gemini API ile değiştireceğiz.
+
     public Task<AiEvaluationResultDto> EvaluateAnswerAsync(
+        string questionText,
+        string userAnswer,
+        string category,
+        string difficulty,
+        string positionName)
+    {
+        if (_aiProviderSettings.Provider.Equals("Mock", StringComparison.OrdinalIgnoreCase))
+    {
+        return EvaluateAnswerWithMockAsync(
+            questionText,
+            userAnswer,
+            category,
+            difficulty,
+            positionName);
+    }
+
+    return EvaluateAnswerWithMockAsync(
+        questionText,
+        userAnswer,
+        category,
+        difficulty,
+        positionName);
+}
+
+    private static Task<AiEvaluationResultDto> EvaluateAnswerWithMockAsync(
         string questionText,
         string userAnswer,
         string category,
@@ -31,11 +64,11 @@ public class AiEvaluationService : IAiEvaluationService
                 BetterAnswerExample = "Bu soruya daha güçlü cevap vermek için önce kavramı kısaca tanımlayabilir, ardından kendi proje veya deneyiminden bir örnek verebilirsin.",
                 StrongPoints = new List<string>(),
                 ImprovementPoints = new List<string>
-                {
-                    "Cevap boş bırakılmış.",
-                    "Temel kavram açıklaması eksik.",
-                    "Örnek veya proje bağlantısı yok."
-                }
+            {
+                "Cevap boş bırakılmış.",
+                "Temel kavram açıklaması eksik.",
+                "Örnek veya proje bağlantısı yok."
+            }
             });
         }
 
@@ -108,8 +141,9 @@ public class AiEvaluationService : IAiEvaluationService
             ImprovementPoints = improvementPoints
         });
     }
+    
 
-    private static bool ContainsExampleExpression(string normalizedAnswer)
+private static bool ContainsExampleExpression(string normalizedAnswer)
     {
         var exampleExpressions = new List<string>
         {
