@@ -2,27 +2,41 @@
 using AIInterviewCoach.Application.Interfaces;
 using AIInterviewCoach.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace AIInterviewCoach.Infrastructure.Services;
 
 public class AiEvaluationService : IAiEvaluationService
 {
+    // appsettings.Development.json içindeki AiProvider ayarlarını tutar.
+    // Örneğin: Provider = Mock / Gemini, ApiKey, Model, Endpoint.
     private readonly AiProviderSettings _aiProviderSettings;
-    public AiEvaluationService(IOptions<AiProviderSettings> aiProviderSettings)
+
+    // Gemini API'ye HTTP isteği atmak için kullanılır.
+    private readonly HttpClient _httpClient;
+
+    public AiEvaluationService(
+        IOptions<AiProviderSettings> aiProviderSettings,
+        HttpClient httpClient)
     {
         _aiProviderSettings = aiProviderSettings.Value;
+        _httpClient = httpClient;
     }
 
-    //Bu dosya şimdilik gerçek AI değil ama AI servisinin taklit versiyonu.
-    //Sonra bunun içini GPT/Gemini API ile değiştireceğiz.
-
+    /// <summary>
+    /// Dışarıdan çağrılan ana değerlendirme metodudur.
+    /// Provider ayarına göre Mock veya Gemini değerlendirmesine yönlendirir.
+    /// </summary>
     public async Task<AiEvaluationResultDto> EvaluateAnswerAsync(
-    string questionText,
-    string userAnswer,
-    string category,
-    string difficulty,
-    string positionName)
+        string questionText,
+        string userAnswer,
+        string category,
+        string difficulty,
+        string positionName)
     {
+        // appsettings içinde Provider = Gemini ise gerçek Gemini metoduna gider.
         if (_aiProviderSettings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
         {
             return await EvaluateAnswerWithGeminiAsync(
@@ -33,6 +47,7 @@ public class AiEvaluationService : IAiEvaluationService
                 positionName);
         }
 
+        // Provider = Mock ise kendi kural tabanlı değerlendirmemizi kullanır.
         if (_aiProviderSettings.Provider.Equals("Mock", StringComparison.OrdinalIgnoreCase))
         {
             return await EvaluateAnswerWithMockAsync(
@@ -43,6 +58,7 @@ public class AiEvaluationService : IAiEvaluationService
                 positionName);
         }
 
+        // Bilinmeyen provider gelirse uygulama çökmesin diye Mock fallback kullanılır.
         return await EvaluateAnswerWithMockAsync(
             questionText,
             userAnswer,
@@ -51,30 +67,221 @@ public class AiEvaluationService : IAiEvaluationService
             positionName);
     }
 
+    /// <summary>
+    /// Gemini API ile gerçek AI değerlendirmesi yapar.
+    /// API key/model eksikse veya hata olursa Mock değerlendirmeye düşer.
+    /// </summary>
     private async Task<AiEvaluationResultDto> EvaluateAnswerWithGeminiAsync(
-    string questionText,
-    string userAnswer,
-    string category,
-    string difficulty,
-    string positionName)
+        string questionText,
+        string userAnswer,
+        string category,
+        string difficulty,
+        string positionName)
     {
-        // Şimdilik gerçek Gemini API çağrısını burada yapmıyoruz.
-        // Bir sonraki adımda HttpClient ile Gemini endpoint'ine istek atacağız.
-        // Şu an fallback olarak mock değerlendirmeyi döndürüyoruz.
+        // API key veya model boşsa Gemini çağrısı yapamayız.
+        // Bu durumda uygulama patlamasın diye Mock değerlendirmeye döneriz.
+        if (string.IsNullOrWhiteSpace(_aiProviderSettings.ApiKey) ||
+            string.IsNullOrWhiteSpace(_aiProviderSettings.Model))
+        {
+            return await EvaluateAnswerWithMockAsync(
+                questionText,
+                userAnswer,
+                category,
+                difficulty,
+                positionName);
+        }
 
-        var mockResult = await EvaluateAnswerWithMockAsync(
-            questionText,
-            userAnswer,
-            category,
-            difficulty,
-            positionName);
+        try
+        {
+            // Gemini'ye göndereceğimiz değerlendirme prompt'u.
+            var prompt = BuildEvaluationPrompt(
+                questionText,
+                userAnswer,
+                category,
+                difficulty,
+                positionName);
 
-        mockResult.Feedback =
-            "[Gemini hazırlık modu] " + mockResult.Feedback;
+            // Endpoint boş bırakılırsa varsayılan Google Gemini endpoint'i kullanılır.
+            var endpoint = string.IsNullOrWhiteSpace(_aiProviderSettings.Endpoint)
+                ? $"https://generativelanguage.googleapis.com/v1beta/models/{_aiProviderSettings.Model}:generateContent?key={_aiProviderSettings.ApiKey}"
+                : $"{_aiProviderSettings.Endpoint.TrimEnd('/')}/v1beta/models/{_aiProviderSettings.Model}:generateContent?key={_aiProviderSettings.ApiKey}";
 
-        return mockResult;
+            // Gemini generateContent endpoint'inin beklediği request gövdesi.
+            var request = new GeminiGenerateContentRequest
+            {
+                Contents = new List<GeminiContent>
+                {
+                    new GeminiContent
+                    {
+                        Parts = new List<GeminiPart>
+                        {
+                            new GeminiPart
+                            {
+                                Text = prompt
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Gemini API'ye POST isteği atıyoruz.
+            var response = await _httpClient.PostAsJsonAsync(endpoint, request);
+
+            // API başarısız dönerse uygulama çökmesin diye Mock fallback.
+            if (!response.IsSuccessStatusCode)
+            {
+                return await EvaluateAnswerWithMockAsync(
+                    questionText,
+                    userAnswer,
+                    category,
+                    difficulty,
+                    positionName);
+            }
+
+            // Gemini response'unu kendi küçük response DTO'muza çeviriyoruz.
+            var geminiResponse =
+                await response.Content.ReadFromJsonAsync<GeminiGenerateContentResponse>();
+
+            // Gemini'nin ürettiği metni response içinden alıyoruz.
+            var responseText = geminiResponse?
+                .Candidates?
+                .FirstOrDefault()?
+                .Content?
+                .Parts?
+                .FirstOrDefault()?
+                .Text;
+
+            // Boş cevap gelirse Mock fallback.
+            if (string.IsNullOrWhiteSpace(responseText))
+            {
+                return await EvaluateAnswerWithMockAsync(
+                    questionText,
+                    userAnswer,
+                    category,
+                    difficulty,
+                    positionName);
+            }
+
+            // Gemini bazen ```json bloğu içinde cevap döndürebilir.
+            // Bu yüzden JSON'u temizliyoruz.
+            var cleanedJson = CleanJsonResponse(responseText);
+
+            // Temizlenen JSON'u AiEvaluationResultDto modeline çeviriyoruz.
+            var aiResult = JsonSerializer.Deserialize<AiEvaluationResultDto>(
+                cleanedJson,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            // Deserialize başarısız olursa Mock fallback.
+            if (aiResult is null)
+            {
+                return await EvaluateAnswerWithMockAsync(
+                    questionText,
+                    userAnswer,
+                    category,
+                    difficulty,
+                    positionName);
+            }
+
+            // AI yanlışlıkla 0-100 dışı puan döndürürse güvenli aralığa çekiyoruz.
+            aiResult.Score = Math.Clamp(aiResult.Score, 0, 100);
+
+            // AI feedback boş döndürürse default feedback veriyoruz.
+            aiResult.Feedback = string.IsNullOrWhiteSpace(aiResult.Feedback)
+                ? "Cevap değerlendirildi ancak feedback üretilemedi."
+                : aiResult.Feedback;
+
+            // AI better answer boş döndürürse eski mock better answer üretilir.
+            aiResult.BetterAnswerExample = string.IsNullOrWhiteSpace(aiResult.BetterAnswerExample)
+                ? GenerateMockBetterAnswerExample(category, questionText)
+                : aiResult.BetterAnswerExample;
+
+            aiResult.StrongPoints ??= new List<string>();
+            aiResult.ImprovementPoints ??= new List<string>();
+
+            return aiResult;
+        }
+        catch
+        {
+            // Herhangi bir hata olursa sistem çalışmaya devam etsin diye Mock fallback.
+            return await EvaluateAnswerWithMockAsync(
+                questionText,
+                userAnswer,
+                category,
+                difficulty,
+                positionName);
+        }
     }
 
+    /// <summary>
+    /// Gemini'ye gönderilecek prompt'u oluşturur.
+    /// Burada AI'ya nasıl değerlendirme yapması gerektiğini anlatıyoruz.
+    /// </summary>
+    private static string BuildEvaluationPrompt(
+        string questionText,
+        string userAnswer,
+        string category,
+        string difficulty,
+        string positionName)
+    {
+        return $$"""
+Sen bir teknik mülakat değerlendirme asistanısın.
+
+Aşağıdaki aday cevabını değerlendir.
+
+Pozisyon: {{positionName}}
+Kategori: {{category}}
+Zorluk: {{difficulty}}
+
+Soru:
+{{questionText}}
+
+Adayın cevabı:
+{{userAnswer}}
+
+Kurallar:
+- Cevabın gerçekten soruyu karşılayıp karşılamadığını değerlendir.
+- Kod sorularında sadece kod yapısına değil, algoritmanın doğru problemi çözüp çözmediğine bak.
+- SQL sorularında sadece SELECT/FROM var mı diye değil, sorgunun istenen sonucu üretip üretmediğine bak.
+- Behavioral sorularda STAR tekniğine, somut örnek kullanımına ve sonucun anlatılmasına bak.
+- Teknik sorularda tanım, örnek, proje bağlantısı ve doğruluk kriterlerini değerlendir.
+- Puanı 0 ile 100 arasında ver.
+- Cevap soruyla alakasızsa düşük puan ver.
+- Cevap kod gibi görünse bile sorunun istediği algoritmayı çözmüyorsa yüksek puan verme.
+
+Sadece geçerli JSON döndür. Markdown, açıklama veya ```json bloğu kullanma.
+
+JSON formatı:
+{
+  "score": 0,
+  "feedback": "Kısa ama açıklayıcı Türkçe feedback.",
+  "betterAnswerExample": "Bu soruya verilebilecek daha güçlü örnek cevap.",
+  "strongPoints": ["Güçlü nokta 1"],
+  "improvementPoints": ["Gelişim noktası 1"]
+}
+""";
+    }
+
+    /// <summary>
+    /// Gemini JSON cevabını ```json gibi markdown işaretlerinden temizler.
+    /// </summary>
+    private static string CleanJsonResponse(string responseText)
+    {
+        var cleaned = responseText.Trim();
+
+        cleaned = Regex.Replace(cleaned, @"^```json\s*", "", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, @"^```\s*", "", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, @"\s*```$", "", RegexOptions.IgnoreCase);
+
+        return cleaned.Trim();
+    }
+
+    /// <summary>
+    /// Gerçek AI kullanılmadığında devreye giren kural tabanlı değerlendirme metodudur.
+    /// Bu bizim fallback sistemimizdir.
+    /// </summary>
     private static Task<AiEvaluationResultDto> EvaluateAnswerWithMockAsync(
         string questionText,
         string userAnswer,
@@ -82,13 +289,6 @@ public class AiEvaluationService : IAiEvaluationService
         string difficulty,
         string positionName)
     {
-        var normalizedAnswer = userAnswer.ToLower();
-        var normalizedCategory = category.ToLower();
-
-        var score = 50;
-        var strongPoints = new List<string>();
-        var improvementPoints = new List<string>();
-
         if (string.IsNullOrWhiteSpace(userAnswer))
         {
             return Task.FromResult(new AiEvaluationResultDto
@@ -98,13 +298,20 @@ public class AiEvaluationService : IAiEvaluationService
                 BetterAnswerExample = "Bu soruya daha güçlü cevap vermek için önce kavramı kısaca tanımlayabilir, ardından kendi proje veya deneyiminden bir örnek verebilirsin.",
                 StrongPoints = new List<string>(),
                 ImprovementPoints = new List<string>
-            {
-                "Cevap boş bırakılmış.",
-                "Temel kavram açıklaması eksik.",
-                "Örnek veya proje bağlantısı yok."
-            }
+                {
+                    "Cevap boş bırakılmış.",
+                    "Temel kavram açıklaması eksik.",
+                    "Örnek veya proje bağlantısı yok."
+                }
             });
         }
+
+        var normalizedAnswer = userAnswer.ToLower();
+        var normalizedCategory = category.ToLower();
+
+        var score = 50;
+        var strongPoints = new List<string>();
+        var improvementPoints = new List<string>();
 
         if (userAnswer.Length >= 80)
         {
@@ -175,9 +382,11 @@ public class AiEvaluationService : IAiEvaluationService
             ImprovementPoints = improvementPoints
         });
     }
-    
 
-private static bool ContainsExampleExpression(string normalizedAnswer)
+    /// <summary>
+    /// Cevapta örnek/proje deneyimi anlatılmış mı diye basit kelime kontrolü yapar.
+    /// </summary>
+    private static bool ContainsExampleExpression(string normalizedAnswer)
     {
         var exampleExpressions = new List<string>
         {
@@ -196,7 +405,14 @@ private static bool ContainsExampleExpression(string normalizedAnswer)
             normalizedAnswer.Contains(expression));
     }
 
-    private static string GenerateMockFeedback(int score, string category, string questionText)
+    /// <summary>
+    /// Mock feedback üretir.
+    /// Kategoriye ve soru metnine göre daha özel mesajlar vermeye çalışır.
+    /// </summary>
+    private static string GenerateMockFeedback(
+        int score,
+        string category,
+        string questionText)
     {
         var normalizedCategory = category.ToLower();
         var normalizedQuestion = questionText.ToLower();
@@ -205,44 +421,32 @@ private static bool ContainsExampleExpression(string normalizedAnswer)
         {
             if (normalizedQuestion.Contains("max") || normalizedQuestion.Contains("en büyük"))
             {
-                if (score >= 70)
-                {
-                    return "Kod cevabın liste/dizi üzerinde maksimum değeri bulma mantığına yaklaşmış görünüyor. Daha güçlü olması için fonksiyonun parametre olarak liste alması, başlangıç maksimum değerini belirlemesi ve tüm elemanları karşılaştırması gerekir.";
-                }
-
-                return "Bu soruda amaç listedeki en büyük sayıyı bulmak. Cevabında fonksiyon yapısı olsa bile listeyi gezme, karşılaştırma yapma ve maksimum değeri return etme mantığını daha net göstermelisin.";
+                return score >= 70
+                    ? "Kod cevabın liste/dizi üzerinde maksimum değeri bulma mantığına yaklaşmış görünüyor. Daha güçlü olması için fonksiyonun parametre olarak liste alması, başlangıç maksimum değerini belirlemesi ve tüm elemanları karşılaştırması gerekir."
+                    : "Bu soruda amaç listedeki en büyük sayıyı bulmak. Cevabında fonksiyon yapısı olsa bile listeyi gezme, karşılaştırma yapma ve maksimum değeri return etme mantığını daha net göstermelisin.";
             }
 
             if (normalizedQuestion.Contains("reverse") || normalizedQuestion.Contains("ters"))
             {
-                if (score >= 70)
-                {
-                    return "Kod cevabın ters çevirme problemine yaklaşmış görünüyor. Daha güçlü olması için input değeri alıp ters çevrilmiş sonucu açıkça return etmelisin.";
-                }
-
-                return "Bu soruda amaç metni veya listeyi ters çevirmek. Cevabında fonksiyon yapısının yanında ters çevirme işlemini ve return edilen sonucu daha net göstermelisin.";
+                return score >= 70
+                    ? "Kod cevabın ters çevirme problemine yaklaşmış görünüyor. Daha güçlü olması için input değeri alıp ters çevrilmiş sonucu açıkça return etmelisin."
+                    : "Bu soruda amaç metni veya listeyi ters çevirmek. Cevabında fonksiyon yapısının yanında ters çevirme işlemini ve return edilen sonucu daha net göstermelisin.";
             }
 
             if (normalizedQuestion.Contains("palindrome"))
             {
-                if (score >= 70)
-                {
-                    return "Kod cevabın palindrome kontrolü için temel yapıya sahip görünüyor. Daha güçlü olması için değerin ters haliyle karşılaştırılması ve true/false sonuç dönmesi net olmalı.";
-                }
-
-                return "Bu soruda amaç palindrome kontrolü yapmak. Cevabında metni ters çevirme, orijinal değerle karşılaştırma ve boolean sonuç döndürme mantığını göstermelisin.";
+                return score >= 70
+                    ? "Kod cevabın palindrome kontrolü için temel yapıya sahip görünüyor. Daha güçlü olması için değerin ters haliyle karşılaştırılması ve true/false sonuç dönmesi net olmalı."
+                    : "Bu soruda amaç palindrome kontrolü yapmak. Cevabında metni ters çevirme, orijinal değerle karşılaştırma ve boolean sonuç döndürme mantığını göstermelisin.";
             }
 
             if (normalizedQuestion.Contains("frekans") ||
                 normalizedQuestion.Contains("tekrar") ||
                 normalizedQuestion.Contains("frequency"))
             {
-                if (score >= 70)
-                {
-                    return "Kod cevabın frekans sayma problemine yaklaşmış görünüyor. Daha güçlü olması için dictionary/map yapısıyla her elemanın kaç kez geçtiğini saymalısın.";
-                }
-
-                return "Bu soruda amaç tekrar/frekans saymak. Cevabında dictionary, map veya benzeri bir yapı kullanarak elemanların kaç kez geçtiğini hesaplama mantığını göstermelisin.";
+                return score >= 70
+                    ? "Kod cevabın frekans sayma problemine yaklaşmış görünüyor. Daha güçlü olması için dictionary/map yapısıyla her elemanın kaç kez geçtiğini saymalısın."
+                    : "Bu soruda amaç tekrar/frekans saymak. Cevabında dictionary, map veya benzeri bir yapı kullanarak elemanların kaç kez geçtiğini hesaplama mantığını göstermelisin.";
             }
 
             if (score >= 85)
@@ -319,7 +523,13 @@ private static bool ContainsExampleExpression(string normalizedAnswer)
         return "Cevabın geliştirmeye açık. Önce kavramı net tanımlayıp ardından kısa bir örnekle desteklemelisin.";
     }
 
-    private static string GenerateMockBetterAnswerExample(string category, string questionText)
+    /// <summary>
+    /// Mock better answer example üretir.
+    /// Gerçek Gemini cevabı gelmezse fallback olarak kullanılır.
+    /// </summary>
+    private static string GenerateMockBetterAnswerExample(
+        string category,
+        string questionText)
     {
         var normalizedCategory = category.ToLower();
         var normalizedQuestion = questionText.ToLower();
@@ -331,7 +541,10 @@ private static bool ContainsExampleExpression(string normalizedAnswer)
                 return "Daha güçlü bir cevapta tablolar arasındaki ilişkiyi JOIN ile açıkça kurmalısın. Örneğin: SELECT c.Name, o.OrderDate FROM Customers c INNER JOIN Orders o ON c.Id = o.CustomerId; Bu sorgudan sonra hangi tabloları neden bağladığını kısa bir cümleyle açıklaman cevabı güçlendirir.";
             }
 
-            if (normalizedQuestion.Contains("group by") || normalizedQuestion.Contains("count") || normalizedQuestion.Contains("average") || normalizedQuestion.Contains("ortalama"))
+            if (normalizedQuestion.Contains("group by") ||
+                normalizedQuestion.Contains("count") ||
+                normalizedQuestion.Contains("average") ||
+                normalizedQuestion.Contains("ortalama"))
             {
                 return "Daha güçlü bir cevapta aggregate fonksiyonları ve GROUP BY yapısını birlikte kullanmalısın. Örneğin: SELECT DepartmentId, COUNT(*) AS EmployeeCount FROM Employees GROUP BY DepartmentId; Ardından gruplamanın hangi alana göre yapıldığını açıklamalısın.";
             }
@@ -361,7 +574,9 @@ private static bool ContainsExampleExpression(string normalizedAnswer)
                 return "Daha güçlü bir kod cevabında gelen metin normalize edilmeli, ters çevrilmiş haliyle karşılaştırılmalı ve sonuç true/false olarak döndürülmelidir. Büyük-küçük harf farkı ve boşluklar gibi edge case durumları da dikkate alınabilir.";
             }
 
-            if (normalizedQuestion.Contains("frekans") || normalizedQuestion.Contains("tekrar") || normalizedQuestion.Contains("frequency"))
+            if (normalizedQuestion.Contains("frekans") ||
+                normalizedQuestion.Contains("tekrar") ||
+                normalizedQuestion.Contains("frequency"))
             {
                 return "Daha güçlü bir kod cevabında dictionary/map yapısı kullanılabilir. Liste veya metindeki her eleman gezilir, eleman daha önce eklendiyse sayacı artırılır, yoksa başlangıç değeri 1 yapılır. Sonuç olarak frekans tablosu return edilir.";
             }
@@ -392,5 +607,45 @@ private static bool ContainsExampleExpression(string normalizedAnswer)
         }
 
         return "Daha güçlü bir cevap için önce kavramı kısa ve net tanımla, ardından kendi proje veya deneyiminden somut bir örnek ver. Son olarak bu deneyimin işe, projeye veya kullanıcıya nasıl katkı sağladığını belirt.";
+    }
+
+    /// <summary>
+    /// Gemini API'ye gönderilen request modelidir.
+    /// </summary>
+    private class GeminiGenerateContentRequest
+    {
+        public List<GeminiContent> Contents { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Gemini content modelidir.
+    /// </summary>
+    private class GeminiContent
+    {
+        public List<GeminiPart> Parts { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Gemini prompt metnini taşıyan parçadır.
+    /// </summary>
+    private class GeminiPart
+    {
+        public string Text { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Gemini API'den dönen response modelidir.
+    /// </summary>
+    private class GeminiGenerateContentResponse
+    {
+        public List<GeminiCandidate>? Candidates { get; set; }
+    }
+
+    /// <summary>
+    /// Gemini'nin ürettiği aday cevabı temsil eder.
+    /// </summary>
+    private class GeminiCandidate
+    {
+        public GeminiContent? Content { get; set; }
     }
 }
