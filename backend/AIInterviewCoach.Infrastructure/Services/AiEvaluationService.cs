@@ -16,16 +16,34 @@ public class AiEvaluationService : IAiEvaluationService
     //Bu dosya şimdilik gerçek AI değil ama AI servisinin taklit versiyonu.
     //Sonra bunun içini GPT/Gemini API ile değiştireceğiz.
 
-    public Task<AiEvaluationResultDto> EvaluateAnswerAsync(
-        string questionText,
-        string userAnswer,
-        string category,
-        string difficulty,
-        string positionName)
+    public async Task<AiEvaluationResultDto> EvaluateAnswerAsync(
+    string questionText,
+    string userAnswer,
+    string category,
+    string difficulty,
+    string positionName)
     {
+        if (_aiProviderSettings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+        {
+            return await EvaluateAnswerWithGeminiAsync(
+                questionText,
+                userAnswer,
+                category,
+                difficulty,
+                positionName);
+        }
+
         if (_aiProviderSettings.Provider.Equals("Mock", StringComparison.OrdinalIgnoreCase))
-    {
-        return EvaluateAnswerWithMockAsync(
+        {
+            return await EvaluateAnswerWithMockAsync(
+                questionText,
+                userAnswer,
+                category,
+                difficulty,
+                positionName);
+        }
+
+        return await EvaluateAnswerWithMockAsync(
             questionText,
             userAnswer,
             category,
@@ -33,13 +51,29 @@ public class AiEvaluationService : IAiEvaluationService
             positionName);
     }
 
-    return EvaluateAnswerWithMockAsync(
-        questionText,
-        userAnswer,
-        category,
-        difficulty,
-        positionName);
-}
+    private async Task<AiEvaluationResultDto> EvaluateAnswerWithGeminiAsync(
+    string questionText,
+    string userAnswer,
+    string category,
+    string difficulty,
+    string positionName)
+    {
+        // Şimdilik gerçek Gemini API çağrısını burada yapmıyoruz.
+        // Bir sonraki adımda HttpClient ile Gemini endpoint'ine istek atacağız.
+        // Şu an fallback olarak mock değerlendirmeyi döndürüyoruz.
+
+        var mockResult = await EvaluateAnswerWithMockAsync(
+            questionText,
+            userAnswer,
+            category,
+            difficulty,
+            positionName);
+
+        mockResult.Feedback =
+            "[Gemini hazırlık modu] " + mockResult.Feedback;
+
+        return mockResult;
+    }
 
     private static Task<AiEvaluationResultDto> EvaluateAnswerWithMockAsync(
         string questionText,
