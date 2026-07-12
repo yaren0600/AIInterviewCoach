@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace AIInterviewCoach.Infrastructure.Services;
-
+ 
 public class AiEvaluationService : IAiEvaluationService
 {
     // appsettings.Development.json içindeki AiProvider ayarlarını tutar.
