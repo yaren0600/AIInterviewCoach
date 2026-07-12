@@ -319,17 +319,28 @@ export default function InterviewResultPage() {
                                         </div>
                                         {(question.strongPoints?.length > 0 ||
                                             question.improvementPoints?.length > 0) && (
-                                                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                                                <div className="mt-5 grid gap-4 md:grid-cols-2">
                                                     {question.strongPoints?.length > 0 && (
-                                                        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
-                                                            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
-                                                                Strong Points
-                                                            </p>
+                                                        <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                                                                    ✓
+                                                                </div>
 
-                                                            <ul className="mt-3 space-y-2 text-sm leading-6 text-emerald-950">
+                                                                <div>
+                                                                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+                                                                        Strong Points
+                                                                    </p>
+                                                                    <p className="mt-1 text-xs text-emerald-900/70">
+                                                                        What your answer did well
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+
+                                                            <ul className="mt-4 space-y-3 text-sm leading-6 text-emerald-950">
                                                                 {question.strongPoints.map((point, index) => (
-                                                                    <li key={index} className="flex gap-2">
-                                                                        <span>✓</span>
+                                                                    <li key={index} className="flex gap-3">
+                                                                        <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-emerald-500" />
                                                                         <span>{point}</span>
                                                                     </li>
                                                                 ))}
@@ -338,15 +349,26 @@ export default function InterviewResultPage() {
                                                     )}
 
                                                     {question.improvementPoints?.length > 0 && (
-                                                        <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
-                                                            <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">
-                                                                Improvement Points
-                                                            </p>
+                                                        <div className="rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                                                                    !
+                                                                </div>
 
-                                                            <ul className="mt-3 space-y-2 text-sm leading-6 text-amber-950">
+                                                                <div>
+                                                                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">
+                                                                        Improvement Points
+                                                                    </p>
+                                                                    <p className="mt-1 text-xs text-amber-900/70">
+                                                                        What to improve next time
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+
+                                                            <ul className="mt-4 space-y-3 text-sm leading-6 text-amber-950">
                                                                 {question.improvementPoints.map((point, index) => (
-                                                                    <li key={index} className="flex gap-2">
-                                                                        <span>•</span>
+                                                                    <li key={index} className="flex gap-3">
+                                                                        <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-amber-500" />
                                                                         <span>{point}</span>
                                                                     </li>
                                                                 ))}
