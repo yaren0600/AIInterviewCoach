@@ -16,6 +16,8 @@ export default function InterviewResultPage() {
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     useEffect(() => {
         const token = localStorage.getItem("token");
 
@@ -315,6 +317,44 @@ export default function InterviewResultPage() {
                                                 </p>
                                             </div>
                                         </div>
+                                        {(question.strongPoints?.length > 0 ||
+                                            question.improvementPoints?.length > 0) && (
+                                                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                                                    {question.strongPoints?.length > 0 && (
+                                                        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+                                                            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+                                                                Strong Points
+                                                            </p>
+
+                                                            <ul className="mt-3 space-y-2 text-sm leading-6 text-emerald-950">
+                                                                {question.strongPoints.map((point, index) => (
+                                                                    <li key={index} className="flex gap-2">
+                                                                        <span>✓</span>
+                                                                        <span>{point}</span>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+                                                    {question.improvementPoints?.length > 0 && (
+                                                        <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-4">
+                                                            <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">
+                                                                Improvement Points
+                                                            </p>
+
+                                                            <ul className="mt-3 space-y-2 text-sm leading-6 text-amber-950">
+                                                                {question.improvementPoints.map((point, index) => (
+                                                                    <li key={index} className="flex gap-2">
+                                                                        <span>•</span>
+                                                                        <span>{point}</span>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4">
                                             <p className="text-xs uppercase tracking-[0.18em] text-emerald-700 font-bold">
                                                 Daha Güçlü Cevap Örneği

@@ -3,7 +3,7 @@ using AIInterviewCoach.Application.Interfaces;
 using AIInterviewCoach.Domain.Entities;
 using AIInterviewCoach.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-
+using System.Text.Json;
 
 namespace AIInterviewCoach.Infrastructure.Services;
 
@@ -1442,6 +1442,8 @@ public class InterviewService : IInterviewService
             question.Answer.Score = aiEvaluation.Score;
             question.Answer.Feedback = aiEvaluation.Feedback;
             question.Answer.BetterAnswerExample = aiEvaluation.BetterAnswerExample;
+            question.Answer.StrongPointsJson = JsonSerializer.Serialize(aiEvaluation.StrongPoints);
+            question.Answer.ImprovementPointsJson = JsonSerializer.Serialize(aiEvaluation.ImprovementPoints);
             question.Answer.AnsweredAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -1465,6 +1467,8 @@ public class InterviewService : IInterviewService
             Score = aiEvaluation.Score,
             Feedback = aiEvaluation.Feedback,
             BetterAnswerExample = aiEvaluation.BetterAnswerExample,
+            StrongPointsJson = JsonSerializer.Serialize(aiEvaluation.StrongPoints),
+            ImprovementPointsJson = JsonSerializer.Serialize(aiEvaluation.ImprovementPoints),
             AnsweredAt = DateTime.Now
         };
 
@@ -1556,10 +1560,12 @@ public class InterviewService : IInterviewService
                     Feedback = q.Answer?.Feedback,
                     AnsweredAt = q.Answer?.AnsweredAt,
                     BetterAnswerExample = q.Answer?.BetterAnswerExample
-                        ?? GenerateBetterAnswerExample(
-                            q.QuestionText,
-                            q.Category,
-                            q.Difficulty)
+                    ?? GenerateBetterAnswerExample(
+                        q.QuestionText,
+                        q.Category,
+                        q.Difficulty),
+                    StrongPoints = DeserializeStringList(q.Answer?.StrongPointsJson),
+                    ImprovementPoints = DeserializeStringList(q.Answer?.ImprovementPointsJson)
                 }).ToList()
         };
     }
@@ -2341,6 +2347,25 @@ public class InterviewService : IInterviewService
         }
 
         return strongAreas;
+    }
+    /// <summary>
+    /// Bu metot, JSON formatındaki string'i List<string> tipine deserialize eder.
+    /// <summary>
+    private static List<string> DeserializeStringList(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new List<string>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
     }
 
     /// <summary>

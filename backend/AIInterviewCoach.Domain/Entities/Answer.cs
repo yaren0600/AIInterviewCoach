@@ -15,7 +15,10 @@ public class Answer
     public int? Score { get; set; }
     public string Feedback { get; set; } = string.Empty;
     public string? BetterAnswerExample { get; set; }
+    public string? StrongPointsJson { get; set; }
+    public string? ImprovementPointsJson { get; set; }
     public DateTime AnsweredAt { get; set; }
+
 
     //Burada Score nullable çünkü kullanıcı cevap yazdığı anda hemen puanlama yapılmayabilir.
     //Sonra AI değerlendirmesiyle doldurabiliriz.

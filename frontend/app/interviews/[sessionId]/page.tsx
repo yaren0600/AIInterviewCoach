@@ -372,6 +372,17 @@ export default function InterviewSessionPage() {
                                 }`}
                         />
 
+                        {isSubmitting && (
+                            <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/80 p-4">
+                                <p className="text-sm font-semibold text-violet-900">
+                                    AI cevabını değerlendiriyor...
+                                </p>
+                                <p className="mt-1 text-sm leading-6 text-violet-800">
+                                    Cevabın doğruluk, soruya uygunluk, yapı ve gelişim önerileri açısından inceleniyor.
+                                </p>
+                            </div>
+                        )}
+
                         {message && (
                             <p className="mt-4 text-sm text-center text-rose-600">
                                 {message}
@@ -385,7 +396,7 @@ export default function InterviewSessionPage() {
                         >
 
                             {isSubmitting
-                                ? "Submitting..."
+                                ? "AI is evaluating your answer..."
                                 : isSqlPractice
                                     ? "Submit SQL Answer"
                                     : isCodingPractice

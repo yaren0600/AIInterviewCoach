@@ -4,6 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 backend/AIInterviewCoach/Uploads
+appsettings.Development.json ##Bu çok önemli çünkü API key commit edilmemeli. Bu dosya localde tutulacak ve gitignore edilecek.
 
 # User-specific files
 *.rsuser
@@ -17,6 +18,7 @@ backend/AIInterviewCoach/Uploads
 
 # Mono auto generated files
 mono_crash.*
+
 
 # Build results
 [Dd]ebug/
@@ -363,3 +365,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+backend/AIInterviewCoach/appsettings.Development.json

@@ -181,6 +181,8 @@ export interface InterviewResultQuestion {
     feedback: string | null;
     answeredAt: string | null;
     betterAnswerExample: string | null;
+    strongPoints: string[];
+    improvementPoints: string[];
 }
 
 export interface InterviewResult {

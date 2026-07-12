@@ -16,6 +16,8 @@ public class InterviewResultQuestionDto
     public int? Score { get; set; }
     public string? Feedback { get; set; }
     public DateTime? AnsweredAt { get; set; }
+    public List<string> StrongPoints { get; set; } = new();
+    public List<string> ImprovementPoints { get; set; } = new();
     public string BetterAnswerExample { get; set; } = string.Empty;
 }
 

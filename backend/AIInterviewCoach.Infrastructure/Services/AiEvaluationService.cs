@@ -4,6 +4,7 @@ using AIInterviewCoach.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace AIInterviewCoach.Infrastructure.Services;
@@ -11,7 +12,11 @@ namespace AIInterviewCoach.Infrastructure.Services;
 public class AiEvaluationService : IAiEvaluationService
 {
     // appsettings.Development.json içindeki AiProvider ayarlarını tutar.
-    // Örneğin: Provider = Mock / Gemini, ApiKey, Model, Endpoint.
+    // Örnek:
+    // Provider = Mock / Gemini
+    // ApiKey = Gemini API key
+    // Model = gemini-2.5-flash
+    // Endpoint = https://generativelanguage.googleapis.com
     private readonly AiProviderSettings _aiProviderSettings;
 
     // Gemini API'ye HTTP isteği atmak için kullanılır.
@@ -36,7 +41,7 @@ public class AiEvaluationService : IAiEvaluationService
         string difficulty,
         string positionName)
     {
-        // appsettings içinde Provider = Gemini ise gerçek Gemini metoduna gider.
+        // Provider Gemini ise gerçek Gemini API değerlendirmesine gider.
         if (_aiProviderSettings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
         {
             return await EvaluateAnswerWithGeminiAsync(
@@ -47,7 +52,7 @@ public class AiEvaluationService : IAiEvaluationService
                 positionName);
         }
 
-        // Provider = Mock ise kendi kural tabanlı değerlendirmemizi kullanır.
+        // Provider Mock ise kural tabanlı değerlendirme kullanılır.
         if (_aiProviderSettings.Provider.Equals("Mock", StringComparison.OrdinalIgnoreCase))
         {
             return await EvaluateAnswerWithMockAsync(
@@ -69,7 +74,7 @@ public class AiEvaluationService : IAiEvaluationService
 
     /// <summary>
     /// Gemini API ile gerçek AI değerlendirmesi yapar.
-    /// API key/model eksikse veya hata olursa Mock değerlendirmeye düşer.
+    /// API key/model eksikse, API hata verirse veya JSON parse edilemezse Mock fallback'e düşer.
     /// </summary>
     private async Task<AiEvaluationResultDto> EvaluateAnswerWithGeminiAsync(
         string questionText,
@@ -79,21 +84,25 @@ public class AiEvaluationService : IAiEvaluationService
         string positionName)
     {
         // API key veya model boşsa Gemini çağrısı yapamayız.
-        // Bu durumda uygulama patlamasın diye Mock değerlendirmeye döneriz.
         if (string.IsNullOrWhiteSpace(_aiProviderSettings.ApiKey) ||
             string.IsNullOrWhiteSpace(_aiProviderSettings.Model))
         {
-            return await EvaluateAnswerWithMockAsync(
+            var fallbackResult = await EvaluateAnswerWithMockAsync(
                 questionText,
                 userAnswer,
                 category,
                 difficulty,
                 positionName);
+
+            fallbackResult.Feedback =
+                "[Gemini fallback: ApiKey veya Model boş] " + fallbackResult.Feedback;
+
+            return fallbackResult;
         }
 
         try
         {
-            // Gemini'ye göndereceğimiz değerlendirme prompt'u.
+            // Gemini'ye göndereceğimiz prompt'u hazırlıyoruz.
             var prompt = BuildEvaluationPrompt(
                 questionText,
                 userAnswer,
@@ -101,12 +110,14 @@ public class AiEvaluationService : IAiEvaluationService
                 difficulty,
                 positionName);
 
-            // Endpoint boş bırakılırsa varsayılan Google Gemini endpoint'i kullanılır.
+            // Endpoint oluşturuyoruz.
+            // Dikkat: API key artık URL'ye ?key= şeklinde eklenmiyor.
+            // AQ... ile başlayan yeni key formatı için header kullanıyoruz.
             var endpoint = string.IsNullOrWhiteSpace(_aiProviderSettings.Endpoint)
-                ? $"https://generativelanguage.googleapis.com/v1beta/models/{_aiProviderSettings.Model}:generateContent?key={_aiProviderSettings.ApiKey}"
-                : $"{_aiProviderSettings.Endpoint.TrimEnd('/')}/v1beta/models/{_aiProviderSettings.Model}:generateContent?key={_aiProviderSettings.ApiKey}";
+                ? $"https://generativelanguage.googleapis.com/v1beta/models/{_aiProviderSettings.Model}:generateContent"
+                : $"{_aiProviderSettings.Endpoint.TrimEnd('/')}/v1beta/models/{_aiProviderSettings.Model}:generateContent";
 
-            // Gemini generateContent endpoint'inin beklediği request gövdesi.
+            // Gemini API'nin beklediği request gövdesi.
             var request = new GeminiGenerateContentRequest
             {
                 Contents = new List<GeminiContent>
@@ -124,21 +135,44 @@ public class AiEvaluationService : IAiEvaluationService
                 }
             };
 
-            // Gemini API'ye POST isteği atıyoruz.
-            var response = await _httpClient.PostAsJsonAsync(endpoint, request);
+            // Header'lı HTTP isteği oluşturuyoruz.
+            // API key burada x-goog-api-key header'ı ile gönderiliyor.
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = JsonContent.Create(request)
+            };
 
-            // API başarısız dönerse uygulama çökmesin diye Mock fallback.
+            httpRequest.Headers.Add("x-goog-api-key", _aiProviderSettings.ApiKey);
+
+            // Gemini API'ye isteği gönderiyoruz.
+            // Burada yalnızca bir tane response değişkeni var.
+            var response = await _httpClient.SendAsync(httpRequest);
+
+            // API başarısız dönerse status code'u feedback içinde geçici olarak gösteriyoruz.
             if (!response.IsSuccessStatusCode)
             {
-                return await EvaluateAnswerWithMockAsync(
+                var errorContent = await response.Content.ReadAsStringAsync();
+
+                var fallbackResult = await EvaluateAnswerWithMockAsync(
                     questionText,
                     userAnswer,
                     category,
                     difficulty,
                     positionName);
+
+                fallbackResult.Feedback =
+                    $"[Gemini fallback: HTTP {(int)response.StatusCode} - {response.StatusCode}] "
+                    + fallbackResult.Feedback;
+
+                // Terminalde detay görmek için.
+                // API key'i kesinlikle yazdırmıyoruz.
+                Console.WriteLine("Gemini API error:");
+                Console.WriteLine(errorContent);
+
+                return fallbackResult;
             }
 
-            // Gemini response'unu kendi küçük response DTO'muza çeviriyoruz.
+            // Gemini response'unu kendi response DTO'muza çeviriyoruz.
             var geminiResponse =
                 await response.Content.ReadFromJsonAsync<GeminiGenerateContentResponse>();
 
@@ -151,49 +185,83 @@ public class AiEvaluationService : IAiEvaluationService
                 .FirstOrDefault()?
                 .Text;
 
-            // Boş cevap gelirse Mock fallback.
+            // Eğer Gemini boş cevap dönerse Mock fallback kullanıyoruz.
             if (string.IsNullOrWhiteSpace(responseText))
             {
-                return await EvaluateAnswerWithMockAsync(
+                var fallbackResult = await EvaluateAnswerWithMockAsync(
                     questionText,
                     userAnswer,
                     category,
                     difficulty,
                     positionName);
+
+                fallbackResult.Feedback =
+                    "[Gemini fallback: Response text boş] " + fallbackResult.Feedback;
+
+                return fallbackResult;
             }
 
-            // Gemini bazen ```json bloğu içinde cevap döndürebilir.
-            // Bu yüzden JSON'u temizliyoruz.
+            // Gemini bazen JSON'u ```json bloğu içinde döndürebilir.
+            // Bu yüzden cevabı temizliyoruz.
             var cleanedJson = CleanJsonResponse(responseText);
 
-            // Temizlenen JSON'u AiEvaluationResultDto modeline çeviriyoruz.
-            var aiResult = JsonSerializer.Deserialize<AiEvaluationResultDto>(
-                cleanedJson,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+            AiEvaluationResultDto? aiResult;
 
-            // Deserialize başarısız olursa Mock fallback.
-            if (aiResult is null)
+            try
             {
-                return await EvaluateAnswerWithMockAsync(
+                // Temizlenen JSON'u AiEvaluationResultDto modeline çeviriyoruz.
+                aiResult = JsonSerializer.Deserialize<AiEvaluationResultDto>(
+                    cleanedJson,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+            }
+            catch (Exception jsonException)
+            {
+                var fallbackResult = await EvaluateAnswerWithMockAsync(
                     questionText,
                     userAnswer,
                     category,
                     difficulty,
                     positionName);
+
+                fallbackResult.Feedback =
+                    "[Gemini fallback: JSON parse edilemedi] " + fallbackResult.Feedback;
+
+                Console.WriteLine("Gemini JSON parse error:");
+                Console.WriteLine(jsonException.Message);
+                Console.WriteLine("Gemini raw response:");
+                Console.WriteLine(responseText);
+
+                return fallbackResult;
             }
 
-            // AI yanlışlıkla 0-100 dışı puan döndürürse güvenli aralığa çekiyoruz.
+            // Deserialize null dönerse Mock fallback kullanıyoruz.
+            if (aiResult is null)
+            {
+                var fallbackResult = await EvaluateAnswerWithMockAsync(
+                    questionText,
+                    userAnswer,
+                    category,
+                    difficulty,
+                    positionName);
+
+                fallbackResult.Feedback =
+                    "[Gemini fallback: aiResult null] " + fallbackResult.Feedback;
+
+                return fallbackResult;
+            }
+
+            // AI 0-100 dışı puan döndürürse güvenli aralığa çekiyoruz.
             aiResult.Score = Math.Clamp(aiResult.Score, 0, 100);
 
-            // AI feedback boş döndürürse default feedback veriyoruz.
+            // Feedback boşsa default mesaj veriyoruz.
             aiResult.Feedback = string.IsNullOrWhiteSpace(aiResult.Feedback)
                 ? "Cevap değerlendirildi ancak feedback üretilemedi."
                 : aiResult.Feedback;
 
-            // AI better answer boş döndürürse eski mock better answer üretilir.
+            // Better answer boşsa mock fallback örneği kullanıyoruz.
             aiResult.BetterAnswerExample = string.IsNullOrWhiteSpace(aiResult.BetterAnswerExample)
                 ? GenerateMockBetterAnswerExample(category, questionText)
                 : aiResult.BetterAnswerExample;
@@ -203,21 +271,29 @@ public class AiEvaluationService : IAiEvaluationService
 
             return aiResult;
         }
-        catch
+        catch (Exception exception)
         {
-            // Herhangi bir hata olursa sistem çalışmaya devam etsin diye Mock fallback.
-            return await EvaluateAnswerWithMockAsync(
+            // Beklenmeyen hata olursa uygulama çökmesin diye Mock fallback kullanıyoruz.
+            var fallbackResult = await EvaluateAnswerWithMockAsync(
                 questionText,
                 userAnswer,
                 category,
                 difficulty,
                 positionName);
+
+            fallbackResult.Feedback =
+                "[Gemini fallback: Exception oluştu] " + fallbackResult.Feedback;
+
+            Console.WriteLine("Gemini exception:");
+            Console.WriteLine(exception.Message);
+
+            return fallbackResult;
         }
     }
 
     /// <summary>
     /// Gemini'ye gönderilecek prompt'u oluşturur.
-    /// Burada AI'ya nasıl değerlendirme yapması gerektiğini anlatıyoruz.
+    /// Burada AI'ya nasıl değerlendirme yapması gerektiğini detaylı şekilde anlatıyoruz.
     /// </summary>
     private static string BuildEvaluationPrompt(
         string questionText,
@@ -227,39 +303,49 @@ public class AiEvaluationService : IAiEvaluationService
         string positionName)
     {
         return $$"""
-Sen bir teknik mülakat değerlendirme asistanısın.
+Sen deneyimli bir teknik mülakat değerlendiricisisin.
 
-Aşağıdaki aday cevabını değerlendir.
+Aşağıdaki aday cevabını değerlendirirken adil, gerçekçi ve öğretici davran.
 
 Pozisyon: {{positionName}}
 Kategori: {{category}}
 Zorluk: {{difficulty}}
 
-Soru:
+Mülakat sorusu:
 {{questionText}}
 
 Adayın cevabı:
 {{userAnswer}}
 
-Kurallar:
-- Cevabın gerçekten soruyu karşılayıp karşılamadığını değerlendir.
-- Kod sorularında sadece kod yapısına değil, algoritmanın doğru problemi çözüp çözmediğine bak.
-- SQL sorularında sadece SELECT/FROM var mı diye değil, sorgunun istenen sonucu üretip üretmediğine bak.
-- Behavioral sorularda STAR tekniğine, somut örnek kullanımına ve sonucun anlatılmasına bak.
-- Teknik sorularda tanım, örnek, proje bağlantısı ve doğruluk kriterlerini değerlendir.
-- Puanı 0 ile 100 arasında ver.
-- Cevap soruyla alakasızsa düşük puan ver.
-- Cevap kod gibi görünse bile sorunun istediği algoritmayı çözmüyorsa yüksek puan verme.
+Değerlendirme kuralları:
+- Cevap gerçekten soruyu karşılıyor mu, bunu öncelikli değerlendir.
+- Cevap sadece uzun diye yüksek puan verme.
+- Cevap sadece kod formatına benziyor diye yüksek puan verme.
+- Kod sorularında algoritmanın gerçekten doğru problemi çözüp çözmediğine bak.
+- SQL sorularında sorgunun istenen sonucu üretip üretmediğini değerlendir.
+- Behavioral sorularda STAR tekniği, somut olay, aksiyon ve sonuç var mı kontrol et.
+- Teknik sorularda tanım, doğruluk, örnek ve proje bağlantısı var mı kontrol et.
+- Cevap soruyla alakasızsa 0-35 arasında puan ver.
+- Cevap kısmen ilgili ama eksikse 35-65 arasında puan ver.
+- Cevap genel olarak doğru ama detay eksikse 65-85 arasında puan ver.
+- Cevap doğru, net, örnekli ve güçlü ise 85-100 arasında puan ver.
+- Feedback Türkçe olmalı.
+- Feedback çok uzun olmamalı ama adayın neyi yanlış/eksik yaptığını net söylemeli.
+- BetterAnswerExample alanında adayın verebileceği daha iyi bir cevap örneği yaz.
+- BetterAnswerExample sadece tavsiye değil, doğrudan örnek cevap formatında olsun.
 
-Sadece geçerli JSON döndür. Markdown, açıklama veya ```json bloğu kullanma.
+Sadece geçerli JSON döndür.
+Markdown kullanma.
+```json bloğu kullanma.
+Ek açıklama yazma.
 
 JSON formatı:
 {
   "score": 0,
-  "feedback": "Kısa ama açıklayıcı Türkçe feedback.",
+  "feedback": "Adayın cevabına özel, kısa ve net Türkçe feedback.",
   "betterAnswerExample": "Bu soruya verilebilecek daha güçlü örnek cevap.",
-  "strongPoints": ["Güçlü nokta 1"],
-  "improvementPoints": ["Gelişim noktası 1"]
+  "strongPoints": ["Cevabın güçlü yönü 1", "Cevabın güçlü yönü 2"],
+  "improvementPoints": ["Geliştirilmesi gereken nokta 1", "Geliştirilmesi gereken nokta 2"]
 }
 """;
     }
@@ -611,9 +697,12 @@ JSON formatı:
 
     /// <summary>
     /// Gemini API'ye gönderilen request modelidir.
+    /// JsonPropertyName kullanıyoruz çünkü Gemini REST API
+    /// contents / parts / text gibi camelCase alan adları bekler.
     /// </summary>
     private class GeminiGenerateContentRequest
     {
+        [JsonPropertyName("contents")]
         public List<GeminiContent> Contents { get; set; } = new();
     }
 
@@ -622,6 +711,7 @@ JSON formatı:
     /// </summary>
     private class GeminiContent
     {
+        [JsonPropertyName("parts")]
         public List<GeminiPart> Parts { get; set; } = new();
     }
 
@@ -630,6 +720,7 @@ JSON formatı:
     /// </summary>
     private class GeminiPart
     {
+        [JsonPropertyName("text")]
         public string Text { get; set; } = string.Empty;
     }
 
@@ -638,6 +729,7 @@ JSON formatı:
     /// </summary>
     private class GeminiGenerateContentResponse
     {
+        [JsonPropertyName("candidates")]
         public List<GeminiCandidate>? Candidates { get; set; }
     }
 
@@ -646,6 +738,7 @@ JSON formatı:
     /// </summary>
     private class GeminiCandidate
     {
+        [JsonPropertyName("content")]
         public GeminiContent? Content { get; set; }
     }
 }
