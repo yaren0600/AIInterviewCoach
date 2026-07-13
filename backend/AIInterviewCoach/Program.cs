@@ -28,8 +28,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPositionService, PositionService>();
 
 builder.Services.AddScoped<IInterviewService, InterviewService>();
-
-builder.Services.AddScoped<IAiQuestionGenerationService, AiQuestionGenerationService>();
+// Bu kısımda, uygulamanın farklı bölümlerinde kullanacağımız servisleri Dependency Injection ile ekliyoruz.
+builder.Services.AddHttpClient<IAiQuestionGenerationService, AiQuestionGenerationService>();
 
 // Bu kısımda, uygulamanın farklı bölümlerinde kullanacağımız servisleri Dependency Injection ile ekliyoruz.
 //builder.Services.AddScoped<IAiEvaluationService, AiEvaluationService>();

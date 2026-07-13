@@ -1,27 +1,247 @@
 ﻿using AIInterviewCoach.Application.DTOs;
 using AIInterviewCoach.Application.Interfaces;
+using AIInterviewCoach.Infrastructure.Settings;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace AIInterviewCoach.Infrastructure.Services;
 
 public class AiQuestionGenerationService : IAiQuestionGenerationService
 {
-    public Task<List<AiGeneratedQuestionDto>> GenerateQuestionsAsync(
-        string positionName,
-        string interviewMode,
-        string difficulty,
-        int questionCount,
-        string? programmingLanguage,
-        string? resumeContent)
+    private readonly AiProviderSettings _aiProviderSettings;
+    private readonly HttpClient _httpClient;
+
+    public AiQuestionGenerationService(
+        IOptions<AiProviderSettings> aiProviderSettings,
+        HttpClient httpClient)
     {
-        var questions = GenerateMockQuestions(
+        _aiProviderSettings = aiProviderSettings.Value;
+        _httpClient = httpClient;
+    }
+
+    public async Task<List<AiGeneratedQuestionDto>> GenerateQuestionsAsync(
+         string positionName,
+         string interviewMode,
+         string difficulty,
+         int questionCount,
+         string? programmingLanguage,
+         string? resumeContent)
+    {
+        if (_aiProviderSettings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+        {
+            var geminiQuestions = await GenerateQuestionsWithGeminiAsync(
+                positionName,
+                interviewMode,
+                difficulty,
+                questionCount,
+                programmingLanguage,
+                resumeContent);
+
+            if (geminiQuestions.Count > 0)
+            {
+                return geminiQuestions;
+            }
+        }
+
+        return GenerateMockQuestions(
             positionName,
             interviewMode,
             difficulty,
             questionCount,
             programmingLanguage,
             resumeContent);
+    }
 
-        return Task.FromResult(questions);
+    private async Task<List<AiGeneratedQuestionDto>> GenerateQuestionsWithGeminiAsync(
+    string positionName,
+    string interviewMode,
+    string difficulty,
+    int questionCount,
+    string? programmingLanguage,
+    string? resumeContent)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_aiProviderSettings.ApiKey) ||
+                string.IsNullOrWhiteSpace(_aiProviderSettings.Model))
+            {
+                return new List<AiGeneratedQuestionDto>();
+            }
+
+            var prompt = BuildQuestionGenerationPrompt(
+                positionName,
+                interviewMode,
+                difficulty,
+                questionCount,
+                programmingLanguage,
+                resumeContent);
+
+            var endpoint = string.IsNullOrWhiteSpace(_aiProviderSettings.Endpoint)
+                ? $"https://generativelanguage.googleapis.com/v1beta/models/{_aiProviderSettings.Model}:generateContent"
+                : $"{_aiProviderSettings.Endpoint.TrimEnd('/')}/v1beta/models/{_aiProviderSettings.Model}:generateContent";
+
+            var request = new GeminiGenerateContentRequest
+            {
+                Contents = new List<GeminiContent>
+            {
+                new GeminiContent
+                {
+                    Parts = new List<GeminiPart>
+                    {
+                        new GeminiPart
+                        {
+                            Text = prompt
+                        }
+                    }
+                }
+            }
+            };
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = JsonContent.Create(request)
+            };
+
+            httpRequest.Headers.Add("x-goog-api-key", _aiProviderSettings.ApiKey);
+
+            var response = await _httpClient.SendAsync(httpRequest);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Gemini question generation failed: {(int)response.StatusCode} - {errorContent}");
+                return new List<AiGeneratedQuestionDto>();
+            }
+
+            var geminiResponse =
+                await response.Content.ReadFromJsonAsync<GeminiGenerateContentResponse>();
+
+            var responseText = geminiResponse?
+                .Candidates?
+                .FirstOrDefault()?
+                .Content?
+                .Parts?
+                .FirstOrDefault()?
+                .Text;
+
+            if (string.IsNullOrWhiteSpace(responseText))
+            {
+                return new List<AiGeneratedQuestionDto>();
+            }
+
+            var cleanedJson = CleanJsonResponse(responseText);
+
+            var questions = JsonSerializer.Deserialize<List<AiGeneratedQuestionDto>>(
+                cleanedJson,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (questions is null || questions.Count == 0)
+            {
+                return new List<AiGeneratedQuestionDto>();
+            }
+
+            return questions
+                .Where(q => !string.IsNullOrWhiteSpace(q.QuestionText))
+                .Take(questionCount)
+                .Select(q => new AiGeneratedQuestionDto
+                {
+                    QuestionText = q.QuestionText,
+                    Category = string.IsNullOrWhiteSpace(q.Category)
+                        ? interviewMode
+                        : q.Category,
+                    Difficulty = string.IsNullOrWhiteSpace(q.Difficulty)
+                        ? difficulty
+                        : q.Difficulty,
+                    ExpectedAnswerGuide = string.IsNullOrWhiteSpace(q.ExpectedAnswerGuide)
+                        ? "Güçlü bir cevap net, örnekli ve pozisyonla ilişkili olmalıdır."
+                        : q.ExpectedAnswerGuide
+                })
+                .ToList();
+        }
+        catch (Exception exception)
+        {
+            Console.WriteLine($"Gemini question generation exception: {exception.Message}");
+            return new List<AiGeneratedQuestionDto>();
+        }
+    }
+
+    private static string BuildQuestionGenerationPrompt(
+    string positionName,
+    string interviewMode,
+    string difficulty,
+    int questionCount,
+    string? programmingLanguage,
+    string? resumeContent)
+    {
+        var safeProgrammingLanguage = string.IsNullOrWhiteSpace(programmingLanguage)
+            ? "Belirtilmedi"
+            : programmingLanguage;
+
+        var safeResumeContent = string.IsNullOrWhiteSpace(resumeContent)
+            ? "CV içeriği verilmedi."
+            : resumeContent.Length > 2500
+                ? resumeContent[..2500]
+                : resumeContent;
+
+        return $$"""
+Sen deneyimli bir teknik mülakat koçusun.
+
+Aşağıdaki bilgilere göre adaya özel mülakat soruları üret.
+
+Pozisyon: {{positionName}}
+Mülakat modu: {{interviewMode}}
+Zorluk seviyesi: {{difficulty}}
+Soru sayısı: {{questionCount}}
+Programlama dili: {{safeProgrammingLanguage}}
+
+CV içeriği:
+{{safeResumeContent}}
+
+Kurallar:
+- Sorular Türkçe olmalı.
+- Adaya doğrudan sorulacak şekilde yazılmalı.
+- Her soru birbirinden farklı olmalı.
+- Pozisyona uygun olmalı.
+- Mülakat moduna uygun olmalı.
+- Eğer mod Behavioral ise davranışsal ve STAR tekniğine uygun sorular üret.
+- Eğer mod Technical ise teknik bilgi ve proje bağlantısı isteyen sorular üret.
+- Eğer mod SQL Practice ise SQL sorgusu yazdıran sorular üret.
+- Eğer mod Coding Practice ise seçilen programlama diliyle kod yazdıran sorular üret.
+- Eğer mod CV-Based ise CV içeriğindeki proje, teknoloji ve becerilerden soru üret.
+- Eğer mod Role-Based ise seçilen pozisyonun sorumluluklarına uygun senaryo soruları üret.
+- Eğer mod Mixed ise teknik, davranışsal ve rol odaklı soruları dengeli karıştır.
+- Sadece geçerli JSON array döndür.
+- Markdown kullanma.
+- ```json bloğu kullanma.
+- Ek açıklama yazma.
+
+JSON formatı:
+[
+  {
+    "questionText": "Soru metni",
+    "category": "Kategori",
+    "difficulty": "{{difficulty}}",
+    "expectedAnswerGuide": "Bu soruda güçlü bir cevabın neleri içermesi gerektiği"
+  }
+]
+""";
+    }
+
+    private static string CleanJsonResponse(string responseText)
+    {
+        var cleaned = responseText.Trim();
+
+        cleaned = Regex.Replace(cleaned, @"^```json\s*", "", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, @"^```\s*", "", RegexOptions.IgnoreCase);
+        cleaned = Regex.Replace(cleaned, @"\s*```$", "", RegexOptions.IgnoreCase);
+
+        return cleaned.Trim();
     }
 
     private static List<AiGeneratedQuestionDto> GenerateMockQuestions(
@@ -389,5 +609,35 @@ public class AiQuestionGenerationService : IAiQuestionGenerationService
 
             _ => "mixed"
         };
+    }
+
+    private class GeminiGenerateContentRequest
+    {
+        [JsonPropertyName("contents")]
+        public List<GeminiContent> Contents { get; set; } = new();
+    }
+
+    private class GeminiContent
+    {
+        [JsonPropertyName("parts")]
+        public List<GeminiPart> Parts { get; set; } = new();
+    }
+
+    private class GeminiPart
+    {
+        [JsonPropertyName("text")]
+        public string Text { get; set; } = string.Empty;
+    }
+
+    private class GeminiGenerateContentResponse
+    {
+        [JsonPropertyName("candidates")]
+        public List<GeminiCandidate>? Candidates { get; set; }
+    }
+
+    private class GeminiCandidate
+    {
+        [JsonPropertyName("content")]
+        public GeminiContent? Content { get; set; }
     }
 }
