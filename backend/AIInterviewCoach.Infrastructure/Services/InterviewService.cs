@@ -12,13 +12,17 @@ public class InterviewService : IInterviewService
 
     private readonly AppDbContext _context;
     private readonly IAiEvaluationService _aiEvaluationService;
+    private readonly IAiQuestionGenerationService _aiQuestionGenerationService;
 
     public InterviewService(
         AppDbContext context,
-        IAiEvaluationService aiEvaluationService)
+        IAiEvaluationService aiEvaluationService,
+        IAiQuestionGenerationService aiQuestionGenerationService)
     {
         _context = context;
         _aiEvaluationService = aiEvaluationService;
+        _aiQuestionGenerationService = aiQuestionGenerationService;
+        _aiQuestionGenerationService = aiQuestionGenerationService;
     }
 
     /// <summary>
@@ -53,6 +57,7 @@ public class InterviewService : IInterviewService
                 return null;
             }
         }
+        var resumeContent = resume?.ExtractedText;
 
         // 3) Önce mülakat oturumunu oluşturuyoruz.
         // Soruları bu session.Id ile ilişkilendireceğimiz için önce session kaydedilmeli.
@@ -80,12 +85,24 @@ public class InterviewService : IInterviewService
         // - request.InterviewMode: Role-Based / CV-Based / Technical / Behavioral / Mixed
         // Kullanıcının frontend'de seçtiği mode/difficulty/question count değerlerine göre soru üretir.
         // Örneğin Behavioral seçildiyse sadece davranışsal sorular gelir.
-        var questions = GenerateQuestionsBySelectedMode(
-            positionName: position.Name,
-            sessionId: session.Id,
-            detectedSkills: detectedSkills,
-            request: request
-        );
+        var aiGeneratedQuestions = await _aiQuestionGenerationService.GenerateQuestionsAsync(
+            position.Name,
+            request.InterviewMode,
+            request.Difficulty,
+            request.QuestionCount,
+            request.ProgrammingLanguage,
+            resumeContent);
+
+        ///AI servisinden soru DTO listesi alıyoruz
+        ///AiGeneratedQuestionDto → Question entity’ye çeviriyoruz.
+        ///Sonra eski akış gibi veritabanına kaydediyoruz
+        var questions = aiGeneratedQuestions.Select(aiQuestion => new Question
+        {
+            InterviewSessionId = session.Id,
+            QuestionText = aiQuestion.QuestionText,
+            Category = aiQuestion.Category,
+            Difficulty = aiQuestion.Difficulty
+        }).ToList();
 
         _context.Questions.AddRange(questions);
         await _context.SaveChangesAsync();
