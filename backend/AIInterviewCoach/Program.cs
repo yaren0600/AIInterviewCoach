@@ -104,16 +104,19 @@ builder.Services.AddSwaggerGen(options =>
 //Swagger, API'nizin dokümantasyonunu otomatik olarak oluşturur ve test etmenizi sağlar.
 //Burada Swagger'a JWT ile giriş yapabilmek için gerekli ayarları ekliyoruz.
 
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
