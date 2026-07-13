@@ -1,8 +1,10 @@
-import axios from "axios";
+﻿import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://localhost:5062/api",
-});
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5062/api",
+});//Bu işlem yapıldığında, axios kütüphanesi kullanılarak bir API istemcisi oluşturulur
+//ve bu istemci, belirli bir temel URL ile yapılandırılır.Bu temel URL, çevresel değişkenlerden alınır
+//veya varsayılan olarak "http://localhost:5062/api" olarak ayarlanır.
 
 api.interceptors.request.use((config) => {
     if (typeof window !== "undefined") {

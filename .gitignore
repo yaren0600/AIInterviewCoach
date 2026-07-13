@@ -6,6 +6,10 @@
 backend/AIInterviewCoach/Uploads
 appsettings.Development.json ##Bu çok önemli çünkü API key commit edilmemeli. Bu dosya localde tutulacak ve gitignore edilecek.
 
+.env
+.env.local
+.env.*.local
+
 # User-specific files
 *.rsuser
 *.suo
