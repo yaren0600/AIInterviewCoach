@@ -1,4 +1,4 @@
-using AIInterviewCoach.Application.DTOs;
+﻿using AIInterviewCoach.Application.DTOs;
 using AIInterviewCoach.Application.Interfaces;
 
 namespace AIInterviewCoach.Infrastructure.Services;
@@ -61,57 +61,333 @@ public class AiQuestionGenerationService : IAiQuestionGenerationService
         string programmingLanguage,
         string? resumeContent)
     {
+        var roleBasedQuestions = new List<AiGeneratedQuestionDto>
+    {
+        new()
+        {
+            QuestionText = $"{positionName} pozisyonunda çalışırken karşılaşabileceğin temel sorumlulukları nasıl yönetirsin? Örnek bir senaryo ile açıklar mısın?",
+            Category = "Rol Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap pozisyonun temel sorumluluklarını, adayın yaklaşımını ve somut bir örnek senaryoyu içermelidir."
+        },
+        new()
+        {
+            QuestionText = $"{positionName} rolünde bir iş biriminden eksik veya belirsiz bir talep geldiğinde nasıl ilerlersin?",
+            Category = "Rol Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap gereksinim analizi, doğru soruları sorma, dokümantasyon ve teknik ekiple iletişim adımlarını içermelidir."
+        },
+        new()
+        {
+            QuestionText = $"{positionName} pozisyonunda öncelikleri çakışan iki görev aldığında nasıl karar verirsin?",
+            Category = "Rol Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap önceliklendirme, etki analizi, zaman yönetimi ve paydaş iletişimini açıklamalıdır."
+        },
+        new()
+        {
+            QuestionText = $"{positionName} olarak teknik ekip ile iş birimi arasında iletişim kurman gerekirse nasıl bir köprü rolü üstlenirsin?",
+            Category = "Rol Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap teknik olmayan dili teknik gereksinime dönüştürme ve anlaşılır iletişim kurma becerisini göstermelidir."
+        },
+        new()
+        {
+            QuestionText = $"{positionName} rolünde başarıyı ölçmek için hangi kriterlere bakarsın?",
+            Category = "Rol Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap çıktı kalitesi, kullanıcı memnuniyeti, zamanında teslim, hata oranı ve iş hedefleriyle uyumu içermelidir."
+        }
+    };
+
+        var behavioralQuestions = new List<AiGeneratedQuestionDto>
+    {
+        new()
+        {
+            QuestionText = $"{positionName} rolüyle ilgili zor bir problemi çözdüğün bir zamanı anlatır mısın?",
+            Category = "Davranışsal",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap STAR tekniğini kullanmalıdır: Situation, Task, Action ve Result. Yani durum, görev, aksiyon ve sonuç net anlatılmalıdır."
+        },
+        new()
+        {
+            QuestionText = "Bir ekip çalışmasında fikir ayrılığı yaşadığın bir durumu ve bunu nasıl çözdüğünü anlatır mısın?",
+            Category = "Davranışsal",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap iletişim, empati, çözüm odaklılık ve sonuç kısmını net şekilde göstermelidir."
+        },
+        new()
+        {
+            QuestionText = "Bilmediğin bir teknolojiyle çalışman gerektiğinde nasıl bir öğrenme süreci izlersin?",
+            Category = "Davranışsal",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap araştırma, küçük denemeler yapma, dokümantasyon okuma ve gerektiğinde destek alma adımlarını içermelidir."
+        },
+        new()
+        {
+            QuestionText = "Zamanın kısıtlı olduğu bir görevde nasıl planlama yaparsın?",
+            Category = "Davranışsal",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap önceliklendirme, işi parçalara bölme, riskleri belirleme ve iletişim kurma adımlarını içermelidir."
+        },
+        new()
+        {
+            QuestionText = "Daha önce hata yaptığın bir durumu ve bu hatadan ne öğrendiğini anlatır mısın?",
+            Category = "Davranışsal",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap hatayı sahiplenme, çözüm üretme ve öğrenilen dersi somutlaştırma içermelidir."
+        }
+    };
+
+        var technicalQuestions = new List<AiGeneratedQuestionDto>
+    {
+        new()
+        {
+            QuestionText = $"{positionName} rolünde kullanılan önemli bir teknik kavramı açıklar mısın? Gerçek bir proje örneğiyle destekle.",
+            Category = "Teknik",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap net bir tanım, kullanım amacı ve proje üzerinden somut bir örnek içermelidir."
+        },
+        new()
+        {
+            QuestionText = "REST API nedir? Bir backend projesinde neden kullanılır?",
+            Category = "Teknik",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap HTTP metodları, endpoint mantığı, request-response yapısı ve örnek kullanım içermelidir."
+        },
+        new()
+        {
+            QuestionText = "Veritabanında JOIN nedir? INNER JOIN ve LEFT JOIN arasındaki farkı açıklayabilir misin?",
+            Category = "Teknik",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap iki tabloyu ilişkilendirme mantığını ve join türlerinin farkını örnekle açıklamalıdır."
+        },
+        new()
+        {
+            QuestionText = "Katmanlı mimari nedir? Controller, Service ve Repository katmanları ne işe yarar?",
+            Category = "Teknik",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap sorumluluk ayrımı, bakım kolaylığı ve test edilebilirlik avantajlarını açıklamalıdır."
+        },
+        new()
+        {
+            QuestionText = "JWT nedir ve kullanıcı kimlik doğrulama sürecinde nasıl kullanılır?",
+            Category = "Teknik",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap token üretimi, Authorization header, kullanıcı doğrulama ve güvenlik mantığını içermelidir."
+        }
+    };
+
+        var sqlQuestions = new List<AiGeneratedQuestionDto>
+    {
+        new()
+        {
+            QuestionText = "Bir müşterinin 3’ten fazla siparişi varsa, müşteri adını ve toplam sipariş sayısını listeleyen SQL sorgusunu yaz.",
+            Category = "SQL Pratiği",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap GROUP BY, COUNT ve HAVING ifadelerini doğru şekilde kullanmalıdır."
+        },
+        new()
+        {
+            QuestionText = "Products tablosunda fiyatı 1000’den büyük olan ürünleri en pahalıdan en ucuza listeleyen SQL sorgusunu yaz.",
+            Category = "SQL Pratiği",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap WHERE ve ORDER BY ifadelerini doğru kullanmalıdır."
+        },
+        new()
+        {
+            QuestionText = "Employees ve Departments tablolarını kullanarak her çalışanın adını ve departman adını listeleyen SQL sorgusunu yaz.",
+            Category = "SQL Pratiği",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap JOIN kullanımını doğru göstermelidir."
+        },
+        new()
+        {
+            QuestionText = "Orders tablosunda her müşterinin toplam sipariş tutarını hesaplayan SQL sorgusunu yaz.",
+            Category = "SQL Pratiği",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap SUM ve GROUP BY kullanımını içermelidir."
+        },
+        new()
+        {
+            QuestionText = "Users tablosunda email alanı boş olmayan ve aktif kullanıcıları listeleyen SQL sorgusunu yaz.",
+            Category = "SQL Pratiği",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap WHERE, IS NOT NULL ve aktiflik filtresini doğru kullanmalıdır."
+        }
+    };
+
+        var codingQuestions = new List<AiGeneratedQuestionDto>
+    {
+        new()
+        {
+            QuestionText = $"{programmingLanguage} kullanarak bir integer dizisindeki en büyük ikinci sayıyı bulan bir fonksiyon yaz.",
+            Category = $"Kodlama Pratiği - {programmingLanguage}",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap edge case durumlarını ele almalı, mümkünse gereksiz sıralamadan kaçınmalı ve zaman karmaşıklığını açıklamalıdır."
+        },
+        new()
+        {
+            QuestionText = $"{programmingLanguage} kullanarak verilen bir metnin palindrome olup olmadığını kontrol eden bir fonksiyon yaz.",
+            Category = $"Kodlama Pratiği - {programmingLanguage}",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap büyük/küçük harf duyarlılığını, boşlukları ve temel string işlemlerini doğru ele almalıdır."
+        },
+        new()
+        {
+            QuestionText = $"{programmingLanguage} kullanarak bir dizide tekrar eden elemanları bulan bir fonksiyon yaz.",
+            Category = $"Kodlama Pratiği - {programmingLanguage}",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap HashSet veya benzeri veri yapılarıyla verimli çözüm sunmalıdır."
+        },
+        new()
+        {
+            QuestionText = $"{programmingLanguage} kullanarak verilen bir sayı listesinin ortalamasını hesaplayan bir fonksiyon yaz.",
+            Category = $"Kodlama Pratiği - {programmingLanguage}",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap boş liste kontrolü, toplam alma ve doğru veri tipi kullanımını içermelidir."
+        },
+        new()
+        {
+            QuestionText = $"{programmingLanguage} kullanarak iki string’in anagram olup olmadığını kontrol eden bir fonksiyon yaz.",
+            Category = $"Kodlama Pratiği - {programmingLanguage}",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap karakter sayma, sıralama veya dictionary/hash map mantığını doğru kullanmalıdır."
+        }
+    };
+
+        var cvBasedQuestions = new List<AiGeneratedQuestionDto>
+    {
+        new()
+        {
+            QuestionText = string.IsNullOrWhiteSpace(resumeContent)
+                ? $"Geçmiş deneyimlerine göre seni {positionName} rolü için uygun yapan en güçlü becerin nedir?"
+                : $"CV’ne göre seni {positionName} rolü için uygun yapan bir proje veya becerini anlatır mısın?",
+            Category = "CV Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap adayın CV deneyimini hedef pozisyonla ilişkilendirmelidir."
+        },
+        new()
+        {
+            QuestionText = $"CV’ndeki teknik becerilerden hangisinin {positionName} pozisyonunda en çok işe yarayacağını düşünüyorsun?",
+            Category = "CV Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap beceriyi pozisyonun ihtiyacıyla ilişkilendirmeli ve örnekle desteklemelidir."
+        },
+        new()
+        {
+            QuestionText = "CV’ndeki bir projede karşılaştığın teknik bir zorluğu ve nasıl çözdüğünü anlatır mısın?",
+            Category = "CV Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap problem, kullanılan teknoloji, çözüm yaklaşımı ve sonuç kısmını içermelidir."
+        },
+        new()
+        {
+            QuestionText = $"CV’ndeki deneyimlerine göre {positionName} rolünde ilk 3 ayda nasıl katkı sağlayabilirsin?",
+            Category = "CV Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap gerçekçi katkı alanları, öğrenme isteği ve pozisyona uyumu göstermelidir."
+        },
+        new()
+        {
+            QuestionText = "CV’ndeki hangi deneyimi mülakatta özellikle vurgulamak istersin ve neden?",
+            Category = "CV Odaklı",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap adayın en güçlü deneyimini seçip pozisyona uygun şekilde anlatmasını içermelidir."
+        }
+    };
+
+        var mixedQuestions = new List<AiGeneratedQuestionDto>
+    {
+        new()
+        {
+            QuestionText = $"Seni {positionName} pozisyonu için güçlü bir aday yapan özellik nedir? Somut bir örnekle açıklar mısın?",
+            Category = "Karma",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap teknik becerileri, iletişim yönünü ve somut bir proje ya da deneyim örneğini birlikte içermelidir."
+        },
+        new()
+        {
+            QuestionText = "Bir projede hem teknik hem iletişim becerilerini kullanman gereken bir durumu anlatır mısın?",
+            Category = "Karma",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap teknik çözüm ile ekip/paydaş iletişimini birlikte açıklamalıdır."
+        },
+        new()
+        {
+            QuestionText = $"{positionName} rolünde başarılı olmak için hangi teknik ve kişisel becerilerin önemli olduğunu düşünüyorsun?",
+            Category = "Karma",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap hem teknik yeterlilikleri hem de iletişim, öğrenme ve problem çözme becerilerini içermelidir."
+        },
+        new()
+        {
+            QuestionText = "Yeni başladığın bir projede ilk olarak hangi adımları izlersin?",
+            Category = "Karma",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap analiz, dokümantasyon, teknik inceleme, planlama ve iletişim adımlarını içermelidir."
+        },
+        new()
+        {
+            QuestionText = "Bir mülakatta kendini teknik olarak güçlü göstermek için hangi projen üzerinden örnek verirdin?",
+            Category = "Karma",
+            Difficulty = difficulty,
+            ExpectedAnswerGuide = "Güçlü bir cevap proje amacı, kullanılan teknolojiler, adayın katkısı ve sonuçları açıklamalıdır."
+        }
+    };
+
+        var selectedQuestions = normalizedMode switch
+        {
+            "role-based" => roleBasedQuestions,
+            "behavioral" => behavioralQuestions,
+            "technical" => technicalQuestions,
+            "sql-practice" => sqlQuestions,
+            "coding-practice" => codingQuestions,
+            "cv-based" => cvBasedQuestions,
+            _ => mixedQuestions
+        };
+
+        var selectedIndex = (index - 1) % selectedQuestions.Count;
+
+        return selectedQuestions[selectedIndex];
+    }
+    private static string NormalizeInterviewMode(string? interviewMode)
+    {
+        var normalizedMode = interviewMode?.Trim().ToLower();
+
         return normalizedMode switch
         {
-            "behavioral" => new AiGeneratedQuestionDto
-            {
-                QuestionText = $"Tell me about a time when you solved a difficult problem while working as a {positionName}.",
-                Category = "Behavioral",
-                Difficulty = difficulty,
-                ExpectedAnswerGuide = "A strong answer should use the STAR method: Situation, Task, Action, and Result."
-            },
+            "role-based" => "role-based",
+            "role based" => "role-based",
+            "rolebased" => "role-based",
 
-            "technical" => new AiGeneratedQuestionDto
-            {
-                QuestionText = $"Explain an important technical concept used in the {positionName} role and give a practical example.",
-                Category = "Technical",
-                Difficulty = difficulty,
-                ExpectedAnswerGuide = "A strong answer should include a clear definition, use case, and project-based example."
-            },
+            "cv-based" => "cv-based",
+            "cv based" => "cv-based",
+            "cvbased" => "cv-based",
 
-            "sql-practice" => new AiGeneratedQuestionDto
-            {
-                QuestionText = "Write an SQL query that lists customers who have more than 3 orders, including their customer name and total order count.",
-                Category = "SQL Practice",
-                Difficulty = difficulty,
-                ExpectedAnswerGuide = "A strong answer should use GROUP BY, COUNT, and HAVING correctly."
-            },
+            "technical" => "technical",
+            "teknik" => "technical",
 
-            "coding-practice" => new AiGeneratedQuestionDto
-            {
-                QuestionText = $"Using {programmingLanguage}, write a function that finds the second largest number in an integer array.",
-                Category = $"Coding Practice - {programmingLanguage}",
-                Difficulty = difficulty,
-                ExpectedAnswerGuide = "A strong answer should handle edge cases, avoid unnecessary sorting if possible, and explain the time complexity."
-            },
+            "behavioral" => "behavioral",
+            "davranışsal" => "behavioral",
+            "davranissal" => "behavioral",
 
-            "cv-based" => new AiGeneratedQuestionDto
-            {
-                QuestionText = string.IsNullOrWhiteSpace(resumeContent)
-                    ? $"Based on your background, explain which skill makes you suitable for the {positionName} role."
-                    : $"Based on your CV, explain one project or skill that makes you suitable for the {positionName} role.",
-                Category = "CV-Based",
-                Difficulty = difficulty,
-                ExpectedAnswerGuide = "A strong answer should connect the candidate's CV experience with the target role."
-            },
+            "mixed" => "mixed",
+            "karma" => "mixed",
 
-            _ => new AiGeneratedQuestionDto
-            {
-                QuestionText = $"What makes you a strong candidate for the {positionName} position? Give a concrete example.",
-                Category = "Mixed",
-                Difficulty = difficulty,
-                ExpectedAnswerGuide = "A strong answer should combine technical skills, communication, and a concrete project or work example."
-            }
+            "sql practice" => "sql-practice",
+            "sql-practice" => "sql-practice",
+            "sql" => "sql-practice",
+            "sql pratiği" => "sql-practice",
+            "sql pratigi" => "sql-practice",
+
+            "coding practice" => "coding-practice",
+            "coding-practice" => "coding-practice",
+            "coding" => "coding-practice",
+            "kodlama pratiği" => "coding-practice",
+            "kodlama pratigi" => "coding-practice",
+
+            _ => "mixed"
         };
     }
 }
