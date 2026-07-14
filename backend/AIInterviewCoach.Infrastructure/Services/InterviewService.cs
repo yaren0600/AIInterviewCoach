@@ -101,7 +101,8 @@ public class InterviewService : IInterviewService
             InterviewSessionId = session.Id,
             QuestionText = aiQuestion.QuestionText,
             Category = aiQuestion.Category,
-            Difficulty = aiQuestion.Difficulty
+            Difficulty = aiQuestion.Difficulty,
+            ExpectedAnswerGuide = aiQuestion.ExpectedAnswerGuide
         }).ToList();
 
         _context.Questions.AddRange(questions);
@@ -1451,7 +1452,8 @@ public class InterviewService : IInterviewService
             request.UserAnswer,
             question.Category,
             question.Difficulty,
-            question.InterviewSession.Position.Name);
+            question.InterviewSession.Position.Name,
+            question.ExpectedAnswerGuide);
 
         if (question.Answer is not null)
         {

@@ -39,7 +39,8 @@ public class AiEvaluationService : IAiEvaluationService
         string userAnswer,
         string category,
         string difficulty,
-        string positionName)
+        string positionName,
+        string? expectedAnswerGuide)
     {
         // Provider Gemini ise gerçek Gemini API değerlendirmesine gider.
         if (_aiProviderSettings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
@@ -49,7 +50,8 @@ public class AiEvaluationService : IAiEvaluationService
                 userAnswer,
                 category,
                 difficulty,
-                positionName);
+                positionName,
+                expectedAnswerGuide);
         }
 
         // Provider Mock ise kural tabanlı değerlendirme kullanılır.
@@ -81,7 +83,8 @@ public class AiEvaluationService : IAiEvaluationService
         string userAnswer,
         string category,
         string difficulty,
-        string positionName)
+        string positionName,
+        string? expectedAnswerGuide)
     {
         // API key veya model boşsa Gemini çağrısı yapamayız.
         if (string.IsNullOrWhiteSpace(_aiProviderSettings.ApiKey) ||
@@ -108,7 +111,8 @@ public class AiEvaluationService : IAiEvaluationService
                 userAnswer,
                 category,
                 difficulty,
-                positionName);
+                positionName,
+                expectedAnswerGuide);
 
             // Endpoint oluşturuyoruz.
             // Dikkat: API key artık URL'ye ?key= şeklinde eklenmiyor.
@@ -300,8 +304,14 @@ public class AiEvaluationService : IAiEvaluationService
         string userAnswer,
         string category,
         string difficulty,
-        string positionName)
+        string positionName,
+        string? expectedAnswerGuide)
     {
+
+        var safeExpectedAnswerGuide = string.IsNullOrWhiteSpace(expectedAnswerGuide)
+    ? "Bu soru için özel beklenen cevap rehberi verilmedi."
+    : expectedAnswerGuide;
+
         return $$"""
 Sen deneyimli bir teknik mülakat değerlendiricisisin.
 
@@ -313,6 +323,9 @@ Zorluk: {{difficulty}}
 
 Mülakat sorusu:
 {{questionText}}
+
+Beklenen güçlü cevap rehberi:
+{{safeExpectedAnswerGuide}}
 
 Adayın cevabı:
 {{userAnswer}}

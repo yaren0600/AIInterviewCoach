@@ -13,5 +13,6 @@ public interface IAiEvaluationService
         string userAnswer,
         string category,
         string difficulty,
-        string positionName);
+        string positionName,
+        string? expectedAnswerGuide);
 }
