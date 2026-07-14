@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { ApiResponse, DashboardResponse } from "@/types/api";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -37,10 +38,10 @@ export default function DashboardPage() {
                     setMessage(
                         error.response?.data?.message ||
                         error.message ||
-                        "An error occurred while loading dashboard data."
+                        "Dashboard verileri yüklenirken bir hata oluştu."
                     );
                 } else {
-                    setMessage("An error occurred while loading dashboard data.");
+                    setMessage("Dashboard verileri yüklenirken bir hata oluştu.");
                 }
             } finally {
                 setIsLoading(false);
@@ -57,10 +58,14 @@ export default function DashboardPage() {
 
     if (isLoading) {
         return (
-            <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center">
-                <div className="glass-card rounded-3xl px-8 py-6 text-center animate-fade-up">
-                    <p className="text-slate-700 text-lg font-medium">
-                        Loading dashboard...
+            <main className="min-h-screen bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 flex items-center justify-center px-4">
+                <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
+                    <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+                        Dashboard yükleniyor...
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Yapay zeka mülakat koçun hazırlanıyor.
                     </p>
                 </div>
             </main>
@@ -69,19 +74,21 @@ export default function DashboardPage() {
 
     if (message) {
         return (
-            <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center px-4">
-                <div className="glass-card rounded-3xl p-8 max-w-md w-full text-center animate-fade-up">
-                    <h2 className="text-2xl font-bold text-slate-900">
-                        Something went wrong
+            <main className="min-h-screen bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 flex items-center justify-center px-4">
+                <div className="w-full max-w-md rounded-3xl border border-white/70 bg-white/80 p-8 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                        Bir sorun oluştu
                     </h2>
 
-                    <p className="text-rose-600 mt-3">{message}</p>
+                    <p className="mt-3 text-rose-600 dark:text-rose-300">
+                        {message}
+                    </p>
 
                     <button
                         onClick={() => router.push("/login")}
-                        className="mt-6 rounded-full bg-slate-900 text-white px-6 py-3 font-medium hover:scale-105 transition"
+                        className="mt-6 rounded-full bg-slate-900 px-6 py-3 font-bold text-white transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                     >
-                        Back to login
+                        Giriş ekranına dön
                     </button>
                 </div>
             </main>
@@ -89,132 +96,140 @@ export default function DashboardPage() {
     }
 
     return (
-        <main className="min-h-screen dashboard-gradient-bg relative overflow-hidden px-4 md:px-6 py-8">
-            <div className="absolute top-8 left-8 w-44 h-44 bg-pink-300/30 rounded-full blur-3xl animate-float-slow" />
-            <div className="absolute top-24 right-10 w-56 h-56 bg-violet-300/25 rounded-full blur-3xl animate-float-reverse" />
-            <div className="absolute bottom-10 left-1/4 w-52 h-52 bg-cyan-300/25 rounded-full blur-3xl animate-soft-pulse" />
-            <div className="absolute bottom-16 right-16 w-40 h-40 bg-fuchsia-200/28 rounded-full blur-3xl animate-float-slow" />
+        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
+            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
+            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
+            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
+            <div className="absolute bottom-16 right-16 h-40 w-40 rounded-full bg-fuchsia-200/30 blur-3xl dark:bg-fuchsia-500/10" />
 
-            <div className="max-w-7xl mx-auto relative z-10">
-                <header className="interview-studio-card rounded-[2rem] p-6 md:p-8 animate-fade-up">
-                    <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-8 items-center">
+            <div className="relative z-10 mx-auto max-w-7xl">
+                <header className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-8">
+                    <div className="grid grid-cols-1 items-center gap-8 xl:grid-cols-[1.05fr_0.95fr]">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 live-dot" />
-                                Interview Prep Studio
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                    Yapay Zeka Mülakat Koçu
+                                </div>
+
+                                <ThemeToggle />
                             </div>
 
-                            <h1 className="mt-5 text-3xl md:text-5xl font-black text-slate-900 leading-tight">
-                                Your personal space for
+                            <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 dark:text-white md:text-5xl">
+                                Mülakat pratiğini
                                 <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
                                     {" "}
-                                    interview practice
-                                </span>
+                                    kişisel AI koçunla
+                                </span>{" "}
+                                güçlendir
                             </h1>
 
-                            <p className="mt-4 text-slate-600 max-w-2xl text-sm md:text-base leading-7">
-                                Turn your resume into targeted interview questions, practice
-                                your answers, and see which topics need more work before the
-                                real interview.
+                            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                                CV’ne, hedef pozisyonuna ve seçtiğin mülakat moduna göre
+                                yapay zeka destekli sorular üret; cevaplarını analiz et,
+                                güçlü yönlerini ve gelişim alanlarını tek ekranda gör.
                             </p>
 
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
+                            <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                                 <button
                                     onClick={() => router.push("/interviews/start")}
-                                    className="rounded-full bg-slate-900 text-white px-6 py-3 font-semibold hover:bg-slate-700 hover:scale-105 transition"
+                                    className="rounded-full bg-slate-950 px-6 py-3 font-bold text-white shadow-lg transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                                 >
-                                    Start Interview Practice
+                                    Mülakata Başla
                                 </button>
 
                                 <button
                                     onClick={() => router.push("/resumes")}
-                                    className="rounded-full bg-white/85 text-slate-800 px-6 py-3 font-semibold shadow hover:scale-105 transition"
+                                    className="rounded-full bg-white/90 px-6 py-3 font-bold text-slate-800 shadow transition hover:scale-105 hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                 >
-                                    Upload Resume
+                                    CV Yükle
                                 </button>
 
                                 <button
                                     onClick={handleLogout}
-                                    className="rounded-full border border-slate-300 bg-white/55 text-slate-700 px-6 py-3 font-semibold hover:bg-white transition"
+                                    className="rounded-full border border-slate-300 bg-white/60 px-6 py-3 font-bold text-slate-700 transition hover:bg-white dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-800"
                                 >
-                                    Logout
+                                    Çıkış Yap
                                 </button>
                             </div>
                         </div>
 
-                        <div className="rounded-[2rem] bg-white/55 border border-white/60 p-5 md:p-6">
+                        <div className="rounded-[2rem] border border-white/70 bg-white/60 p-5 shadow-inner backdrop-blur dark:border-slate-700 dark:bg-slate-950/40 md:p-6">
                             <div className="flex items-center justify-between gap-4">
-                                <p className="text-sm font-bold text-slate-700">
-                                    Live practice preview
+                                <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                    Canlı pratik önizlemesi
                                 </p>
 
-                                <span className="rounded-full bg-emerald-100 text-emerald-700 px-3 py-1 text-xs font-bold">
-                                    Active
+                                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
+                                    Aktif
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-5">
-                                <div className="rounded-3xl bg-slate-900 text-white p-5 shadow-xl min-h-[160px]">
-                                    <p className="text-xs text-slate-300">Interviewer asks</p>
+                            <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                                <div className="min-h-[160px] rounded-3xl bg-slate-950 p-5 text-white shadow-xl dark:bg-black/60">
+                                    <p className="text-xs text-slate-300">
+                                        Mülakat sorusu
+                                    </p>
 
                                     <p className="mt-3 text-base font-semibold leading-7">
-                                        “Tell me about your strongest backend project.”
+                                        “En güçlü backend projenizi teknik olarak nasıl anlatırsınız?”
                                     </p>
 
                                     <div className="mt-5 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
-                                        Role-based question
+                                        Rol odaklı soru
                                     </div>
                                 </div>
 
-                                <div className="rounded-3xl bg-white p-5 shadow-xl border border-slate-100 min-h-[160px] floating-resume-card">
-                                    <p className="text-xs font-bold text-violet-600">
-                                        Resume insight
+                                <div className="min-h-[160px] rounded-3xl border border-slate-100 bg-white p-5 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                                    <p className="text-xs font-black text-violet-600 dark:text-violet-300">
+                                        CV içgörüsü
                                     </p>
 
-                                    <p className="mt-2 text-sm font-semibold text-slate-800 leading-6">
-                                        ASP.NET Core, SQL and REST API detected from your resume.
+                                    <p className="mt-2 text-sm font-semibold leading-6 text-slate-800 dark:text-slate-100">
+                                        CV içeriğinden ASP.NET Core, SQL ve REST API becerileri
+                                        algılandı.
                                     </p>
 
-                                    <div className="mt-4 flex gap-2 flex-wrap">
-                                        <span className="rounded-full bg-rose-100 text-rose-600 px-3 py-1 text-xs font-semibold">
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-600 dark:bg-rose-400/10 dark:text-rose-300">
                                             Backend
                                         </span>
 
-                                        <span className="rounded-full bg-violet-100 text-violet-600 px-3 py-1 text-xs font-semibold">
+                                        <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
                                             API
                                         </span>
 
-                                        <span className="rounded-full bg-sky-100 text-sky-600 px-3 py-1 text-xs font-semibold">
+                                        <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
                                             SQL
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="rounded-3xl bg-white/95 border border-slate-100 p-5 shadow-xl mt-4">
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.16em]">
-                                    Answer feedback
+                            <div className="mt-4 rounded-3xl border border-slate-100 bg-white/95 p-5 shadow-xl dark:border-slate-700 dark:bg-slate-900/95">
+                                <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                                    Cevap geri bildirimi
                                 </p>
 
                                 <div className="mt-4 space-y-4">
                                     <div>
-                                        <div className="flex justify-between text-xs font-semibold text-slate-600">
-                                            <span>Technical clarity</span>
+                                        <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
+                                            <span>Teknik netlik</span>
                                             <span>82%</span>
                                         </div>
 
-                                        <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden">
+                                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                                             <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-rose-400 to-violet-500" />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <div className="flex justify-between text-xs font-semibold text-slate-600">
-                                            <span>Example usage</span>
+                                        <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
+                                            <span>Örnek kullanımı</span>
                                             <span>68%</span>
                                         </div>
 
-                                        <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden">
+                                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                                             <div className="h-full w-[68%] rounded-full bg-gradient-to-r from-violet-400 to-sky-500" />
                                         </div>
                                     </div>
@@ -224,364 +239,353 @@ export default function DashboardPage() {
                     </div>
                 </header>
 
-                <nav className="glass-card rounded-3xl px-4 py-3 mt-5 animate-fade-up">
+                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/70 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="flex flex-wrap gap-3">
-                        <button className="rounded-full bg-slate-900 text-white px-5 py-2 text-sm font-semibold">
+                        <button className="rounded-full bg-slate-950 px-5 py-2 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
                             Dashboard
                         </button>
 
                         <button
                             onClick={() => router.push("/resumes")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            Resumes
+                            CV’lerim
                         </button>
 
                         <button
                             onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            Start Interview
+                            Mülakata Başla
                         </button>
 
                         <button
                             onClick={() => router.push("/interviews/sessions")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            My Sessions
+                            Geçmiş Mülakatlar
                         </button>
                     </div>
                 </nav>
 
                 {dashboard && (
                     <>
-                        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-8">
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
+                        <section className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm text-slate-500 font-medium">
-                                        Practice Sessions
+                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                        Toplam Pratik
                                     </p>
 
-                                    <span className="rounded-full bg-rose-100 text-rose-600 px-3 py-1 text-xs font-bold">
-                                        Sessions
+                                    <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-600 dark:bg-rose-400/10 dark:text-rose-300">
+                                        Oturum
                                     </span>
                                 </div>
 
-                                <p className="text-4xl font-black text-slate-900 mt-4">
+                                <p className="mt-4 text-4xl font-black text-slate-950 dark:text-white">
                                     {dashboard.totalInterviews}
                                 </p>
 
-                                <p className="text-xs text-slate-500 mt-2">
-                                    Total practice sessions started
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    Başlatılan toplam mülakat pratiği
                                 </p>
                             </div>
 
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm text-slate-500 font-medium">
-                                        Completed Sessions
+                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                        Tamamlanan
                                     </p>
 
-                                    <span className="rounded-full bg-emerald-100 text-emerald-600 px-3 py-1 text-xs font-bold">
-                                        Done
+                                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
+                                        Bitti
                                     </span>
                                 </div>
 
-                                <p className="text-4xl font-black text-slate-900 mt-4">
+                                <p className="mt-4 text-4xl font-black text-slate-950 dark:text-white">
                                     {dashboard.completedInterviews}
                                 </p>
 
-                                <p className="text-xs text-slate-500 mt-2">
-                                    Sessions completed with feedback
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    AI geri bildirimi alınan oturumlar
                                 </p>
                             </div>
 
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm text-slate-500 font-medium">
-                                        Interview Readiness
+                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                        Hazırlık Skoru
                                     </p>
 
-                                    <span className="rounded-full bg-violet-100 text-violet-600 px-3 py-1 text-xs font-bold">
-                                        Score
+                                    <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                        Skor
                                     </span>
                                 </div>
 
-                                <p className="text-4xl font-black text-slate-900 mt-4">
+                                <p className="mt-4 text-4xl font-black text-slate-950 dark:text-white">
                                     {dashboard.averageScore ?? "-"}
                                 </p>
 
-                                <p className="text-xs text-slate-500 mt-2">
-                                    Average score from your answers
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    Cevaplarından hesaplanan ortalama skor
                                 </p>
                             </div>
 
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm text-slate-500 font-medium">
-                                        Practice Completion
+                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                        Tamamlama Oranı
                                     </p>
 
-                                    <span className="rounded-full bg-sky-100 text-sky-600 px-3 py-1 text-xs font-bold">
-                                        Progress
+                                    <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
+                                        İlerleme
                                     </span>
                                 </div>
 
-                                <p className="text-4xl font-black text-slate-900 mt-4">
+                                <p className="mt-4 text-4xl font-black text-slate-950 dark:text-white">
                                     {dashboard.completionRate}%
                                 </p>
 
-                                <p className="text-xs text-slate-500 mt-2">
-                                    Progress across all sessions
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    Tüm pratiklerindeki genel ilerleme
                                 </p>
                             </div>
                         </section>
 
-                        <section className="glass-card rounded-[2rem] p-6 mt-6 animate-fade-up overflow-hidden relative">
-                            <div className="absolute -top-10 -right-10 w-40 h-40 bg-violet-300/25 rounded-full blur-3xl" />
-                            <div className="absolute -bottom-12 -left-10 w-44 h-44 bg-pink-300/20 rounded-full blur-3xl" />
+                        <section className="relative mt-6 overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
+                            <div className="absolute -bottom-12 -left-10 h-44 w-44 rounded-full bg-pink-300/20 blur-3xl dark:bg-pink-500/10" />
 
-                            <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[1fr_0.75fr] gap-6 items-stretch">
+                            <div className="relative z-10 grid grid-cols-1 items-stretch gap-6 xl:grid-cols-[1fr_0.75fr]">
                                 <div>
-                                    <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
-                                        <span className="w-2 h-2 rounded-full bg-rose-500 live-dot" />
-                                        Today&apos;s Focus
+                                    <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
+                                        <span className="h-2 w-2 rounded-full bg-rose-500" />
+                                        Bugünün Odağı
                                     </div>
 
-                                    <h2 className="mt-5 text-3xl font-black text-slate-900">
+                                    <h2 className="mt-5 text-3xl font-black text-slate-950 dark:text-white">
                                         Bugünkü çalışma odağın:
                                         <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
                                             {" "}
-                                            {dashboard.weakestCategory}
+                                            {dashboard.weakestCategory || "Genel tekrar"}
                                         </span>
                                     </h2>
 
-                                    <p className="mt-4 text-slate-600 max-w-3xl text-sm md:text-base leading-7">
-                                        {dashboard.latestRecommendation}
+                                    <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                                        {dashboard.latestRecommendation ||
+                                            "Bugün kısa bir pratik oturumu başlatarak güçlü ve gelişime açık yönlerini güncelleyebilirsin."}
                                     </p>
 
-                                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                                    <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                                         <button
                                             onClick={() => router.push("/interviews/start")}
-                                            className="rounded-full bg-slate-900 text-white px-6 py-3 font-semibold shadow hover:bg-slate-700 hover:scale-105 transition"
+                                            className="rounded-full bg-slate-950 px-6 py-3 font-bold text-white shadow transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                                         >
-                                            Practice This Area
+                                            Bu Alanda Pratik Yap
                                         </button>
 
                                         <button
                                             onClick={() => router.push("/interviews/sessions")}
-                                            className="rounded-full bg-white/80 text-slate-800 px-6 py-3 font-semibold shadow hover:bg-white hover:scale-105 transition"
+                                            className="rounded-full bg-white/90 px-6 py-3 font-bold text-slate-800 shadow transition hover:scale-105 hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                         >
-                                            Review Past Sessions
+                                            Geçmiş Oturumları İncele
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="rounded-[2rem] bg-white/75 border border-white/70 p-5 shadow-xl">
-                                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500 font-bold">
-                                        Mini Study Plan
+                                <div className="rounded-[2rem] border border-white/70 bg-white/80 p-5 shadow-xl dark:border-slate-700 dark:bg-slate-950/40">
+                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                                        Mini Çalışma Planı
                                     </p>
 
                                     <div className="mt-5 space-y-4">
-                                        <div className="flex gap-3 rounded-2xl bg-slate-50 p-4">
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-500 text-xs font-black text-white">
-                                                1
-                                            </span>
+                                        {[
+                                            {
+                                                number: "1",
+                                                title: "Konuyu tekrar et",
+                                                text: `${dashboard.weakestCategory || "Zayıf olduğun alan"} alanındaki temel kavramları 10 dakika gözden geçir.`,
+                                                color: "bg-rose-500",
+                                            },
+                                            {
+                                                number: "2",
+                                                title: "Örnek cevap hazırla",
+                                                text: "Bu alanla ilgili 2 kısa mülakat cevabı yaz ve cevaplarını örnekle güçlendir.",
+                                                color: "bg-violet-500",
+                                            },
+                                            {
+                                                number: "3",
+                                                title: "Sesli pratik yap",
+                                                text: "Cevabını 2 dakika içinde net, sakin ve yapılandırılmış şekilde anlatmaya çalış.",
+                                                color: "bg-sky-500",
+                                            },
+                                        ].map((step) => (
+                                            <div
+                                                key={step.number}
+                                                className="flex gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900"
+                                            >
+                                                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${step.color} text-xs font-black text-white`}>
+                                                    {step.number}
+                                                </span>
 
-                                            <div>
-                                                <p className="font-bold text-slate-900">
-                                                    Konuyu tekrar et
-                                                </p>
-                                                <p className="mt-1 text-sm leading-6 text-slate-600">
-                                                    {dashboard.weakestCategory} alanındaki temel kavramları 10 dakika gözden geçir.
-                                                </p>
+                                                <div>
+                                                    <p className="font-black text-slate-950 dark:text-white">
+                                                        {step.title}
+                                                    </p>
+
+                                                    <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                                        {step.text}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-
-                                        <div className="flex gap-3 rounded-2xl bg-slate-50 p-4">
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500 text-xs font-black text-white">
-                                                2
-                                            </span>
-
-                                            <div>
-                                                <p className="font-bold text-slate-900">
-                                                    Örnek cevap hazırla
-                                                </p>
-                                                <p className="mt-1 text-sm leading-6 text-slate-600">
-                                                    Bu alanla ilgili 2 kısa mülakat cevabı yaz ve cevaplarını örnekle güçlendir.
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-3 rounded-2xl bg-slate-50 p-4">
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-500 text-xs font-black text-white">
-                                                3
-                                            </span>
-
-                                            <div>
-                                                <p className="font-bold text-slate-900">
-                                                    Sesli pratik yap
-                                                </p>
-                                                <p className="mt-1 text-sm leading-6 text-slate-600">
-                                                    Cevabını 2 dakika içinde net, sakin ve yapılandırılmış şekilde anlatmaya çalış.
-                                                </p>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
                         </section>
 
-                        <section className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
-                                <p className="text-sm text-slate-500 font-medium">
-                                    Strongest Category
+                        <section className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
+                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                    En Güçlü Alan
                                 </p>
 
-                                <p className="mt-4 text-xl font-bold text-emerald-600">
-                                    {dashboard.strongestCategory}
+                                <p className="mt-4 text-xl font-black text-emerald-600 dark:text-emerald-300">
+                                    {dashboard.strongestCategory || "Henüz veri yok"}
                                 </p>
 
-                                <p className="mt-2 text-sm text-slate-600">
-                                    This is currently your strongest interview area.
-                                </p>
-                            </div>
-
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
-                                <p className="text-sm text-slate-500 font-medium">
-                                    Weakest Category
-                                </p>
-
-                                <p className="mt-4 text-xl font-bold text-rose-500">
-                                    {dashboard.weakestCategory}
-                                </p>
-
-                                <p className="mt-2 text-sm text-slate-600">
-                                    A little more practice here can improve your overall
-                                    performance.
+                                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                    Şu anda mülakat performansında en iyi göründüğün alan.
                                 </p>
                             </div>
 
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up hover:-translate-y-1 transition">
-                                <p className="text-sm text-slate-500 font-medium">
-                                    Coaching Note
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
+                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                    Gelişim Alanı
                                 </p>
 
-                                <p className="mt-4 text-sm leading-6 text-slate-700">
-                                    After each practice session, your strengths, weak areas, and
-                                    study recommendations are updated automatically.
+                                <p className="mt-4 text-xl font-black text-rose-500 dark:text-rose-300">
+                                    {dashboard.weakestCategory || "Henüz veri yok"}
+                                </p>
+
+                                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                    Burada biraz daha pratik yapmak genel skorunu hızlıca yükseltebilir.
+                                </p>
+                            </div>
+
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
+                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                    AI Koç Notu
+                                </p>
+
+                                <p className="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                                    Her pratikten sonra güçlü yönlerin, gelişim alanların ve çalışma
+                                    önerilerin otomatik olarak güncellenir.
                                 </p>
                             </div>
                         </section>
 
-                        <section className="glass-card rounded-3xl p-6 mt-6 animate-fade-up">
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <section className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <h2 className="text-2xl font-bold text-slate-900">
-                                        Your Interview Prep Flow
+                                    <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                                        Mülakat Hazırlık Akışın
                                     </h2>
 
-                                    <p className="text-slate-500 mt-1 text-sm">
-                                        Follow these steps to improve your interview performance.
+                                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                        Daha güçlü cevaplar için bu adımları takip edebilirsin.
                                     </p>
                                 </div>
 
                                 <button
                                     onClick={() => router.push("/interviews/start")}
-                                    className="rounded-full bg-slate-900 text-white px-5 py-3 font-medium hover:scale-105 transition"
+                                    className="rounded-full bg-slate-950 px-5 py-3 font-bold text-white transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                                 >
-                                    Continue Practice
+                                    Pratiğe Devam Et
                                 </button>
                             </div>
 
-                            <div className="hidden md:block h-3 flow-line mt-6" />
+                            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+                                {[
+                                    {
+                                        no: "01",
+                                        title: "CV Yükle",
+                                        text: "Sistem becerilerini anlayabilsin diye CV’ni ekle.",
+                                        color: "text-rose-500",
+                                    },
+                                    {
+                                        no: "02",
+                                        title: "Becerileri Analiz Et",
+                                        text: "Teknik beceriler ve eksik alanlar CV üzerinden belirlenir.",
+                                        color: "text-violet-500",
+                                    },
+                                    {
+                                        no: "03",
+                                        title: "Mülakat Pratiği Yap",
+                                        text: "Rol, CV, teknik, SQL veya kodlama odaklı sorular cevapla.",
+                                        color: "text-sky-500",
+                                    },
+                                    {
+                                        no: "04",
+                                        title: "Cevaplarını Geliştir",
+                                        text: "Skor, AI geri bildirimi ve daha güçlü cevap örnekleri al.",
+                                        color: "text-emerald-500",
+                                    },
+                                ].map((item) => (
+                                    <div
+                                        key={item.no}
+                                        className="rounded-2xl border border-white/70 bg-white/75 p-5 transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-950/40"
+                                    >
+                                        <div className={`text-sm font-black ${item.color}`}>
+                                            {item.no}
+                                        </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-                                <div className="rounded-2xl bg-white/70 border border-white/60 p-5 hover:-translate-y-1 transition">
-                                    <div className="text-sm font-black text-rose-500">01</div>
+                                        <h3 className="mt-3 font-black text-slate-950 dark:text-white">
+                                            {item.title}
+                                        </h3>
 
-                                    <h3 className="font-bold text-slate-900 mt-3">
-                                        Upload Resume
-                                    </h3>
-
-                                    <p className="text-sm text-slate-500 mt-2">
-                                        Add your CV so the system can understand your skills.
-                                    </p>
-                                </div>
-
-                                <div className="rounded-2xl bg-white/70 border border-white/60 p-5 hover:-translate-y-1 transition">
-                                    <div className="text-sm font-black text-violet-500">02</div>
-
-                                    <h3 className="font-bold text-slate-900 mt-3">
-                                        Analyze Skills
-                                    </h3>
-
-                                    <p className="text-sm text-slate-500 mt-2">
-                                        Detect technical skills and missing areas from your resume.
-                                    </p>
-                                </div>
-
-                                <div className="rounded-2xl bg-white/70 border border-white/60 p-5 hover:-translate-y-1 transition">
-                                    <div className="text-sm font-black text-sky-500">03</div>
-
-                                    <h3 className="font-bold text-slate-900 mt-3">
-                                        Practice Interview
-                                    </h3>
-
-                                    <p className="text-sm text-slate-500 mt-2">
-                                        Answer role-based and resume-based interview questions.
-                                    </p>
-                                </div>
-
-                                <div className="rounded-2xl bg-white/70 border border-white/60 p-5 hover:-translate-y-1 transition">
-                                    <div className="text-sm font-black text-emerald-500">04</div>
-
-                                    <h3 className="font-bold text-slate-900 mt-3">
-                                        Improve Answers
-                                    </h3>
-
-                                    <p className="text-sm text-slate-500 mt-2">
-                                        Get scores, feedback, and study recommendations.
-                                    </p>
-                                </div>
+                                        <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                            {item.text}
+                                        </p>
+                                    </div>
+                                ))}
                             </div>
                         </section>
 
-                        <section className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up">
+                        <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-2xl font-bold text-slate-900">
-                                        Recent Interviews
+                                    <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                                        Son Mülakatlar
                                     </h2>
 
-                                    <span className="rounded-full bg-slate-900 text-white px-3 py-1 text-xs font-bold">
-                                        Sessions
+                                    <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white dark:bg-white dark:text-slate-950">
+                                        Oturumlar
                                     </span>
                                 </div>
 
                                 <div className="mt-5 space-y-4">
                                     {dashboard.recentInterviews.length === 0 ? (
-                                        <div className="rounded-2xl bg-white/70 border border-white/50 p-5 text-sm text-slate-500">
-                                            No interview sessions yet.
+                                        <div className="rounded-2xl border border-white/50 bg-white/70 p-5 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-400">
+                                            Henüz mülakat oturumu bulunmuyor.
                                         </div>
                                     ) : (
                                         dashboard.recentInterviews.map((interview) => (
                                             <div
                                                 key={interview.sessionId}
-                                                className="rounded-2xl bg-white/70 border border-white/50 p-5 hover:scale-[1.01] transition"
+                                                className="rounded-2xl border border-white/50 bg-white/75 p-5 transition hover:scale-[1.01] dark:border-slate-700 dark:bg-slate-950/40"
                                             >
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div>
-                                                        <p className="font-bold text-slate-800">
+                                                        <p className="font-black text-slate-800 dark:text-white">
                                                             {interview.positionName}
                                                         </p>
 
-                                                        <p className="text-sm text-slate-500 mt-1">
-                                                            Status: {interview.status}
+                                                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                                            Durum: {interview.status}
                                                         </p>
                                                     </div>
 
-                                                    <div className="rounded-full bg-slate-900 text-white text-sm px-4 py-2 font-semibold">
+                                                    <div className="rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white dark:bg-white dark:text-slate-950">
                                                         {interview.totalScore ?? "-"}
                                                     </div>
                                                 </div>
@@ -591,38 +595,38 @@ export default function DashboardPage() {
                                 </div>
                             </div>
 
-                            <div className="glass-card rounded-3xl p-6 animate-fade-up">
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-2xl font-bold text-slate-900">
-                                        Position Summaries
+                                    <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                                        Pozisyon Özetleri
                                     </h2>
 
-                                    <span className="rounded-full bg-violet-100 text-violet-600 px-3 py-1 text-xs font-bold">
-                                        Roles
+                                    <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                        Roller
                                     </span>
                                 </div>
 
                                 <div className="mt-5 space-y-4">
                                     {dashboard.positionSummaries.length === 0 ? (
-                                        <div className="rounded-2xl bg-white/70 border border-white/50 p-5 text-sm text-slate-500">
-                                            No position summary yet.
+                                        <div className="rounded-2xl border border-white/50 bg-white/70 p-5 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-400">
+                                            Henüz pozisyon özeti bulunmuyor.
                                         </div>
                                     ) : (
                                         dashboard.positionSummaries.map((position) => (
                                             <div
                                                 key={position.positionName}
-                                                className="rounded-2xl bg-white/70 border border-white/50 p-5 hover:scale-[1.01] transition"
+                                                className="rounded-2xl border border-white/50 bg-white/75 p-5 transition hover:scale-[1.01] dark:border-slate-700 dark:bg-slate-950/40"
                                             >
-                                                <p className="font-bold text-slate-800">
+                                                <p className="font-black text-slate-800 dark:text-white">
                                                     {position.positionName}
                                                 </p>
 
-                                                <p className="text-sm text-slate-500 mt-2">
-                                                    Interview Count: {position.interviewCount}
+                                                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                                    Mülakat Sayısı: {position.interviewCount}
                                                 </p>
 
-                                                <p className="text-sm text-slate-500 mt-1">
-                                                    Average Score: {position.averageScore ?? "-"}
+                                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                                    Ortalama Skor: {position.averageScore ?? "-"}
                                                 </p>
                                             </div>
                                         ))
