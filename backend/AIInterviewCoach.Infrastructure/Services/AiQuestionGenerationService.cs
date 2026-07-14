@@ -23,18 +23,20 @@ public class AiQuestionGenerationService : IAiQuestionGenerationService
     }
 
     public async Task<List<AiGeneratedQuestionDto>> GenerateQuestionsAsync(
-         string positionName,
-         string interviewMode,
-         string difficulty,
-         int questionCount,
-         string? programmingLanguage,
-         string? resumeContent)
+    string positionName,
+    string interviewMode,
+    string difficulty,
+    int questionCount,
+    string? programmingLanguage,
+    string? resumeContent)
     {
+        var normalizedMode = NormalizeInterviewMode(interviewMode);
+
         if (_aiProviderSettings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
         {
             var geminiQuestions = await GenerateQuestionsWithGeminiAsync(
                 positionName,
-                interviewMode,
+                normalizedMode,
                 difficulty,
                 questionCount,
                 programmingLanguage,
@@ -48,7 +50,7 @@ public class AiQuestionGenerationService : IAiQuestionGenerationService
 
         return GenerateMockQuestions(
             positionName,
-            interviewMode,
+            normalizedMode,
             difficulty,
             questionCount,
             programmingLanguage,
@@ -171,31 +173,68 @@ public class AiQuestionGenerationService : IAiQuestionGenerationService
         }
     }
 
-    private static string BuildQuestionGenerationPrompt(
+private static string BuildQuestionGenerationPrompt(
     string positionName,
     string interviewMode,
     string difficulty,
     int questionCount,
     string? programmingLanguage,
     string? resumeContent)
+{
+    var normalizedMode = NormalizeInterviewMode(interviewMode);
+
+    var safeProgrammingLanguage = string.IsNullOrWhiteSpace(programmingLanguage)
+        ? "Belirtilmedi"
+        : programmingLanguage;
+
+    var safeResumeContent = string.IsNullOrWhiteSpace(resumeContent)
+        ? "CV içeriği verilmedi."
+        : resumeContent.Length > 2500
+            ? resumeContent[..2500]
+            : resumeContent;
+
+    var modeInstruction = normalizedMode switch
     {
-        var safeProgrammingLanguage = string.IsNullOrWhiteSpace(programmingLanguage)
-            ? "Belirtilmedi"
-            : programmingLanguage;
+        "sql-practice" =>
+            "BU OTURUM SADECE SQL PRATİĞİDİR. Üreteceğin tüm sorular SQL sorgusu yazdırmalıdır. Genel teknik, davranışsal, karma veya rol odaklı soru üretme. Her soru SELECT, JOIN, GROUP BY, HAVING, WHERE, ORDER BY, aggregate function veya subquery gibi SQL konularından birini kullandırmalıdır.",
 
-        var safeResumeContent = string.IsNullOrWhiteSpace(resumeContent)
-            ? "CV içeriği verilmedi."
-            : resumeContent.Length > 2500
-                ? resumeContent[..2500]
-                : resumeContent;
+        "coding-practice" =>
+            $"BU OTURUM SADECE KODLAMA PRATİĞİDİR. Üreteceğin tüm sorular {safeProgrammingLanguage} diliyle kod yazdırmalıdır. Genel teknik, davranışsal, karma veya rol odaklı soru üretme. Her soru fonksiyon/metot yazdırmalı ve algoritma çözümü istemelidir.",
 
-        return $$"""
+        "behavioral" =>
+            "BU OTURUM SADECE DAVRANIŞSAL MÜLAKATTIR. Üreteceğin tüm sorular STAR tekniğine uygun davranışsal mülakat soruları olmalıdır. Kod, SQL veya teknik tanım sorusu üretme.",
+
+        "technical" =>
+            "BU OTURUM SADECE TEKNİK MÜLAKATTIR. Üreteceğin tüm sorular teknik bilgi, kavram açıklaması, mimari, backend, veri tabanı, API veya proje bağlantısı isteyen teknik sorular olmalıdır.",
+
+        "cv-based" =>
+            "BU OTURUM SADECE CV ODAKLIDIR. Üreteceğin tüm sorular CV içeriğindeki proje, teknoloji, beceri ve deneyimlere dayanmalıdır.",
+
+        "role-based" =>
+            "BU OTURUM SADECE ROL ODAKLIDIR. Üreteceğin tüm sorular hedef pozisyonun sorumlulukları, iş senaryoları ve rol beklentileriyle ilgili olmalıdır.",
+
+        _ =>
+            "BU OTURUM KARMA MÜLAKATTIR. Teknik, davranışsal ve rol odaklı soruları dengeli şekilde karıştırabilirsin."
+    };
+
+    var categoryName = normalizedMode switch
+    {
+        "sql-practice" => "SQL Pratiği",
+        "coding-practice" => $"Kodlama Pratiği - {safeProgrammingLanguage}",
+        "behavioral" => "Davranışsal",
+        "technical" => "Teknik",
+        "cv-based" => "CV Odaklı",
+        "role-based" => "Rol Odaklı",
+        _ => "Karma"
+    };
+
+    return $$"""
 Sen deneyimli bir teknik mülakat koçusun.
 
 Aşağıdaki bilgilere göre adaya özel mülakat soruları üret.
 
 Pozisyon: {{positionName}}
-Mülakat modu: {{interviewMode}}
+Mülakat modu: {{normalizedMode}}
 Zorluk seviyesi: {{difficulty}}
 Soru sayısı: {{questionCount}}
 Programlama dili: {{safeProgrammingLanguage}}
@@ -203,19 +242,17 @@ Programlama dili: {{safeProgrammingLanguage}}
 CV içeriği:
 {{safeResumeContent}}
 
-Kurallar:
+ÇOK ÖNEMLİ MOD KURALI:
+{{modeInstruction}}
+
+Genel kurallar:
 - Sorular Türkçe olmalı.
-- Adaya doğrudan sorulacak şekilde yazılmalı.
+- Tam olarak {{questionCount}} soru üretmelisin.
 - Her soru birbirinden farklı olmalı.
-- Pozisyona uygun olmalı.
-- Mülakat moduna uygun olmalı.
-- Eğer mod Behavioral ise davranışsal ve STAR tekniğine uygun sorular üret.
-- Eğer mod Technical ise teknik bilgi ve proje bağlantısı isteyen sorular üret.
-- Eğer mod SQL Practice ise SQL sorgusu yazdıran sorular üret.
-- Eğer mod Coding Practice ise seçilen programlama diliyle kod yazdıran sorular üret.
-- Eğer mod CV-Based ise CV içeriğindeki proje, teknoloji ve becerilerden soru üret.
-- Eğer mod Role-Based ise seçilen pozisyonun sorumluluklarına uygun senaryo soruları üret.
-- Eğer mod Mixed ise teknik, davranışsal ve rol odaklı soruları dengeli karıştır.
+- Her soru doğrudan adaya sorulacak şekilde yazılmalı.
+- Her sorunun category alanı tam olarak "{{categoryName}}" olmalı.
+- Eğer mod sql-practice ise tek bir tane bile genel teknik, davranışsal, karma veya rol odaklı soru üretme.
+- Eğer mod coding-practice ise tek bir tane bile genel teknik, davranışsal, karma veya rol odaklı soru üretme.
 - Sadece geçerli JSON array döndür.
 - Markdown kullanma.
 - ```json bloğu kullanma.
@@ -225,15 +262,15 @@ JSON formatı:
 [
   {
     "questionText": "Soru metni",
-    "category": "Kategori",
+    "category": "{{categoryName}}",
     "difficulty": "{{difficulty}}",
     "expectedAnswerGuide": "Bu soruda güçlü bir cevabın neleri içermesi gerektiği"
   }
 ]
 """;
-    }
+}
 
-    private static string CleanJsonResponse(string responseText)
+private static string CleanJsonResponse(string responseText)
     {
         var cleaned = responseText.Trim();
 
