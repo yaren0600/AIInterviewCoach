@@ -10,6 +10,51 @@ import {
     Resume,
     StartInterviewResponse,
 } from "@/types/api";
+import ThemeToggle from "@/components/ThemeToggle";
+
+const difficultyOptions = [
+    { value: "Beginner", label: "Başlangıç", description: "Temel seviye sorular" },
+    { value: "Intermediate", label: "Orta", description: "Mülakat seviyesine yakın" },
+    { value: "Advanced", label: "İleri", description: "Daha zorlayıcı sorular" },
+];
+
+const interviewModes = [
+    {
+        value: "Role-Based",
+        label: "Rol Odaklı",
+        description: "Hedef pozisyona göre senaryo soruları",
+    },
+    {
+        value: "CV-Based",
+        label: "CV Odaklı",
+        description: "CV’ndeki proje ve becerilere göre",
+    },
+    {
+        value: "Technical",
+        label: "Teknik",
+        description: "Teknik kavram ve proje bağlantısı",
+    },
+    {
+        value: "Behavioral",
+        label: "Davranışsal",
+        description: "STAR tekniğine uygun sorular",
+    },
+    {
+        value: "Mixed",
+        label: "Karma",
+        description: "Teknik, rol ve davranışsal karışık",
+    },
+    {
+        value: "SQL Practice",
+        label: "SQL Pratiği",
+        description: "SQL sorgusu yazdıran sorular",
+    },
+    {
+        value: "Coding Practice",
+        label: "Kodlama Pratiği",
+        description: "Seçilen dilde kod yazma soruları",
+    },
+];
 
 export default function StartInterviewPage() {
     const router = useRouter();
@@ -63,10 +108,10 @@ export default function StartInterviewPage() {
                     setMessage(
                         error.response?.data?.message ||
                         error.message ||
-                        "An error occurred while loading interview setup data."
+                        "Mülakat hazırlık verileri yüklenirken bir hata oluştu."
                     );
                 } else {
-                    setMessage("An error occurred while loading interview setup data.");
+                    setMessage("Mülakat hazırlık verileri yüklenirken bir hata oluştu.");
                 }
             } finally {
                 setIsLoading(false);
@@ -76,9 +121,23 @@ export default function StartInterviewPage() {
         void loadPageData();
     }, [router]);
 
+    const selectedPosition = positions.find(
+        (position) => position.id === selectedPositionId
+    );
+
+    const selectedResume = resumes.find((resume) => resume.id === selectedResumeId);
+
+    const selectedDifficultyLabel =
+        difficultyOptions.find((item) => item.value === selectedDifficulty)?.label ??
+        selectedDifficulty;
+
+    const selectedModeLabel =
+        interviewModes.find((item) => item.value === selectedInterviewMode)?.label ??
+        selectedInterviewMode;
+
     const handleStartInterview = async () => {
         if (!selectedPositionId) {
-            setMessage("Please select a position first.");
+            setMessage("Lütfen önce bir pozisyon seç.");
             return;
         }
 
@@ -86,8 +145,6 @@ export default function StartInterviewPage() {
         setMessage("");
 
         try {
-            console.log("Selected interview mode:", selectedInterviewMode);
-
             const response = await api.post<ApiResponse<StartInterviewResponse>>(
                 "/Interviews/start",
                 {
@@ -102,10 +159,9 @@ export default function StartInterviewPage() {
                             : null,
                 }
             );
+
             if (response.data.success) {
                 const startedInterview = response.data.data;
-
-                console.log("Start interview response:", startedInterview);
 
                 const sessionId =
                     startedInterview.sessionId ??
@@ -114,7 +170,7 @@ export default function StartInterviewPage() {
                     startedInterview.interviewId;
 
                 if (!sessionId) {
-                    setMessage("Interview started but session id could not be found.");
+                    setMessage("Mülakat başlatıldı ancak oturum bilgisi bulunamadı.");
                     return;
                 }
 
@@ -137,10 +193,10 @@ export default function StartInterviewPage() {
                 setMessage(
                     error.response?.data?.message ||
                     error.message ||
-                    "An error occurred while starting interview."
+                    "Mülakat başlatılırken bir hata oluştu."
                 );
             } else {
-                setMessage("An error occurred while starting interview.");
+                setMessage("Mülakat başlatılırken bir hata oluştu.");
             }
         } finally {
             setIsStarting(false);
@@ -154,10 +210,14 @@ export default function StartInterviewPage() {
 
     if (isLoading) {
         return (
-            <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center">
-                <div className="glass-card rounded-3xl px-8 py-6 text-center animate-fade-up">
-                    <p className="text-slate-700 text-lg font-medium">
-                        Loading interview setup...
+            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
+                <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
+                    <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+                        Mülakat ayarları yükleniyor...
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Pozisyonların ve CV’lerin hazırlanıyor.
                     </p>
                 </div>
             </main>
@@ -165,141 +225,144 @@ export default function StartInterviewPage() {
     }
 
     return (
-        <main className="min-h-screen dashboard-gradient-bg relative overflow-hidden px-4 md:px-6 py-8">
-            <div className="absolute top-8 left-8 w-44 h-44 bg-pink-300/30 rounded-full blur-3xl animate-float-slow" />
-            <div className="absolute top-24 right-10 w-56 h-56 bg-violet-300/25 rounded-full blur-3xl animate-float-reverse" />
-            <div className="absolute bottom-10 left-1/4 w-52 h-52 bg-cyan-300/25 rounded-full blur-3xl animate-soft-pulse" />
+        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
+            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
+            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
+            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
 
-            <div className="max-w-7xl mx-auto relative z-10">
-                <header className="interview-studio-card rounded-[2rem] p-6 md:p-8 animate-fade-up">
-                    <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+            <div className="relative z-10 mx-auto max-w-7xl">
+                <header className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-8">
+                    <div className="grid grid-cols-1 items-center gap-8 xl:grid-cols-[1.1fr_0.9fr]">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
-                                <span className="w-2 h-2 rounded-full bg-rose-500 live-dot" />
-                                Interview Setup
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
+                                    <span className="h-2 w-2 rounded-full bg-rose-500" />
+                                    Mülakat Kurulum Stüdyosu
+                                </div>
+
+                                <ThemeToggle />
                             </div>
 
-                            <h1 className="mt-5 text-3xl md:text-5xl font-black text-slate-900 leading-tight">
-                                Create a practice session
+                            <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 dark:text-white md:text-5xl">
+                                Hedef rolün için
                                 <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
                                     {" "}
-                                    for your target role
-                                </span>
+                                    kişisel mülakat
+                                </span>{" "}
+                                oturumu oluştur
                             </h1>
 
-                            <p className="mt-4 text-slate-600 max-w-2xl text-sm md:text-base leading-7">
-                                Select a role and optionally attach a resume. Your interview
-                                questions will be generated based on the selected position and
-                                your resume content.
+                            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                                Pozisyonunu, CV bağlamını, zorluk seviyesini ve mülakat modunu
+                                seç. Yapay zeka sana özel sorular oluştursun; sen cevapla,
+                                sistem analiz etsin.
                             </p>
                         </div>
 
-                        <div className="rounded-[2rem] bg-white/70 border border-white/70 p-6 shadow-xl">
-                            <p className="text-sm font-bold text-slate-700">
-                                Session creation flow
+                        <div className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl dark:border-slate-700 dark:bg-slate-950/40">
+                            <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                Oturum oluşturma akışı
                             </p>
 
                             <div className="mt-5 space-y-4">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-sm font-black">
-                                        1
-                                    </div>
+                                {[
+                                    {
+                                        no: "1",
+                                        title: "Rolünü seç",
+                                        text: "Pratik yapmak istediğin hedef pozisyonu belirle.",
+                                        color: "bg-rose-100 text-rose-600 dark:bg-rose-400/10 dark:text-rose-300",
+                                    },
+                                    {
+                                        no: "2",
+                                        title: "CV bağlamı ekle",
+                                        text: "İstersen yüklediğin CV ile daha kişisel sorular oluştur.",
+                                        color: "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300",
+                                    },
+                                    {
+                                        no: "3",
+                                        title: "AI pratiğini başlat",
+                                        text: "Soruları cevapla, skorunu ve AI koç raporunu gör.",
+                                        color: "bg-sky-100 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300",
+                                    },
+                                ].map((step) => (
+                                    <div key={step.no} className="flex items-start gap-3">
+                                        <div
+                                            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${step.color}`}
+                                        >
+                                            {step.no}
+                                        </div>
 
-                                    <div>
-                                        <p className="font-bold text-slate-800">Choose role</p>
-                                        <p className="text-sm text-slate-500">
-                                            Pick the position you want to practice for.
-                                        </p>
-                                    </div>
-                                </div>
+                                        <div>
+                                            <p className="font-black text-slate-800 dark:text-white">
+                                                {step.title}
+                                            </p>
 
-                                <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-sm font-black">
-                                        2
+                                            <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                                {step.text}
+                                            </p>
+                                        </div>
                                     </div>
-
-                                    <div>
-                                        <p className="font-bold text-slate-800">Attach resume</p>
-                                        <p className="text-sm text-slate-500">
-                                            Use your uploaded resume for more personalized questions.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-sm font-black">
-                                        3
-                                    </div>
-
-                                    <div>
-                                        <p className="font-bold text-slate-800">
-                                            Start practicing
-                                        </p>
-                                        <p className="text-sm text-slate-500">
-                                            Answer questions and receive feedback.
-                                        </p>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <nav className="glass-card rounded-3xl px-4 py-3 mt-5 animate-fade-up">
+                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/70 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={() => router.push("/dashboard")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
                             Dashboard
                         </button>
 
                         <button
                             onClick={() => router.push("/resumes")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            Resumes
+                            CV’lerim
                         </button>
 
-                        <button className="rounded-full bg-slate-900 text-white px-5 py-2 text-sm font-semibold">
-                            Start Interview
+                        <button className="rounded-full bg-slate-950 px-5 py-2 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
+                            Mülakata Başla
                         </button>
 
                         <button
                             onClick={() => router.push("/interviews/sessions")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            My Sessions
+                            Geçmiş Mülakatlar
                         </button>
 
                         <button
                             onClick={handleLogout}
-                            className="rounded-full bg-white/70 text-rose-600 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-rose-600 transition hover:bg-white dark:bg-slate-800 dark:text-rose-300 dark:hover:bg-slate-700"
                         >
-                            Logout
+                            Çıkış Yap
                         </button>
                     </div>
                 </nav>
 
-                <section className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6 mt-8">
-                    <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                            Target Position
+                <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                    <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                        <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                            Hedef Pozisyon
                         </p>
 
-                        <h2 className="mt-3 text-2xl font-black text-slate-900">
-                            Choose the role you want to practice
+                        <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                            Pratik yapmak istediğin rolü seç
                         </h2>
 
-                        <p className="mt-2 text-sm text-slate-600 leading-6">
-                            The selected position determines the main interview question
-                            categories.
+                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                            Seçtiğin pozisyon, Gemini’nin üreteceği mülakat sorularının ana
+                            bağlamını belirler.
                         </p>
 
-                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
                             {positions.length === 0 ? (
-                                <div className="rounded-3xl bg-white/70 border border-white/60 p-6 text-sm text-slate-500">
-                                    No positions found.
+                                <div className="rounded-3xl border border-white/60 bg-white/70 p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-400">
+                                    Henüz pozisyon bulunamadı.
                                 </div>
                             ) : (
                                 positions.map((position) => {
@@ -309,26 +372,28 @@ export default function StartInterviewPage() {
                                         <button
                                             key={position.id}
                                             onClick={() => setSelectedPositionId(position.id)}
-                                            className={`text-left rounded-3xl border p-5 transition hover:-translate-y-1 ${isSelected
-                                                    ? "bg-slate-900 text-white border-slate-900 shadow-xl"
-                                                    : "bg-white/75 text-slate-800 border-white/70"
+                                            className={`rounded-3xl border p-5 text-left transition hover:-translate-y-1 ${isSelected
+                                                    ? "border-slate-950 bg-slate-950 text-white shadow-xl dark:border-white dark:bg-white dark:text-slate-950"
+                                                    : "border-white/70 bg-white/75 text-slate-800 hover:bg-white dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-800"
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between gap-3">
                                                 <p className="font-black">{position.name}</p>
 
                                                 <span
-                                                    className={`rounded-full px-3 py-1 text-xs font-bold ${isSelected
-                                                            ? "bg-white/15 text-white"
-                                                            : "bg-violet-100 text-violet-600"
+                                                    className={`rounded-full px-3 py-1 text-xs font-black ${isSelected
+                                                            ? "bg-white/15 text-white dark:bg-slate-950/10 dark:text-slate-950"
+                                                            : "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300"
                                                         }`}
                                                 >
-                                                    {isSelected ? "Selected" : "Role"}
+                                                    {isSelected ? "Seçildi" : "Rol"}
                                                 </span>
                                             </div>
 
                                             <p
-                                                className={`mt-3 text-sm leading-6 ${isSelected ? "text-slate-200" : "text-slate-500"
+                                                className={`mt-3 text-sm leading-6 ${isSelected
+                                                        ? "text-slate-200 dark:text-slate-700"
+                                                        : "text-slate-500 dark:text-slate-400"
                                                     }`}
                                             >
                                                 {position.description}
@@ -341,36 +406,37 @@ export default function StartInterviewPage() {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                                Resume Context
+                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                CV Bağlamı
                             </p>
 
-                            <h2 className="mt-3 text-2xl font-black text-slate-900">
-                                Attach a resume
+                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                                CV seç
                             </h2>
 
-                            <p className="mt-2 text-sm text-slate-600 leading-6">
-                                This is optional, but choosing a resume makes the interview more
-                                personal.
+                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                Zorunlu değil; ama CV seçersen sorular projelerine ve becerilerine
+                                göre daha kişisel oluşturulur.
                             </p>
 
                             <div className="mt-6 space-y-3">
                                 <button
                                     onClick={() => setSelectedResumeId(null)}
-                                    className={`w-full text-left rounded-3xl border p-4 transition ${selectedResumeId === null
-                                            ? "bg-slate-900 text-white border-slate-900"
-                                            : "bg-white/75 text-slate-800 border-white/70"
+                                    className={`w-full rounded-3xl border p-4 text-left transition ${selectedResumeId === null
+                                            ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950"
+                                            : "border-white/70 bg-white/75 text-slate-800 hover:bg-white dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-800"
                                         }`}
                                 >
-                                    <p className="font-bold">No resume</p>
+                                    <p className="font-black">CV olmadan başla</p>
+
                                     <p
-                                        className={`text-sm mt-1 ${selectedResumeId === null
-                                                ? "text-slate-200"
-                                                : "text-slate-500"
+                                        className={`mt-1 text-sm ${selectedResumeId === null
+                                                ? "text-slate-200 dark:text-slate-700"
+                                                : "text-slate-500 dark:text-slate-400"
                                             }`}
                                     >
-                                        Start a standard role-based interview.
+                                        Standart rol odaklı mülakat oluştur.
                                     </p>
                                 </button>
 
@@ -381,18 +447,20 @@ export default function StartInterviewPage() {
                                         <button
                                             key={resume.id}
                                             onClick={() => setSelectedResumeId(resume.id)}
-                                            className={`w-full text-left rounded-3xl border p-4 transition hover:-translate-y-1 ${isSelected
-                                                    ? "bg-slate-900 text-white border-slate-900 shadow-xl"
-                                                    : "bg-white/75 text-slate-800 border-white/70"
+                                            className={`w-full rounded-3xl border p-4 text-left transition hover:-translate-y-1 ${isSelected
+                                                    ? "border-slate-950 bg-slate-950 text-white shadow-xl dark:border-white dark:bg-white dark:text-slate-950"
+                                                    : "border-white/70 bg-white/75 text-slate-800 hover:bg-white dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-800"
                                                 }`}
                                         >
-                                            <p className="font-bold">{resume.fileName}</p>
+                                            <p className="font-black">{resume.fileName}</p>
 
                                             <p
-                                                className={`text-sm mt-1 ${isSelected ? "text-slate-200" : "text-slate-500"
+                                                className={`mt-1 text-sm ${isSelected
+                                                        ? "text-slate-200 dark:text-slate-700"
+                                                        : "text-slate-500 dark:text-slate-400"
                                                     }`}
                                             >
-                                                Use this resume for personalized questions.
+                                                Bu CV’ye göre kişisel sorular üret.
                                             </p>
                                         </button>
                                     );
@@ -402,30 +470,32 @@ export default function StartInterviewPage() {
                             {resumes.length === 0 && (
                                 <button
                                     onClick={() => router.push("/resumes")}
-                                    className="mt-5 w-full rounded-full bg-white text-slate-700 px-5 py-3 text-sm font-semibold shadow hover:scale-105 transition"
+                                    className="mt-5 w-full rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow transition hover:scale-105 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                 >
-                                    Upload a resume first
+                                    Önce CV yükle
                                 </button>
                             )}
                         </div>
 
-                        <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                                Session Settings
+                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                Oturum Ayarları
                             </p>
 
-                            <h2 className="mt-3 text-2xl font-black text-slate-900">
-                                Customize your interview
+                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                                Mülakatını özelleştir
                             </h2>
 
-                            <p className="mt-2 text-sm text-slate-600 leading-6">
-                                Choose how long and how challenging your practice session should be.
+                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                Soru sayısını, zorluk seviyesini ve mülakat modunu seç.
                             </p>
 
                             <div className="mt-6">
-                                <p className="text-sm font-bold text-slate-700">Question Count</p>
+                                <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                    Soru Sayısı
+                                </p>
 
-                                <div className="grid grid-cols-4 gap-2 mt-3">
+                                <div className="mt-3 grid grid-cols-4 gap-2">
                                     {[5, 8, 10, 15].map((count) => {
                                         const isSelected = selectedQuestionCount === count;
 
@@ -433,9 +503,9 @@ export default function StartInterviewPage() {
                                             <button
                                                 key={count}
                                                 onClick={() => setSelectedQuestionCount(count)}
-                                                className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${isSelected
-                                                        ? "bg-slate-900 text-white shadow"
-                                                        : "bg-white/75 text-slate-700 hover:bg-white"
+                                                className={`rounded-2xl px-4 py-3 text-sm font-black transition ${isSelected
+                                                        ? "bg-slate-950 text-white shadow dark:bg-white dark:text-slate-950"
+                                                        : "bg-white/75 text-slate-700 hover:bg-white dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-800"
                                                     }`}
                                             >
                                                 {count}
@@ -446,22 +516,35 @@ export default function StartInterviewPage() {
                             </div>
 
                             <div className="mt-6">
-                                <p className="text-sm font-bold text-slate-700">Difficulty</p>
+                                <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                    Zorluk Seviyesi
+                                </p>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
-                                    {["Beginner", "Intermediate", "Advanced"].map((difficulty) => {
-                                        const isSelected = selectedDifficulty === difficulty;
+                                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                    {difficultyOptions.map((difficulty) => {
+                                        const isSelected = selectedDifficulty === difficulty.value;
 
                                         return (
                                             <button
-                                                key={difficulty}
-                                                onClick={() => setSelectedDifficulty(difficulty)}
-                                                className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${isSelected
-                                                        ? "bg-slate-900 text-white shadow"
-                                                        : "bg-white/75 text-slate-700 hover:bg-white"
+                                                key={difficulty.value}
+                                                onClick={() => setSelectedDifficulty(difficulty.value)}
+                                                className={`rounded-2xl px-4 py-3 text-left text-sm transition ${isSelected
+                                                        ? "bg-slate-950 text-white shadow dark:bg-white dark:text-slate-950"
+                                                        : "bg-white/75 text-slate-700 hover:bg-white dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-800"
                                                     }`}
                                             >
-                                                {difficulty}
+                                                <span className="block font-black">
+                                                    {difficulty.label}
+                                                </span>
+
+                                                <span
+                                                    className={`mt-1 block text-xs ${isSelected
+                                                            ? "text-slate-200 dark:text-slate-700"
+                                                            : "text-slate-500 dark:text-slate-400"
+                                                        }`}
+                                                >
+                                                    {difficulty.description}
+                                                </span>
                                             </button>
                                         );
                                     })}
@@ -469,96 +552,139 @@ export default function StartInterviewPage() {
                             </div>
 
                             <div className="mt-6">
-                                <p className="text-sm font-bold text-slate-700">Interview Mode</p>
+                                <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                    Mülakat Modu
+                                </p>
 
-                                {selectedInterviewMode === "Coding Practice" && (
-                                    <div className="mt-6">
-                                        <p className="text-sm font-bold text-slate-700">
-                                            Programming Language
-                                        </p>
+                                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                    {interviewModes.map((mode) => {
+                                        const isSelected = selectedInterviewMode === mode.value;
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
-                                            {["C#", "Python", "JavaScript"].map((language) => {
-                                                const isSelected = selectedProgrammingLanguage === language;
+                                        return (
+                                            <button
+                                                key={mode.value}
+                                                onClick={() => setSelectedInterviewMode(mode.value)}
+                                                className={`rounded-2xl px-4 py-3 text-left text-sm transition ${isSelected
+                                                        ? "bg-slate-950 text-white shadow dark:bg-white dark:text-slate-950"
+                                                        : "bg-white/75 text-slate-700 hover:bg-white dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-800"
+                                                    }`}
+                                            >
+                                                <span className="block font-black">
+                                                    {mode.label}
+                                                </span>
 
-                                                return (
-                                                    <button
-                                                        key={language}
-                                                        type="button"
-                                                        onClick={() => setSelectedProgrammingLanguage(language)}
-                                                        className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${isSelected
-                                                                ? "bg-slate-900 text-white shadow"
-                                                                : "bg-white/75 text-slate-700 hover:bg-white"
-                                                            }`}
-                                                    >
-                                                        {language}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                                <span
+                                                    className={`mt-1 block text-xs leading-5 ${isSelected
+                                                            ? "text-slate-200 dark:text-slate-700"
+                                                            : "text-slate-500 dark:text-slate-400"
+                                                        }`}
+                                                >
+                                                    {mode.description}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
 
-                                        <p className="mt-3 text-xs leading-5 text-slate-500">
-                                            Coding Practice modunda sorular seçtiğin dile göre hazırlanır ve cevap
-                                            alanı kod yazma alanı gibi görünür.
-                                        </p>
-                                    </div>
-                                )}
+                            {selectedInterviewMode === "Coding Practice" && (
+                                <div className="mt-6 rounded-3xl border border-sky-100 bg-sky-50/80 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">
+                                    <p className="text-sm font-black text-sky-800 dark:text-sky-200">
+                                        Programlama Dili
+                                    </p>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
-                                    {[
-                                        "Role-Based",
-                                        "CV-Based",
-                                        "Technical",
-                                        "Behavioral",
-                                        "Mixed",
-                                        "SQL Practice",
-                                        "Coding Practice"
-                                    ].map(
-                                        (mode) => {
-                                            const isSelected = selectedInterviewMode === mode;
+                                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                        {["C#", "Python", "JavaScript"].map((language) => {
+                                            const isSelected =
+                                                selectedProgrammingLanguage === language;
 
                                             return (
                                                 <button
-                                                    key={mode}
-                                                    onClick={() => setSelectedInterviewMode(mode)}
-                                                    className={`rounded-2xl px-4 py-3 text-sm font-bold transition ${isSelected
-                                                            ? "bg-slate-900 text-white shadow"
-                                                            : "bg-white/75 text-slate-700 hover:bg-white"
+                                                    key={language}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedProgrammingLanguage(language)
+                                                    }
+                                                    className={`rounded-2xl px-4 py-3 text-sm font-black transition ${isSelected
+                                                            ? "bg-sky-600 text-white shadow dark:bg-sky-300 dark:text-slate-950"
+                                                            : "bg-white/80 text-slate-700 hover:bg-white dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-800"
                                                         }`}
                                                 >
-                                                    {mode}
+                                                    {language}
                                                 </button>
                                             );
-                                        }
-                                    )}
+                                        })}
+                                    </div>
+
+                                    <p className="mt-3 text-xs leading-5 text-sky-800 dark:text-sky-200">
+                                        Kodlama pratiğinde sorular seçtiğin dile göre hazırlanır ve
+                                        cevap ekranı kod yazmaya daha uygun görünür.
+                                    </p>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
-                        <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                                Ready
+                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                Hazır
                             </p>
 
-                            <h2 className="mt-3 text-2xl font-black text-slate-900">
-                                Start your interview session
+                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                                AI mülakat oturumunu başlat
                             </h2>
 
-                            <p className="mt-2 text-sm text-slate-600 leading-6">
-                                Once you start, the system will create questions and open your
-                                interview practice screen.
-                            </p>
+                            <div className="mt-4 rounded-3xl bg-slate-50 p-4 dark:bg-slate-950/40">
+                                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                                    <div>
+                                        <p className="font-black text-slate-500 dark:text-slate-400">
+                                            Pozisyon
+                                        </p>
+                                        <p className="mt-1 font-bold text-slate-900 dark:text-white">
+                                            {selectedPosition?.name || "Henüz seçilmedi"}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="font-black text-slate-500 dark:text-slate-400">
+                                            CV
+                                        </p>
+                                        <p className="mt-1 font-bold text-slate-900 dark:text-white">
+                                            {selectedResume?.fileName || "CV yok"}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="font-black text-slate-500 dark:text-slate-400">
+                                            Mod
+                                        </p>
+                                        <p className="mt-1 font-bold text-slate-900 dark:text-white">
+                                            {selectedModeLabel}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="font-black text-slate-500 dark:text-slate-400">
+                                            Zorluk / Soru
+                                        </p>
+                                        <p className="mt-1 font-bold text-slate-900 dark:text-white">
+                                            {selectedDifficultyLabel} • {selectedQuestionCount} soru
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
                             <button
                                 onClick={handleStartInterview}
                                 disabled={isStarting}
-                                className="mt-6 w-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 text-white px-6 py-3 font-semibold shadow hover:scale-105 disabled:opacity-60 transition"
+                                className="mt-6 w-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 px-6 py-3 font-black text-white shadow-lg transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                                {isStarting ? "Starting..." : "Start Interview"}
+                                {isStarting
+                                    ? "AI soruları hazırlanıyor..."
+                                    : "Mülakatı Başlat"}
                             </button>
 
                             {message && (
-                                <p className="mt-4 text-sm text-center text-rose-600">
+                                <p className="mt-4 text-center text-sm font-semibold text-rose-600 dark:text-rose-300">
                                     {message}
                                 </p>
                             )}
