@@ -1,10 +1,11 @@
-"use client";
+﻿"use client";
 
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { ApiResponse, Resume } from "@/types/api";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function ResumesPage() {
     const router = useRouter();
@@ -40,10 +41,10 @@ export default function ResumesPage() {
                     setMessage(
                         error.response?.data?.message ||
                         error.message ||
-                        "An error occurred while loading resumes."
+                        "CV’ler yüklenirken bir hata oluştu."
                     );
                 } else {
-                    setMessage("An error occurred while loading resumes.");
+                    setMessage("CV’ler yüklenirken bir hata oluştu.");
                 }
             } finally {
                 setIsLoading(false);
@@ -66,7 +67,7 @@ export default function ResumesPage() {
         ];
 
         if (!allowedTypes.includes(file.type)) {
-            setMessage("Please select a PDF or DOCX file.");
+            setMessage("Lütfen PDF veya DOCX formatında bir CV seç.");
             setSelectedFile(null);
             return;
         }
@@ -77,7 +78,7 @@ export default function ResumesPage() {
 
     const handleUpload = async () => {
         if (!selectedFile) {
-            setMessage("Please select a resume file first.");
+            setMessage("Lütfen önce bir CV dosyası seç.");
             return;
         }
 
@@ -105,7 +106,7 @@ export default function ResumesPage() {
                 ]);
 
                 setSelectedFile(null);
-                setMessage("Resume uploaded and processed successfully.");
+                setMessage("CV başarıyla yüklendi ve işlendi.");
             } else {
                 setMessage(response.data.message);
             }
@@ -114,10 +115,10 @@ export default function ResumesPage() {
                 setMessage(
                     error.response?.data?.message ||
                     error.message ||
-                    "An error occurred while uploading resume."
+                    "CV yüklenirken bir hata oluştu."
                 );
             } else {
-                setMessage("An error occurred while uploading resume.");
+                setMessage("CV yüklenirken bir hata oluştu.");
             }
         } finally {
             setIsUploading(false);
@@ -130,19 +131,23 @@ export default function ResumesPage() {
     };
 
     const formatDate = (dateValue: string) => {
-        return new Date(dateValue).toLocaleDateString("en-US", {
+        return new Date(dateValue).toLocaleDateString("tr-TR", {
             year: "numeric",
-            month: "short",
+            month: "long",
             day: "numeric",
         });
     };
 
     if (isLoading) {
         return (
-            <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center">
-                <div className="glass-card rounded-3xl px-8 py-6 text-center animate-fade-up">
-                    <p className="text-slate-700 text-lg font-medium">
-                        Loading resumes...
+            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
+                <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
+                    <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+                        CV’ler yükleniyor...
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Yüklediğin dosyalar hazırlanıyor.
                     </p>
                 </div>
             </main>
@@ -150,138 +155,141 @@ export default function ResumesPage() {
     }
 
     return (
-        <main className="min-h-screen dashboard-gradient-bg relative overflow-hidden px-4 md:px-6 py-8">
-            <div className="absolute top-8 left-8 w-44 h-44 bg-pink-300/30 rounded-full blur-3xl animate-float-slow" />
-            <div className="absolute top-24 right-10 w-56 h-56 bg-violet-300/25 rounded-full blur-3xl animate-float-reverse" />
-            <div className="absolute bottom-10 left-1/4 w-52 h-52 bg-cyan-300/25 rounded-full blur-3xl animate-soft-pulse" />
+        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
+            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
+            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
+            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
 
-            <div className="max-w-7xl mx-auto relative z-10">
-                <header className="interview-studio-card rounded-[2rem] p-6 md:p-8 animate-fade-up">
-                    <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+            <div className="relative z-10 mx-auto max-w-7xl">
+                <header className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-8">
+                    <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
-                                <span className="w-2 h-2 rounded-full bg-violet-500 live-dot" />
-                                Resume Workspace
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
+                                    <span className="h-2 w-2 rounded-full bg-violet-500" />
+                                    CV Çalışma Alanı
+                                </div>
+
+                                <ThemeToggle />
                             </div>
 
-                            <h1 className="mt-5 text-3xl md:text-5xl font-black text-slate-900 leading-tight">
-                                Upload your resume and
+                            <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 dark:text-white md:text-5xl">
+                                CV’ni yükle ve
                                 <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
                                     {" "}
-                                    unlock targeted practice
-                                </span>
+                                    hedefli mülakat pratiğini
+                                </span>{" "}
+                                başlat
                             </h1>
 
-                            <p className="mt-4 text-slate-600 max-w-2xl text-sm md:text-base leading-7">
-                                Add your PDF or DOCX resume. The system extracts your text,
-                                detects technical skills, and uses them to personalize your
-                                interview questions.
+                            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                                PDF veya DOCX formatındaki CV’ni ekle. Sistem CV metnini çıkarır,
+                                teknik becerilerini analiz eder ve mülakat sorularını daha kişisel
+                                hale getirir.
                             </p>
                         </div>
 
-                        <div className="rounded-[2rem] bg-white/65 border border-white/70 p-5 md:p-6 shadow-xl max-w-md w-full">
-                            <p className="text-sm font-bold text-slate-700">
-                                Resume processing flow
+                        <div className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl dark:border-slate-700 dark:bg-slate-950/40 md:p-6">
+                            <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                CV işleme akışı
                             </p>
 
                             <div className="mt-5 space-y-4">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-sm font-black">
-                                        1
-                                    </div>
+                                {[
+                                    {
+                                        no: "1",
+                                        title: "Dosya yükle",
+                                        text: "PDF ve DOCX formatları desteklenir.",
+                                        color: "bg-rose-100 text-rose-600 dark:bg-rose-400/10 dark:text-rose-300",
+                                    },
+                                    {
+                                        no: "2",
+                                        title: "Metin çıkarılır",
+                                        text: "CV içeriği analiz edilebilir metne dönüştürülür.",
+                                        color: "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300",
+                                    },
+                                    {
+                                        no: "3",
+                                        title: "Mülakat kişiselleşir",
+                                        text: "Becerilerin CV odaklı sorularda kullanılır.",
+                                        color: "bg-sky-100 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300",
+                                    },
+                                ].map((step) => (
+                                    <div key={step.no} className="flex items-start gap-3">
+                                        <div
+                                            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-black ${step.color}`}
+                                        >
+                                            {step.no}
+                                        </div>
 
-                                    <div>
-                                        <p className="font-bold text-slate-800">Upload file</p>
-                                        <p className="text-sm text-slate-500">
-                                            PDF and DOCX formats are supported.
-                                        </p>
-                                    </div>
-                                </div>
+                                        <div>
+                                            <p className="font-black text-slate-800 dark:text-white">
+                                                {step.title}
+                                            </p>
 
-                                <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center text-sm font-black">
-                                        2
+                                            <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                                {step.text}
+                                            </p>
+                                        </div>
                                     </div>
-
-                                    <div>
-                                        <p className="font-bold text-slate-800">Extract text</p>
-                                        <p className="text-sm text-slate-500">
-                                            Resume content is converted into analyzable text.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-sm font-black">
-                                        3
-                                    </div>
-
-                                    <div>
-                                        <p className="font-bold text-slate-800">
-                                            Personalize interview
-                                        </p>
-                                        <p className="text-sm text-slate-500">
-                                            Skills are used for resume-based questions.
-                                        </p>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <nav className="glass-card rounded-3xl px-4 py-3 mt-5 animate-fade-up">
+                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/70 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={() => router.push("/dashboard")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
                             Dashboard
                         </button>
 
-                        <button className="rounded-full bg-slate-900 text-white px-5 py-2 text-sm font-semibold">
-                            Resumes
+                        <button className="rounded-full bg-slate-950 px-5 py-2 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
+                            CV’lerim
                         </button>
 
                         <button
                             onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            Start Interview
+                            Yeni Mülakat
                         </button>
 
                         <button
                             onClick={() => router.push("/interviews/sessions")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            My Sessions
+                            Geçmiş Mülakatlar
                         </button>
 
                         <button
                             onClick={handleLogout}
-                            className="rounded-full bg-white/70 text-rose-600 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-rose-600 transition hover:bg-white dark:bg-slate-800 dark:text-rose-300 dark:hover:bg-slate-700"
                         >
-                            Logout
+                            Çıkış Yap
                         </button>
                     </div>
                 </nav>
 
-                <section className="grid grid-cols-1 xl:grid-cols-[0.8fr_1.2fr] gap-6 mt-8">
-                    <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                            Upload Resume
+                <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+                    <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                        <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                            CV Yükle
                         </p>
 
-                        <h2 className="mt-3 text-2xl font-black text-slate-900">
-                            Add a new resume
+                        <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                            Yeni bir CV ekle
                         </h2>
 
-                        <p className="mt-2 text-sm text-slate-600 leading-6">
-                            Choose a PDF or DOCX file. After upload, the backend will extract
-                            text and prepare it for skill analysis.
+                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                            PDF veya DOCX dosyası seç. Yükleme sonrası backend CV metnini çıkarır
+                            ve beceri analizi için hazırlar.
                         </p>
 
-                        <label className="mt-6 block rounded-3xl border-2 border-dashed border-violet-200 bg-white/70 p-6 text-center cursor-pointer hover:bg-white transition">
+                        <label className="mt-6 block cursor-pointer rounded-3xl border-2 border-dashed border-violet-200 bg-white/70 p-6 text-center transition hover:bg-white dark:border-violet-400/20 dark:bg-slate-950/40 dark:hover:bg-slate-800">
                             <input
                                 type="file"
                                 accept=".pdf,.docx"
@@ -289,23 +297,26 @@ export default function ResumesPage() {
                                 className="hidden"
                             />
 
-                            <div className="mx-auto w-14 h-14 rounded-2xl bg-violet-100 text-violet-600 flex items-center justify-center text-2xl font-black">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-100 text-2xl font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
                                 +
                             </div>
 
-                            <p className="mt-4 font-bold text-slate-800">
-                                Select resume file
+                            <p className="mt-4 font-black text-slate-800 dark:text-white">
+                                CV dosyası seç
                             </p>
 
-                            <p className="mt-1 text-sm text-slate-500">
-                                PDF or DOCX, recommended under 5MB
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                PDF veya DOCX, tercihen 5MB altında
                             </p>
                         </label>
 
                         {selectedFile && (
-                            <div className="mt-5 rounded-2xl bg-white/80 border border-white/70 p-4">
-                                <p className="text-sm text-slate-500">Selected file</p>
-                                <p className="font-bold text-slate-800 mt-1">
+                            <div className="mt-5 rounded-2xl border border-white/70 bg-white/80 p-4 dark:border-slate-700 dark:bg-slate-950/40">
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    Seçilen dosya
+                                </p>
+
+                                <p className="mt-1 font-black text-slate-800 dark:text-white">
                                     {selectedFile.name}
                                 </p>
                             </div>
@@ -314,91 +325,90 @@ export default function ResumesPage() {
                         <button
                             onClick={handleUpload}
                             disabled={isUploading}
-                            className="mt-5 w-full rounded-full bg-slate-900 text-white px-6 py-3 font-semibold hover:bg-slate-700 disabled:opacity-60 transition"
+                            className="mt-5 w-full rounded-full bg-slate-950 px-6 py-3 font-black text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                         >
-                            {isUploading ? "Uploading..." : "Upload and process resume"}
+                            {isUploading ? "CV yükleniyor..." : "CV’yi Yükle ve İşle"}
                         </button>
 
                         {message && (
-                            <p className="mt-4 text-sm text-center text-slate-700">
+                            <p className="mt-4 text-center text-sm font-semibold text-slate-700 dark:text-slate-300">
                                 {message}
                             </p>
                         )}
                     </div>
 
-                    <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                                    Resume Library
+                                <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                    CV Kütüphanesi
                                 </p>
 
-                                <h2 className="mt-3 text-2xl font-black text-slate-900">
-                                    Your uploaded resumes
+                                <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                                    Yüklediğin CV’ler
                                 </h2>
                             </div>
 
-                            <span className="rounded-full bg-violet-100 text-violet-600 px-4 py-2 text-sm font-bold">
-                                {resumes.length} file{resumes.length === 1 ? "" : "s"}
+                            <span className="rounded-full bg-violet-100 px-4 py-2 text-sm font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                {resumes.length} dosya
                             </span>
                         </div>
 
                         <div className="mt-6 space-y-4">
                             {resumes.length === 0 ? (
-                                <div className="rounded-3xl bg-white/70 border border-white/60 p-8 text-center">
-                                    <p className="text-lg font-bold text-slate-800">
-                                        No resumes uploaded yet.
+                                <div className="rounded-3xl border border-white/60 bg-white/70 p-8 text-center dark:border-slate-700 dark:bg-slate-950/40">
+                                    <p className="text-lg font-black text-slate-800 dark:text-white">
+                                        Henüz CV yüklenmedi.
                                     </p>
 
-                                    <p className="text-sm text-slate-500 mt-2">
-                                        Upload your first resume to unlock resume-based interview
-                                        questions.
+                                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                        İlk CV’ni yükleyerek CV odaklı mülakat sorularını aktif hale getirebilirsin.
                                     </p>
                                 </div>
                             ) : (
                                 resumes.map((resume) => (
                                     <div
                                         key={resume.id}
-                                        className="rounded-3xl bg-white/75 border border-white/70 p-5 hover:scale-[1.01] transition"
+                                        className="rounded-3xl border border-white/70 bg-white/75 p-5 transition hover:scale-[1.01] dark:border-slate-700 dark:bg-slate-950/40"
                                     >
-                                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                             <div>
-                                                <p className="font-black text-slate-900">
+                                                <p className="font-black text-slate-950 dark:text-white">
                                                     {resume.fileName}
                                                 </p>
 
-                                                <p className="text-sm text-slate-500 mt-1">
-                                                    Uploaded on {formatDate(resume.uploadedAt)}
+                                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                                    Yüklenme tarihi: {formatDate(resume.uploadedAt)}
                                                 </p>
 
                                                 <div className="mt-3 flex flex-wrap gap-2">
-                                                    <span className="rounded-full bg-sky-100 text-sky-600 px-3 py-1 text-xs font-bold">
+                                                    <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
                                                         {resume.contentType.includes("pdf")
                                                             ? "PDF"
                                                             : "DOCX"}
                                                     </span>
 
-                                                    <span className="rounded-full bg-emerald-100 text-emerald-600 px-3 py-1 text-xs font-bold">
-                                                        Text extracted
+                                                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
+                                                        Metin çıkarıldı
                                                     </span>
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-col sm:flex-row gap-3">
+                                            <div className="flex flex-col gap-3 sm:flex-row">
                                                 <button
                                                     onClick={() =>
                                                         router.push(`/resumes/${resume.id}/analysis`)
                                                     }
-                                                    className="rounded-full bg-slate-900 text-white px-5 py-2 text-sm font-semibold hover:bg-slate-700 transition"
+                                                    className="rounded-full bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                                                 >
-                                                    View Analysis
+                                                    Analizi Gör
                                                 </button>
 
                                                 <button
                                                     onClick={() => router.push("/interviews/start")}
-                                                    className="rounded-full bg-white text-slate-700 px-5 py-2 text-sm font-semibold shadow hover:scale-105 transition"
+                                                    className="rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-700 shadow transition hover:scale-105 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                                 >
-                                                    Use in Interview
+                                                    Mülakatta Kullan
                                                 </button>
                                             </div>
                                         </div>
