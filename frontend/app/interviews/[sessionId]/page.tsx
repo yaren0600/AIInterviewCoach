@@ -10,6 +10,7 @@ import {
     RawInterviewSessionDetail,
     SubmitAnswerResponse,
 } from "@/types/api";
+import ThemeToggle from "@/components/ThemeToggle";
 
 function normalizeInterviewSession(
     rawSession: RawInterviewSessionDetail,
@@ -30,8 +31,8 @@ function normalizeInterviewSession(
                     question.text ??
                     question.questionText ??
                     question.title ??
-                    "Question text could not be loaded.",
-                category: question.category ?? question.questionCategory ?? "General",
+                    "Soru metni yüklenemedi.",
+                category: question.category ?? question.questionCategory ?? "Genel",
                 orderNo:
                     question.orderNo ?? question.orderNumber ?? question.order ?? index + 1,
             };
@@ -40,7 +41,7 @@ function normalizeInterviewSession(
 
     return {
         sessionId: normalizedSessionId,
-        positionName: rawSession.positionName ?? "Interview Session",
+        positionName: rawSession.positionName ?? "Mülakat Oturumu",
         resumeFileName: rawSession.resumeFileName ?? null,
         questions: normalizedQuestions,
     };
@@ -78,7 +79,7 @@ export default function InterviewSessionPage() {
 
                 if (!storedInterviewSession) {
                     setMessage(
-                        "Interview session data could not be found. Please start a new interview."
+                        "Mülakat oturumu bulunamadı. Lütfen yeni bir mülakat başlat."
                     );
                     return;
                 }
@@ -87,23 +88,19 @@ export default function InterviewSessionPage() {
                     storedInterviewSession
                 ) as RawInterviewSessionDetail;
 
-                console.log("Stored interview session:", parsedInterviewSession);
-
                 const normalizedInterviewSession = normalizeInterviewSession(
                     parsedInterviewSession,
                     sessionId
                 );
 
-                console.log("Normalized interview session:", normalizedInterviewSession);
-
                 if (normalizedInterviewSession.questions.length === 0) {
-                    setMessage("No questions were found for this interview session.");
+                    setMessage("Bu mülakat oturumu için soru bulunamadı.");
                     return;
                 }
 
                 setSession(normalizedInterviewSession);
             } catch {
-                setMessage("An error occurred while loading interview session.");
+                setMessage("Mülakat oturumu yüklenirken bir hata oluştu.");
             } finally {
                 setIsLoading(false);
             }
@@ -120,7 +117,7 @@ export default function InterviewSessionPage() {
         const currentQuestion = session.questions[currentQuestionIndex];
 
         if (!answerText.trim()) {
-            setMessage("Please write your answer first.");
+            setMessage("Lütfen önce cevabını yaz.");
             return;
         }
 
@@ -128,13 +125,10 @@ export default function InterviewSessionPage() {
         setMessage("");
 
         try {
-            const response = await api.post(
-                "/Interviews/answer",
-                {
-                    questionId: currentQuestion.id,
-                    userAnswer: answerText,
-                }
-            );
+            const response = await api.post("/Interviews/answer", {
+                questionId: currentQuestion.id,
+                userAnswer: answerText,
+            });
 
             if (response.data.success) {
                 setLastFeedback(response.data.data as SubmitAnswerResponse);
@@ -147,10 +141,10 @@ export default function InterviewSessionPage() {
                 setMessage(
                     error.response?.data?.message ||
                     error.message ||
-                    "An error occurred while submitting your answer."
+                    "Cevabın gönderilirken bir hata oluştu."
                 );
             } else {
-                setMessage("An error occurred while submitting your answer.");
+                setMessage("Cevabın gönderilirken bir hata oluştu.");
             }
         } finally {
             setIsSubmitting(false);
@@ -182,10 +176,14 @@ export default function InterviewSessionPage() {
 
     if (isLoading) {
         return (
-            <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center">
-                <div className="glass-card rounded-3xl px-8 py-6 text-center animate-fade-up">
-                    <p className="text-slate-700 text-lg font-medium">
-                        Loading interview session...
+            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
+                <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
+                    <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+                        Mülakat oturumu yükleniyor...
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Soruların hazırlanıyor.
                     </p>
                 </div>
             </main>
@@ -194,19 +192,21 @@ export default function InterviewSessionPage() {
 
     if (message && !session) {
         return (
-            <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center px-4">
-                <div className="glass-card rounded-3xl p-8 max-w-md w-full text-center animate-fade-up">
-                    <h2 className="text-2xl font-bold text-slate-900">
-                        Interview could not be loaded
+            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
+                <div className="w-full max-w-md rounded-3xl border border-white/70 bg-white/80 p-8 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
+                    <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+                        Mülakat yüklenemedi
                     </h2>
 
-                    <p className="text-rose-600 mt-3">{message}</p>
+                    <p className="mt-3 text-rose-600 dark:text-rose-300">
+                        {message}
+                    </p>
 
                     <button
                         onClick={() => router.push("/interviews/start")}
-                        className="mt-6 rounded-full bg-slate-900 text-white px-6 py-3 font-medium hover:scale-105 transition"
+                        className="mt-6 rounded-full bg-slate-950 px-6 py-3 font-bold text-white transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                     >
-                        Back to start
+                        Mülakat başlatma ekranına dön
                     </button>
                 </div>
             </main>
@@ -215,72 +215,79 @@ export default function InterviewSessionPage() {
 
     const currentQuestion = session?.questions[currentQuestionIndex];
 
-    //Eğer soru kategorisi SQL Practice ise sayfa SQL kod yazma moduna geçsin.
     const isSqlPractice =
         currentQuestion?.category?.toLowerCase().includes("sql") ?? false;
 
     const isCodingPractice =
-        currentQuestion?.category?.toLowerCase().includes("coding practice") ?? false;
+        currentQuestion?.category?.toLowerCase().includes("coding practice") ||
+        currentQuestion?.category?.toLowerCase().includes("kodlama") ||
+        false;
 
     const isCodePractice = isSqlPractice || isCodingPractice;
+
     const progressPercentage = session
         ? Math.round(((currentQuestionIndex + 1) / session.questions.length) * 100)
         : 0;
 
     return (
-        <main className="min-h-screen dashboard-gradient-bg relative overflow-hidden px-4 md:px-6 py-8">
-            <div className="absolute top-8 left-8 w-44 h-44 bg-pink-300/30 rounded-full blur-3xl animate-float-slow" />
-            <div className="absolute top-24 right-10 w-56 h-56 bg-violet-300/25 rounded-full blur-3xl animate-float-reverse" />
-            <div className="absolute bottom-10 left-1/4 w-52 h-52 bg-cyan-300/25 rounded-full blur-3xl animate-soft-pulse" />
+        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
+            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
+            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
+            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
 
-            <div className="max-w-7xl mx-auto relative z-10">
-                <header className="interview-studio-card rounded-[2rem] p-6 md:p-8 animate-fade-up">
-                    <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+            <div className="relative z-10 mx-auto max-w-7xl">
+                <header className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-8">
+                    <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 live-dot" />
-                                Live Interview Session
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                    Canlı Mülakat Oturumu
+                                </div>
+
+                                <ThemeToggle />
                             </div>
 
-                            <h1 className="mt-5 text-3xl md:text-5xl font-black text-slate-900 leading-tight">
-                                Practice your answer
+                            <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 dark:text-white md:text-5xl">
+                                Her soruyu
                                 <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
                                     {" "}
-                                    one question at a time
-                                </span>
+                                    AI koç desteğiyle
+                                </span>{" "}
+                                cevapla
                             </h1>
 
-                            <p className="mt-4 text-slate-600 max-w-2xl text-sm md:text-base leading-7">
-                                Answer each question carefully. After submitting, you will get a
-                                score and feedback before moving to the next question.
+                            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                                Cevabını yaz, gönder ve yapay zekadan skor, geri bildirim ve
+                                gelişim önerisi al. Her sorudan sonra bir sonraki adıma geçebilirsin.
                             </p>
                         </div>
 
-                        <div className="rounded-[2rem] bg-white/70 border border-white/70 p-6 shadow-xl max-w-md w-full">
-                            <p className="text-sm font-bold text-slate-700">
-                                Session overview
+                        <div className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl dark:border-slate-700 dark:bg-slate-950/40">
+                            <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                Oturum Özeti
                             </p>
 
-                            <p className="mt-4 text-2xl font-black text-slate-900">
+                            <p className="mt-4 text-2xl font-black text-slate-950 dark:text-white">
                                 {session?.positionName}
                             </p>
 
-                            <p className="text-sm text-slate-500 mt-1">
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                 {session?.resumeFileName
-                                    ? `Resume: ${session.resumeFileName}`
-                                    : "Standard role-based interview"}
+                                    ? `CV: ${session.resumeFileName}`
+                                    : "CV olmadan standart mülakat"}
                             </p>
 
                             <div className="mt-5">
-                                <div className="flex justify-between text-xs font-semibold text-slate-600">
+                                <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
                                     <span>
-                                        Question {currentQuestionIndex + 1} of{" "}
+                                        Soru {currentQuestionIndex + 1} /{" "}
                                         {session?.questions.length}
                                     </span>
                                     <span>{progressPercentage}%</span>
                                 </div>
 
-                                <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden">
+                                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                                     <div
                                         className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all"
                                         style={{ width: `${progressPercentage}%` }}
@@ -291,68 +298,68 @@ export default function InterviewSessionPage() {
                     </div>
                 </header>
 
-                <nav className="glass-card rounded-3xl px-4 py-3 mt-5 animate-fade-up">
+                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/70 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={() => router.push("/dashboard")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
                             Dashboard
                         </button>
 
                         <button
                             onClick={() => router.push("/resumes")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            Resumes
+                            CV’lerim
                         </button>
 
                         <button
                             onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            Start Interview
+                            Yeni Mülakat
                         </button>
 
                         <button
                             onClick={handleLogout}
-                            className="rounded-full bg-white/70 text-rose-600 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-rose-600 transition hover:bg-white dark:bg-slate-800 dark:text-rose-300 dark:hover:bg-slate-700"
                         >
-                            Logout
+                            Çıkış Yap
                         </button>
                     </div>
                 </nav>
 
-                <section className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6 mt-8">
-                    <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                        <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                            Question
+                <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                    <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                        <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                            Soru
                         </p>
 
-                        <h2 className="mt-4 text-2xl md:text-3xl font-black text-slate-900 leading-tight">
-                            {currentQuestion?.text ?? "Question text could not be loaded."}
+                        <h2 className="mt-4 text-2xl font-black leading-tight text-slate-950 dark:text-white md:text-3xl">
+                            {currentQuestion?.text ?? "Soru metni yüklenemedi."}
                         </h2>
 
                         <div className="mt-4 flex flex-wrap gap-2">
-                            <span className="rounded-full bg-violet-100 text-violet-600 px-3 py-1 text-xs font-bold">
+                            <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
                                 {currentQuestion?.category}
                             </span>
 
-                            <span className="rounded-full bg-sky-100 text-sky-600 px-3 py-1 text-xs font-bold">
-                                Order {currentQuestion?.orderNo}
+                            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
+                                Sıra {currentQuestion?.orderNo}
                             </span>
                         </div>
 
                         {isCodePractice && (
-                            <div className="mt-5 rounded-3xl border border-sky-100 bg-sky-50/80 p-4">
-                                <p className="text-xs uppercase tracking-[0.18em] text-sky-700 font-bold">
-                                    {isSqlPractice ? "SQL Coding Mode" : "Coding Practice Mode"}
+                            <div className="mt-5 rounded-3xl border border-sky-100 bg-sky-50/80 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">
+                                <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-700 dark:text-sky-200">
+                                    {isSqlPractice ? "SQL Cevap Modu" : "Kodlama Cevap Modu"}
                                 </p>
 
-                                <p className="mt-2 text-sm leading-6 text-sky-900">
+                                <p className="mt-2 text-sm leading-6 text-sky-900 dark:text-sky-100">
                                     {isSqlPractice
-                                        ? "Bu soruda cevabını mümkünse SQL sorgusu yazarak ver. Önce sorguyu yaz, sonra kısa bir cümleyle ne yaptığını açıkla."
-                                        : "Bu soruda cevabını kod yazarak ver. Fonksiyon/metot adını, parametreleri ve temel algoritma mantığını net göstermeye çalış."}
+                                        ? "Bu soruda cevabını mümkünse SQL sorgusu yazarak ver. Önce sorguyu yaz, ardından kısa bir cümleyle ne yaptığını açıkla."
+                                        : "Bu soruda cevabını kod yazarak ver. Fonksiyon/metot adını, parametreleri, temel algoritma mantığını ve mümkünse edge case durumlarını göster."}
                                 </p>
                             </div>
                         )}
@@ -363,28 +370,30 @@ export default function InterviewSessionPage() {
                             disabled={!!lastFeedback}
                             placeholder={
                                 isSqlPractice
-                                    ? "SQL sorgunu buraya yaz...\n\nÖrnek:\nSELECT *\nFROM Customers\nWHERE City = 'Konya';"
+                                    ? "SQL sorgunu buraya yaz...\n\nÖrnek:\nSELECT CustomerName, COUNT(*) AS OrderCount\nFROM Orders\nGROUP BY CustomerName\nHAVING COUNT(*) > 3;"
                                     : isCodingPractice
-                                        ? "Kodunu buraya yaz...\n\nÖrnek:\npublic int FindMax(int[] numbers)\n{\n    return numbers.Max();\n}"
-                                        : "Cevabını buraya yaz..."
+                                        ? "Kodunu buraya yaz...\n\nÖrnek:\npublic int FindSecondLargest(int[] numbers)\n{\n    // çözümünü buraya yaz\n}"
+                                        : "Cevabını buraya yaz...\n\nİpucu: Kısa bir giriş yap, kullandığın yaklaşımı anlat ve örnekle güçlendir."
                             }
-                            className={`mt-6 w-full min-h-[260px] rounded-3xl bg-white/80 border border-white/70 p-5 text-slate-800 outline-none focus:ring-4 focus:ring-violet-200 disabled:opacity-70 ${isCodePractice ? "font-mono text-sm leading-7" : ""
+                            className={`mt-6 min-h-[280px] w-full rounded-3xl border border-white/70 bg-white/85 p-5 text-slate-800 outline-none shadow-inner transition focus:ring-4 focus:ring-violet-200 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-violet-500/20 ${isCodePractice ? "font-mono text-sm leading-7" : "text-sm leading-7"
                                 }`}
                         />
 
                         {isSubmitting && (
-                            <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/80 p-4">
-                                <p className="text-sm font-semibold text-violet-900">
+                            <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/80 p-4 dark:border-violet-400/20 dark:bg-violet-400/10">
+                                <p className="text-sm font-black text-violet-900 dark:text-violet-200">
                                     AI cevabını değerlendiriyor...
                                 </p>
-                                <p className="mt-1 text-sm leading-6 text-violet-800">
-                                    Cevabın doğruluk, soruya uygunluk, yapı ve gelişim önerileri açısından inceleniyor.
+
+                                <p className="mt-1 text-sm leading-6 text-violet-800 dark:text-violet-100">
+                                    Cevabın doğruluk, soruya uygunluk, yapı ve gelişim önerileri
+                                    açısından inceleniyor.
                                 </p>
                             </div>
                         )}
 
                         {message && (
-                            <p className="mt-4 text-sm text-center text-rose-600">
+                            <p className="mt-4 text-center text-sm font-semibold text-rose-600 dark:text-rose-300">
                                 {message}
                             </p>
                         )}
@@ -392,77 +401,87 @@ export default function InterviewSessionPage() {
                         <button
                             onClick={handleSubmitAnswer}
                             disabled={isSubmitting || !!lastFeedback}
-                            className="mt-5 w-full rounded-full bg-slate-900 text-white px-6 py-3 font-semibold hover:bg-slate-700 disabled:opacity-60 transition"
+                            className="mt-5 w-full rounded-full bg-slate-950 px-6 py-3 font-black text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                         >
-
                             {isSubmitting
-                                ? "AI is evaluating your answer..."
+                                ? "AI cevabını değerlendiriyor..."
                                 : isSqlPractice
-                                    ? "Submit SQL Answer"
+                                    ? "SQL Cevabını Gönder"
                                     : isCodingPractice
-                                        ? "Submit Code Answer"
-                                        : "Submit Answer"}
+                                        ? "Kod Cevabını Gönder"
+                                        : "Cevabımı Gönder"}
                         </button>
                     </div>
 
                     <div className="space-y-6">
-                        <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                                Feedback
+                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                AI Geri Bildirim
                             </p>
 
                             {!lastFeedback ? (
-                                <div className="mt-5 rounded-3xl bg-white/70 border border-white/60 p-6">
-                                    <p className="font-bold text-slate-800">
-                                        Feedback will appear here after you submit your answer.
+                                <div className="mt-5 rounded-3xl border border-white/60 bg-white/75 p-6 dark:border-slate-700 dark:bg-slate-950/40">
+                                    <p className="font-black text-slate-800 dark:text-white">
+                                        Cevabını gönderdikten sonra AI koç raporu burada görünecek.
                                     </p>
 
-                                    <p className="text-sm text-slate-500 mt-2 leading-6">
+                                    <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
                                         {isSqlPractice
-                                            ? "SQL cevaplarında sorguyu açık yazmaya çalış. SELECT, FROM, WHERE, JOIN, GROUP BY gibi anahtar kelimeleri doğru kullan."
+                                            ? "SQL cevaplarında SELECT, FROM, WHERE, JOIN, GROUP BY ve HAVING gibi anahtar kelimeleri doğru kullanmaya çalış."
                                             : isCodingPractice
-                                                ? "Kod cevaplarında çalışır mantığı göstermeye çalış. Fonksiyon adı, parametreler, döngü/koşul kullanımı ve dönüş değerini net yaz."
-                                                : "Try to answer with a clear structure: situation, action, technologies used, and result."}
+                                                ? "Kod cevaplarında fonksiyon adı, parametreler, algoritma mantığı, dönüş değeri ve edge case durumlarını net göstermeye çalış."
+                                                : "Güçlü cevaplar genelde problemi, yaklaşımını, kullandığın araçları ve sonucu net şekilde anlatır."}
                                     </p>
                                 </div>
-
                             ) : (
-                                <div className="mt-5 rounded-3xl bg-white/80 border border-white/70 p-6">
-                                    <div className="flex items-center justify-between">
-                                        <p className="font-black text-slate-900">Score</p>
+                                <div className="mt-5 rounded-3xl border border-white/70 bg-white/80 p-6 dark:border-slate-700 dark:bg-slate-950/40">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <p className="font-black text-slate-950 dark:text-white">
+                                            Skor
+                                        </p>
 
-                                        <span className="rounded-full bg-emerald-100 text-emerald-600 px-4 py-2 text-sm font-black">
+                                        <span className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-black text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
                                             {lastFeedback.score}/100
                                         </span>
                                     </div>
 
-                                    <p className="mt-5 text-sm leading-7 text-slate-700">
+                                    <p className="mt-5 text-sm leading-7 text-slate-700 dark:text-slate-300">
                                         {lastFeedback.feedback}
                                     </p>
 
                                     <button
                                         onClick={handleNextQuestion}
-                                        className="mt-6 w-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 text-white px-6 py-3 font-semibold shadow hover:scale-105 transition"
+                                        className="mt-6 w-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 px-6 py-3 font-black text-white shadow transition hover:scale-105"
                                     >
                                         {session &&
                                             currentQuestionIndex === session.questions.length - 1
-                                            ? "See Result"
-                                            : "Next Question"}
+                                            ? "Sonucu Gör"
+                                            : "Sonraki Soru"}
                                     </button>
                                 </div>
                             )}
                         </div>
 
-                        <div className="glass-card rounded-3xl p-6 animate-fade-up">
-                            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                                Answer Tip
+                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                Cevap İpucu
                             </p>
 
-                            <p className="mt-4 text-sm leading-7 text-slate-700">
-                                Strong answers usually include what the problem was, what you
-                                did, which tools or technologies you used, and what the outcome
-                                was.
+                            <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-slate-300">
+                                Cevabını verirken şu yapıyı kullanabilirsin: Önce problemi veya
+                                kavramı tanımla, sonra yaklaşımını anlat, kullandığın teknoloji
+                                veya yöntemi belirt ve mümkünse sonucu örnekle.
                             </p>
+
+                            <div className="mt-4 rounded-2xl bg-slate-50 p-4 dark:bg-slate-950/40">
+                                <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                                    Mini Formül
+                                </p>
+
+                                <p className="mt-2 text-sm font-bold text-slate-800 dark:text-slate-100">
+                                    Tanım → Yaklaşım → Örnek → Sonuç
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </section>
