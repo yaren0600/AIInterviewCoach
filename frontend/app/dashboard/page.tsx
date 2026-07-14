@@ -56,6 +56,18 @@ export default function DashboardPage() {
         router.push("/login");
     };
 
+    const interviewReadiness = Math.min(
+        100,
+        Math.max(0, Number(dashboard?.averageScore ?? 0))
+    );
+
+    const practiceCompletion = Math.min(
+        100,
+        Math.max(0, Number(dashboard?.completionRate ?? 0))
+    );
+
+    const focusCategory = dashboard?.weakestCategory || "Henüz veri oluşmadı";
+
     if (isLoading) {
         return (
             <main className="min-h-screen bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 flex items-center justify-center px-4">
@@ -205,33 +217,48 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
                             </div>
-
                             <div className="mt-4 rounded-3xl border border-slate-100 bg-white/95 p-5 shadow-xl dark:border-slate-700 dark:bg-slate-900/95">
                                 <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                                    Cevap geri bildirimi
+                                    Canlı performans özeti
                                 </p>
 
                                 <div className="mt-4 space-y-4">
                                     <div>
                                         <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
-                                            <span>Teknik netlik</span>
-                                            <span>82%</span>
+                                            <span>Mülakat hazırlık skoru</span>
+                                            <span>{dashboard?.averageScore ?? "-"}%</span>
                                         </div>
 
                                         <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                                            <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-rose-400 to-violet-500" />
+                                            <div
+                                                className="h-full rounded-full bg-gradient-to-r from-rose-400 to-violet-500 transition-all"
+                                                style={{ width: `${interviewReadiness}%` }}
+                                            />
                                         </div>
                                     </div>
 
                                     <div>
                                         <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
-                                            <span>Örnek kullanımı</span>
-                                            <span>68%</span>
+                                            <span>Pratik tamamlama oranı</span>
+                                            <span>{dashboard?.completionRate ?? 0}%</span>
                                         </div>
 
                                         <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                                            <div className="h-full w-[68%] rounded-full bg-gradient-to-r from-violet-400 to-sky-500" />
+                                            <div
+                                                className="h-full rounded-full bg-gradient-to-r from-violet-400 to-sky-500 transition-all"
+                                                style={{ width: `${practiceCompletion}%` }}
+                                            />
                                         </div>
+                                    </div>
+
+                                    <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/80">
+                                        <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                                            Bugünkü odak
+                                        </p>
+
+                                        <p className="mt-2 text-sm font-bold text-slate-800 dark:text-slate-100">
+                                            {focusCategory}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
