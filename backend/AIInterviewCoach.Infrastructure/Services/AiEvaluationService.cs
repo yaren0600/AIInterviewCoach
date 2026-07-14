@@ -15,7 +15,7 @@ public class AiEvaluationService : IAiEvaluationService
     // Örnek:
     // Provider = Mock / Gemini
     // ApiKey = Gemini API key
-    // Model = gemini-2.5-flash
+    // Model = gemini-3.5-flash
     // Endpoint = https://generativelanguage.googleapis.com
     private readonly AiProviderSettings _aiProviderSettings;
 
