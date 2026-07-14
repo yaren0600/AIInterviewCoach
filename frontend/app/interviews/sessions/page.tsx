@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -9,14 +9,22 @@ import {
     InterviewSessionSummary,
     RawInterviewSessionSummary,
 } from "@/types/api";
+import ThemeToggle from "@/components/ThemeToggle";
+
+type StatusFilter = "All" | "Completed" | "In Progress";
+
+const statusFilters: { value: StatusFilter; label: string }[] = [
+    { value: "All", label: "Tümü" },
+    { value: "Completed", label: "Tamamlandı" },
+    { value: "In Progress", label: "Devam Ediyor" },
+];
 
 export default function InterviewSessionsPage() {
     const router = useRouter();
 
     const [sessions, setSessions] = useState<InterviewSessionSummary[]>([]);
-    const [selectedStatusFilter, setSelectedStatusFilter] = useState<
-        "All" | "Completed" | "In Progress"
-    >("All");
+    const [selectedStatusFilter, setSelectedStatusFilter] =
+        useState<StatusFilter>("All");
 
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
@@ -36,13 +44,9 @@ export default function InterviewSessionsPage() {
                 );
 
                 if (response.data.success) {
-                    console.log("Raw sessions response:", response.data.data);
-
                     const normalizedSessions = response.data.data
                         .map((session) => normalizeSessionSummary(session))
                         .filter((session) => session.sessionId !== 0);
-
-                    console.log("Normalized sessions:", normalizedSessions);
 
                     setSessions(normalizedSessions);
                 } else {
@@ -53,10 +57,10 @@ export default function InterviewSessionsPage() {
                     setMessage(
                         error.response?.data?.message ||
                         error.message ||
-                        "An error occurred while loading interview sessions."
+                        "Mülakat geçmişi yüklenirken bir hata oluştu."
                     );
                 } else {
-                    setMessage("An error occurred while loading interview sessions.");
+                    setMessage("Mülakat geçmişi yüklenirken bir hata oluştu.");
                 }
             } finally {
                 setIsLoading(false);
@@ -73,44 +77,67 @@ export default function InterviewSessionsPage() {
 
     const formatDate = (dateValue: string | null) => {
         if (!dateValue) {
-            return "Not completed yet";
+            return "Henüz tamamlanmadı";
         }
 
-        return new Date(dateValue).toLocaleDateString("en-US", {
+        return new Date(dateValue).toLocaleDateString("tr-TR", {
             year: "numeric",
-            month: "short",
+            month: "long",
             day: "numeric",
         });
+    };
+
+    const getStatusLabel = (status: string) => {
+        const normalizedStatus = status.toLowerCase();
+
+        if (normalizedStatus.includes("completed")) {
+            return "Tamamlandı";
+        }
+
+        if (normalizedStatus.includes("progress")) {
+            return "Devam Ediyor";
+        }
+
+        return "Bilinmiyor";
     };
 
     const getStatusBadgeClass = (status: string) => {
         const normalizedStatus = status.toLowerCase();
 
         if (normalizedStatus.includes("completed")) {
-            return "bg-emerald-100 text-emerald-600";
+            return "bg-emerald-100 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300";
         }
 
         if (normalizedStatus.includes("progress")) {
-            return "bg-sky-100 text-sky-600";
+            return "bg-sky-100 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300";
         }
 
-        return "bg-violet-100 text-violet-600";
+        return "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300";
     };
+
+    const completedCount = sessions.filter((session) =>
+        session.status.toLowerCase().includes("completed")
+    ).length;
+
+    const inProgressCount = sessions.filter((session) =>
+        session.status.toLowerCase().includes("progress")
+    ).length;
 
     const filteredSessions =
         selectedStatusFilter === "All"
             ? sessions
-            : sessions.filter(
-                (session: InterviewSessionSummary) =>
-                    session.status === selectedStatusFilter
-            );
+            : sessions.filter((session) => session.status === selectedStatusFilter);
 
     if (isLoading) {
         return (
-            <main className="min-h-screen dashboard-gradient-bg flex items-center justify-center">
-                <div className="glass-card rounded-3xl px-8 py-6 text-center animate-fade-up">
-                    <p className="text-slate-700 text-lg font-medium">
-                        Loading interview sessions...
+            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
+                <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
+                    <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+                        Mülakat geçmişi yükleniyor...
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                        Önceki oturumların hazırlanıyor.
                     </p>
                 </div>
             </main>
@@ -118,73 +145,70 @@ export default function InterviewSessionsPage() {
     }
 
     return (
-        <main className="min-h-screen dashboard-gradient-bg relative overflow-hidden px-4 md:px-6 py-8">
-            <div className="absolute top-8 left-8 w-44 h-44 bg-pink-300/30 rounded-full blur-3xl animate-float-slow" />
-            <div className="absolute top-24 right-10 w-56 h-56 bg-violet-300/25 rounded-full blur-3xl animate-float-reverse" />
-            <div className="absolute bottom-10 left-1/4 w-52 h-52 bg-cyan-300/25 rounded-full blur-3xl animate-soft-pulse" />
+        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
+            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
+            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
+            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
 
-            <div className="max-w-7xl mx-auto relative z-10">
-                <header className="interview-studio-card rounded-[2rem] p-6 md:p-8 animate-fade-up">
-                    <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+            <div className="relative z-10 mx-auto max-w-7xl">
+                <header className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-8">
+                    <div className="grid grid-cols-1 items-center gap-8 xl:grid-cols-[1.1fr_0.9fr]">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full bg-white/75 border border-white/70 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
-                                <span className="w-2 h-2 rounded-full bg-violet-500 live-dot" />
-                                Interview History
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
+                                    <span className="h-2 w-2 rounded-full bg-violet-500" />
+                                    Mülakat Geçmişi
+                                </div>
+
+                                <ThemeToggle />
                             </div>
 
-                            <h1 className="mt-5 text-3xl md:text-5xl font-black text-slate-900 leading-tight">
-                                Review your previous
+                            <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 dark:text-white md:text-5xl">
+                                Önceki
                                 <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
                                     {" "}
-                                    practice sessions
-                                </span>
+                                    pratik oturumlarını
+                                </span>{" "}
+                                incele
                             </h1>
 
-                            <p className="mt-4 text-slate-600 max-w-2xl text-sm md:text-base leading-7">
-                                Track completed interviews, review scores, and return to past
-                                results whenever you want to improve your preparation.
+                            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                                Tamamlanan mülakatlarını, skorlarını ve AI koç raporlarını buradan takip edebilirsin.
+                                İstersen zayıf alanların için yeni bir pratik oturumu başlatabilirsin.
                             </p>
                         </div>
 
-                        <div className="rounded-[2rem] bg-white/70 border border-white/70 p-6 shadow-xl">
-                            <p className="text-sm font-bold text-slate-700">
-                                Session summary
+                        <div className="rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl dark:border-slate-700 dark:bg-slate-950/40">
+                            <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                Oturum Özeti
                             </p>
 
-                            <p className="mt-4 text-5xl font-black text-slate-900">
+                            <p className="mt-4 text-5xl font-black text-slate-950 dark:text-white">
                                 {sessions.length}
                             </p>
 
-                            <p className="text-sm text-slate-500 mt-1">
-                                total interview session{sessions.length === 1 ? "" : "s"}
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                toplam mülakat oturumu
                             </p>
 
                             <div className="mt-5 grid grid-cols-2 gap-3">
-                                <div className="rounded-2xl bg-white/75 border border-white/70 p-4">
-                                    <p className="text-xs text-slate-500 font-semibold">
-                                        Completed
+                                <div className="rounded-2xl border border-white/70 bg-white/75 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                        Tamamlandı
                                     </p>
 
-                                    <p className="text-2xl font-black text-emerald-600 mt-2">
-                                        {
-                                            sessions.filter((session) =>
-                                                session.status.toLowerCase().includes("completed")
-                                            ).length
-                                        }
+                                    <p className="mt-2 text-2xl font-black text-emerald-600 dark:text-emerald-300">
+                                        {completedCount}
                                     </p>
                                 </div>
 
-                                <div className="rounded-2xl bg-white/75 border border-white/70 p-4">
-                                    <p className="text-xs text-slate-500 font-semibold">
-                                        In Progress
+                                <div className="rounded-2xl border border-white/70 bg-white/75 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                        Devam Ediyor
                                     </p>
 
-                                    <p className="text-2xl font-black text-sky-600 mt-2">
-                                        {
-                                            sessions.filter((session) =>
-                                                session.status.toLowerCase().includes("progress")
-                                            ).length
-                                        }
+                                    <p className="mt-2 text-2xl font-black text-sky-600 dark:text-sky-300">
+                                        {inProgressCount}
                                     </p>
                                 </div>
                             </div>
@@ -192,151 +216,166 @@ export default function InterviewSessionsPage() {
                     </div>
                 </header>
 
-                <nav className="glass-card rounded-3xl px-4 py-3 mt-5 animate-fade-up">
+                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/70 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="flex flex-wrap gap-3">
                         <button
                             onClick={() => router.push("/dashboard")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
                             Dashboard
                         </button>
 
                         <button
                             onClick={() => router.push("/resumes")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            Resumes
+                            CV’lerim
                         </button>
 
                         <button
                             onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-white/70 text-slate-700 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                         >
-                            Start Interview
+                            Yeni Mülakat
                         </button>
 
-                        <div className="mt-6 flex flex-wrap gap-3">
-                            {["All", "Completed", "In Progress"].map((status) => {
-                                const isSelected = selectedStatusFilter === status;
-
-                                return (
-                                    <button
-                                        key={status}
-                                        onClick={() =>
-                                            setSelectedStatusFilter(status as "All" | "Completed" | "In Progress")
-                                        }
-                                        className={`rounded-full px-5 py-2 text-sm font-bold transition ${isSelected
-                                                ? "bg-slate-900 text-white shadow"
-                                                : "bg-white/75 text-slate-700 hover:bg-white"
-                                            }`}
-                                    >
-                                        {status}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        <button className="rounded-full bg-slate-900 text-white px-5 py-2 text-sm font-semibold">
-                            My Sessions
+                        <button className="rounded-full bg-slate-950 px-5 py-2 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
+                            Geçmiş Mülakatlar
                         </button>
 
                         <button
                             onClick={handleLogout}
-                            className="rounded-full bg-white/70 text-rose-600 px-5 py-2 text-sm font-semibold hover:bg-white transition"
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-rose-600 transition hover:bg-white dark:bg-slate-800 dark:text-rose-300 dark:hover:bg-slate-700"
                         >
-                            Logout
+                            Çıkış Yap
                         </button>
                     </div>
                 </nav>
 
                 {message && (
-                    <div className="glass-card rounded-3xl p-5 mt-6 text-center animate-fade-up">
-                        <p className="text-rose-600 text-sm font-semibold">{message}</p>
+                    <div className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-5 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                        <p className="text-sm font-semibold text-rose-600 dark:text-rose-300">
+                            {message}
+                        </p>
                     </div>
                 )}
 
-                <section className="glass-card rounded-3xl p-6 mt-8 animate-fade-up">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <section className="mt-8 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div>
-                            <p className="text-sm uppercase tracking-[0.2em] text-slate-500 font-semibold">
-                                Sessions
+                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                Oturumlar
                             </p>
 
-                            <h2 className="mt-3 text-2xl font-black text-slate-900">
-                                Your interview history
+                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                                Mülakat geçmişin
                             </h2>
+
+                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                Sonuçlarını inceleyebilir veya yeni bir pratik oturumu başlatabilirsin.
+                            </p>
                         </div>
 
                         <button
                             onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-gradient-to-r from-pink-500 to-violet-500 text-white px-6 py-3 font-semibold shadow hover:scale-105 transition"
+                            className="rounded-full bg-gradient-to-r from-pink-500 to-violet-500 px-6 py-3 font-black text-white shadow transition hover:scale-105"
                         >
-                            Start new interview
+                            Yeni Mülakat Başlat
                         </button>
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-3">
+                        {statusFilters.map((status) => {
+                            const isSelected = selectedStatusFilter === status.value;
+
+                            return (
+                                <button
+                                    key={status.value}
+                                    onClick={() => setSelectedStatusFilter(status.value)}
+                                    className={`rounded-full px-5 py-2 text-sm font-black transition ${isSelected
+                                            ? "bg-slate-950 text-white shadow dark:bg-white dark:text-slate-950"
+                                            : "bg-white/75 text-slate-700 hover:bg-white dark:bg-slate-950/40 dark:text-slate-100 dark:hover:bg-slate-800"
+                                        }`}
+                                >
+                                    {status.label}
+                                </button>
+                            );
+                        })}
                     </div>
 
                     <div className="mt-6 space-y-4">
                         {filteredSessions.length === 0 ? (
-                            <div className="rounded-3xl bg-white/75 border border-white/70 p-8 text-center">
-                                <p className="text-lg font-bold text-slate-800">
-                                    No interview sessions yet.
+                            <div className="rounded-3xl border border-white/70 bg-white/75 p-8 text-center dark:border-slate-700 dark:bg-slate-950/40">
+                                <p className="text-lg font-black text-slate-800 dark:text-white">
+                                    Henüz bu filtreye uygun mülakat yok.
                                 </p>
 
-                                <p className="text-sm text-slate-500 mt-2">
-                                    Start your first practice session to see your history here.
+                                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                    İlk pratik oturumunu başlatınca geçmişin burada görünecek.
                                 </p>
 
                                 <button
                                     onClick={() => router.push("/interviews/start")}
-                                    className="mt-5 rounded-full bg-slate-900 text-white px-6 py-3 text-sm font-semibold hover:bg-slate-700 transition"
+                                    className="mt-5 rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
                                 >
-                                    Start first interview
+                                    İlk Mülakatı Başlat
                                 </button>
                             </div>
                         ) : (
                             filteredSessions.map((session) => (
                                 <div
                                     key={session.sessionId}
-                                    className="rounded-3xl bg-white/75 border border-white/70 p-5 hover:scale-[1.01] transition"
+                                    className="rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm transition hover:scale-[1.01] dark:border-slate-700 dark:bg-slate-950/40"
                                 >
-                                    <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
+                                    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                                         <div>
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <h3 className="text-xl font-black text-slate-900">
+                                                <h3 className="text-xl font-black text-slate-950 dark:text-white">
                                                     {session.positionName}
                                                 </h3>
 
                                                 <span
-                                                    className={`rounded-full px-3 py-1 text-xs font-bold ${getStatusBadgeClass(
+                                                    className={`rounded-full px-3 py-1 text-xs font-black ${getStatusBadgeClass(
                                                         session.status
                                                     )}`}
                                                 >
-                                                    {session.status}
+                                                    {getStatusLabel(session.status)}
                                                 </span>
                                             </div>
 
-                                            <p className="text-sm text-slate-500 mt-2">
-                                                Started: {formatDate(session.startedAt)}
-                                            </p>
-
-                                            <p className="text-sm text-slate-500 mt-1">
-                                                Completed: {formatDate(session.completedAt)}
-                                            </p>
-
-                                            {session.resumeFileName && (
-                                                <p className="text-sm text-slate-500 mt-1">
-                                                    Resume: {session.resumeFileName}
+                                            <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-slate-500 dark:text-slate-400 sm:grid-cols-2">
+                                                <p>
+                                                    <span className="font-bold text-slate-700 dark:text-slate-200">
+                                                        Başlangıç:
+                                                    </span>{" "}
+                                                    {formatDate(session.startedAt)}
                                                 </p>
-                                            )}
+
+                                                <p>
+                                                    <span className="font-bold text-slate-700 dark:text-slate-200">
+                                                        Tamamlanma:
+                                                    </span>{" "}
+                                                    {formatDate(session.completedAt)}
+                                                </p>
+
+                                                {session.resumeFileName && (
+                                                    <p className="sm:col-span-2">
+                                                        <span className="font-bold text-slate-700 dark:text-slate-200">
+                                                            CV:
+                                                        </span>{" "}
+                                                        {session.resumeFileName}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
 
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                            <div className="rounded-2xl bg-slate-900 text-white px-5 py-4 text-center min-w-[120px]">
-                                                <p className="text-xs text-slate-300 font-semibold">
-                                                    Score
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                            <div className="min-w-[120px] rounded-2xl bg-slate-950 px-5 py-4 text-center text-white dark:bg-white dark:text-slate-950">
+                                                <p className="text-xs font-bold opacity-70">
+                                                    Skor
                                                 </p>
 
-                                                <p className="text-2xl font-black mt-1">
+                                                <p className="mt-1 text-2xl font-black">
                                                     {session.totalScore ?? "-"}
                                                 </p>
                                             </div>
@@ -345,22 +384,26 @@ export default function InterviewSessionsPage() {
                                                 <button
                                                     onClick={() => {
                                                         if (!session.sessionId) {
-                                                            setMessage("Session id could not be found for this interview.");
+                                                            setMessage(
+                                                                "Bu mülakat için oturum bilgisi bulunamadı."
+                                                            );
                                                             return;
                                                         }
 
-                                                        router.push(`/interviews/${session.sessionId}/result`);
+                                                        router.push(
+                                                            `/interviews/${session.sessionId}/result`
+                                                        );
                                                     }}
-                                                    className="rounded-full bg-white text-slate-700 px-5 py-3 text-sm font-semibold shadow hover:scale-105 transition"
+                                                    className="rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow transition hover:scale-105 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                                 >
-                                                    View Result
+                                                    Sonucu Gör
                                                 </button>
                                             ) : (
                                                 <button
                                                     onClick={() => router.push("/interviews/start")}
-                                                    className="rounded-full bg-white text-slate-700 px-5 py-3 text-sm font-semibold shadow hover:scale-105 transition"
+                                                    className="rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow transition hover:scale-105 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                                 >
-                                                    Start Another
+                                                    Yeni Pratik Başlat
                                                 </button>
                                             )}
                                         </div>
@@ -385,7 +428,7 @@ function normalizeSessionSummary(
             rawSession.interviewSessionId ??
             rawSession.interviewId ??
             0,
-        positionName: rawSession.positionName ?? "Interview Session",
+        positionName: rawSession.positionName ?? "Mülakat Oturumu",
         resumeFileName: rawSession.resumeFileName ?? null,
         startedAt:
             rawSession.startedAt ??
