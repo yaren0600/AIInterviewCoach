@@ -325,7 +325,7 @@ export default function StartInterviewPage() {
                         </button>
 
                         <button className="rounded-full bg-slate-950 px-5 py-2 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
-                            Mülakata Başla
+                            Yeni Mülakat
                         </button>
 
                         <button
