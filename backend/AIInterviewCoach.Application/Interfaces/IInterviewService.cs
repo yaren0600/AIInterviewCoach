@@ -14,5 +14,5 @@ public interface IInterviewService
     Task<AnswerDto?> SubmitAnswerAsync(int userId, SubmitAnswerRequestDto request);
     Task<InterviewResultDto?> GetInterviewResultAsync(int userId, int sessionId);
     Task<List<MyInterviewSessionDto>> GetMySessionsAsync(int userId);
-
+    Task<bool> DeleteInterviewAsync(int userId, int sessionId);
 }

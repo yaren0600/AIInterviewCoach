@@ -22,7 +22,6 @@ public class InterviewService : IInterviewService
         _context = context;
         _aiEvaluationService = aiEvaluationService;
         _aiQuestionGenerationService = aiQuestionGenerationService;
-        _aiQuestionGenerationService = aiQuestionGenerationService;
     }
 
     /// <summary>
@@ -1615,6 +1614,47 @@ public class InterviewService : IInterviewService
             .ToListAsync();
 
         return sessions;
+    }
+
+    /// <summary>
+    /// Kullanıcının seçtiği mülakat oturumunu siler.
+    /// Sadece ilgili kullanıcıya ait session silinebilir.
+    /// Session'a bağlı cevaplar ve sorular da silinir.
+    /// </summary>
+    public async Task<bool> DeleteInterviewAsync(int userId, int sessionId)
+    {
+        var session = await _context.InterviewSessions
+            .Include(s => s.Questions)
+                .ThenInclude(q => q.Answer)
+            .FirstOrDefaultAsync(s =>
+                s.Id == sessionId &&
+                s.UserId == userId);
+
+        if (session is null)
+        {
+            return false;
+        }
+
+        var answers = session.Questions
+            .Where(q => q.Answer is not null)
+            .Select(q => q.Answer!)
+            .ToList();
+
+        if (answers.Count > 0)
+        {
+            _context.Answers.RemoveRange(answers);
+        }
+
+        if (session.Questions.Count > 0)
+        {
+            _context.Questions.RemoveRange(session.Questions);
+        }
+
+        _context.InterviewSessions.Remove(session);
+
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 
     /// <summary>

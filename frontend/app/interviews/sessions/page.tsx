@@ -29,6 +29,8 @@ export default function InterviewSessionsPage() {
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
+    const [deletingSessionId, setDeletingSessionId] = useState<number | null>(null);
+
     useEffect(() => {
         const token = localStorage.getItem("token");
 
@@ -73,6 +75,47 @@ export default function InterviewSessionsPage() {
     const handleLogout = () => {
         localStorage.removeItem("token");
         router.push("/login");
+    };
+
+    const handleDeleteSession = async (sessionId: number) => {
+        const isConfirmed = window.confirm(
+            "Bu mülakat oturumunu silmek istediğine emin misin? Bu işlem geri alınamaz."
+        );
+
+        if (!isConfirmed) {
+            return;
+        }
+
+        setDeletingSessionId(sessionId);
+        setMessage("");
+
+        try {
+            const response = await api.delete<ApiResponse<string>>(
+                `/Interviews/${sessionId}`
+            );
+
+            if (response.data.success) {
+                setSessions((currentSessions) =>
+                    currentSessions.filter((session) => session.sessionId !== sessionId)
+                );
+
+                setMessage("Mülakat oturumu başarıyla silindi.");
+            } else {
+                setMessage(response.data.message);
+            }
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                setMessage(
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Mülakat oturumu silinirken bir hata oluştu."
+                );
+            } else {
+                setMessage("Mülakat oturumu silinirken bir hata oluştu.");
+            }
+        } finally {
+            setDeletingSessionId(null);
+        }
     };
 
     const formatDate = (dateValue: string | null) => {
@@ -368,7 +411,6 @@ export default function InterviewSessionsPage() {
                                                 )}
                                             </div>
                                         </div>
-
                                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                                             <div className="min-w-[120px] rounded-2xl bg-slate-950 px-5 py-4 text-center text-white dark:bg-white dark:text-slate-950">
                                                 <p className="text-xs font-bold opacity-70">
@@ -384,15 +426,11 @@ export default function InterviewSessionsPage() {
                                                 <button
                                                     onClick={() => {
                                                         if (!session.sessionId) {
-                                                            setMessage(
-                                                                "Bu mülakat için oturum bilgisi bulunamadı."
-                                                            );
+                                                            setMessage("Bu mülakat için oturum bilgisi bulunamadı.");
                                                             return;
                                                         }
 
-                                                        router.push(
-                                                            `/interviews/${session.sessionId}/result`
-                                                        );
+                                                        router.push(`/interviews/${session.sessionId}/result`);
                                                     }}
                                                     className="rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow transition hover:scale-105 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                                 >
@@ -406,6 +444,14 @@ export default function InterviewSessionsPage() {
                                                     Yeni Pratik Başlat
                                                 </button>
                                             )}
+
+                                            <button
+                                                onClick={() => handleDeleteSession(session.sessionId)}
+                                                disabled={deletingSessionId === session.sessionId}
+                                                className="rounded-full bg-rose-50 px-5 py-3 text-sm font-bold text-rose-600 shadow transition hover:scale-105 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-400/10 dark:text-rose-300 dark:hover:bg-rose-400/20"
+                                            >
+                                                {deletingSessionId === session.sessionId ? "Siliniyor..." : "Sil"}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

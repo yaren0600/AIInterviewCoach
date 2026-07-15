@@ -155,6 +155,47 @@ public class InterviewsController : ControllerBase
             Data = result
         });
     }
+
+    /// <summary>
+    /// Bu endpoint, belirli bir mülakat oturumunu silmek için kullanılır. 
+    /// Kullanıcı yalnızca kendi mülakat oturumlarını silebilir.
+    /// </summary>
+    [HttpDelete("{sessionId}")]
+    public async Task<IActionResult> DeleteInterview(int sessionId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Kullanıcı bilgisi alınamadı.",
+                Data = null
+            });
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var isDeleted = await _interviewService.DeleteInterviewAsync(userId, sessionId);
+
+        if (!isDeleted)
+        {
+            return NotFound(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Mülakat oturumu bulunamadı veya bu kullanıcıya ait değil.",
+                Data = null
+            });
+        }
+
+        return Ok(new ApiResponseDto<string>
+        {
+            Success = true,
+            Message = "Mülakat oturumu başarıyla silindi.",
+            Data = null
+        });
+    }
 }
 
 
