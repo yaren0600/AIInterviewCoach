@@ -233,3 +233,20 @@ export interface RawInterviewSessionSummary {
     score?: number | null;
     status?: string;
 }
+
+export interface WeeklyStudyPlanItem {
+    day: string;
+    focus: string;
+    task: string;
+    practiceMode: string;
+}
+
+export interface StudyPlan {
+    generalSummary: string;
+    strongAreas: string[];
+    weakAreas: string[];
+    recommendedPracticeModes: string[];
+    technicalFocusTopics: string[];
+    communicationFocusTopics: string[];
+    weeklyPlan: WeeklyStudyPlanItem[];
+}
