@@ -287,6 +287,13 @@ export default function InterviewSessionsPage() {
                         </button>
 
                         <button
+                            onClick={() => router.push("/settings")}
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                        >
+                            Ayarlar
+                        </button>
+
+                        <button
                             onClick={handleLogout}
                             className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-rose-600 transition hover:bg-white dark:bg-slate-800 dark:text-rose-300 dark:hover:bg-slate-700"
                         >
