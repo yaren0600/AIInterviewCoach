@@ -1,57 +1,53 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    --background: #ffffff;
+    --foreground: #171717;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+    :root {
+        --background: #0a0a0a;
+        --foreground: #ededed;
+    }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Arial, Helvetica, sans-serif;
 }
 
+/* =========================
+   Base Animations
+========================= */
+
 @keyframes floatSlow {
-    0% {
+    0%, 100% {
         transform: translateY(0px) translateX(0px);
     }
 
     50% {
         transform: translateY(-18px) translateX(8px);
     }
-
-    100% {
-        transform: translateY(0px) translateX(0px);
-    }
 }
 
 @keyframes floatSlowReverse {
-    0% {
+    0%, 100% {
         transform: translateY(0px) translateX(0px);
     }
 
     50% {
         transform: translateY(14px) translateX(-10px);
-    }
-
-    100% {
-        transform: translateY(0px) translateX(0px);
     }
 }
 
@@ -68,205 +64,44 @@ body {
 }
 
 @keyframes softPulse {
-    0% {
+    0%, 100% {
+        opacity: 0.55;
         transform: scale(1);
-        opacity: 0.85;
-    }
-
-    50% {
-        transform: scale(1.05);
-        opacity: 1;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 0.85;
-    }
-}
-
-.animate-float-slow {
-    animation: floatSlow 7s ease-in-out infinite;
-}
-
-.animate-float-reverse {
-    animation: floatSlowReverse 8s ease-in-out infinite;
-}
-
-.animate-fade-up {
-    animation: fadeUp 0.7s ease forwards;
-}
-
-.animate-soft-pulse {
-    animation: softPulse 4s ease-in-out infinite;
-}
-
-.glass-card {
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
-
-.dashboard-gradient-bg {
-    background: 
-        radial-gradient(circle at top left, rgba(244, 114, 182, 0.34), transparent 30%), 
-        radial-gradient(circle at top right, rgba(129, 140, 248, 0.32), transparent 28%), 
-        radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.25), transparent 30%), 
-        linear-gradient(135deg, #fff7fb 0%, #f5f3ff 48%, #effafe 100%);
-}
-
-@keyframes orbitCard {
-    0% {
-        transform: translateY(0px) rotate(-2deg);
-    }
-
-    50% {
-        transform: translateY(-10px) rotate(2deg);
-    }
-
-    100% {
-        transform: translateY(0px) rotate(-2deg);
-    }
-}
-
-@keyframes blinkDot {
-    0% {
-        opacity: 0.35;
     }
 
     50% {
         opacity: 1;
-    }
-
-    100% {
-        opacity: 0.35;
+        transform: scale(1.08);
     }
 }
 
-@keyframes drawLine {
-    0% {
-        width: 0%;
-    }
-
-    100% {
-        width: 100%;
-    }
-}
-
-.interview-studio-card {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.62)), radial-gradient(circle at top right, rgba(244, 114, 182, 0.22), transparent 32%), radial-gradient(circle at bottom left, rgba(129, 140, 248, 0.18), transparent 34%);
-    border: 1px solid rgba(255, 255, 255, 0.58);
-    box-shadow: 0 24px 70px rgba(79, 70, 229, 0.12);
-    backdrop-filter: blur(18px);
-}
-
-.floating-resume-card {
-    animation: orbitCard 6s ease-in-out infinite;
-}
-
-.live-dot {
-    animation: blinkDot 1.6s ease-in-out infinite;
-}
-
-.flow-line {
-    position: relative;
-    overflow: hidden;
-}
-
-    .flow-line::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 50%;
-        height: 3px;
-        border-radius: 999px;
-        background: linear-gradient(90deg, #ec4899, #8b5cf6, #06b6d4);
-        animation: drawLine 1.2s ease forwards;
-    }
-
-@keyframes floatSlow {
-    0% {
-        transform: translateY(0px) translateX(0px);
+@keyframes floatCard {
+    0%, 100% {
+        transform: translateY(0px);
     }
 
     50% {
-        transform: translateY(-18px) translateX(8px);
-    }
-
-    100% {
-        transform: translateY(0px) translateX(0px);
-    }
-}
-
-@keyframes floatSlowReverse {
-    0% {
-        transform: translateY(0px) translateX(0px);
-    }
-
-    50% {
-        transform: translateY(14px) translateX(-10px);
-    }
-
-    100% {
-        transform: translateY(0px) translateX(0px);
-    }
-}
-
-@keyframes fadeUp {
-    0% {
-        opacity: 0;
-        transform: translateY(18px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes softPulse {
-    0% {
-        transform: scale(1);
-        opacity: 0.85;
-    }
-
-    50% {
-        transform: scale(1.05);
-        opacity: 1;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 0.85;
+        transform: translateY(-10px);
     }
 }
 
 @keyframes orbitCard {
-    0% {
+    0%, 100% {
         transform: translateY(0px);
     }
 
     50% {
         transform: translateY(-8px);
     }
-
-    100% {
-        transform: translateY(0px);
-    }
 }
 
 @keyframes blinkDot {
-    0% {
+    0%, 100% {
         opacity: 0.35;
     }
 
     50% {
         opacity: 1;
-    }
-
-    100% {
-        opacity: 0.35;
     }
 }
 
@@ -279,6 +114,182 @@ body {
         width: 100%;
     }
 }
+
+@keyframes shineSweep {
+    0% {
+        transform: translateX(-120%) rotate(12deg);
+    }
+
+    100% {
+        transform: translateX(220%) rotate(12deg);
+    }
+}
+
+@keyframes auroraMove {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    }
+
+    33% {
+        transform: translate3d(30px, -35px, 0) rotate(8deg) scale(1.08);
+    }
+
+    66% {
+        transform: translate3d(-25px, 20px, 0) rotate(-6deg) scale(0.96);
+    }
+}
+
+@keyframes twinkleMove {
+    0%, 100% {
+        transform: translateY(0px);
+        opacity: 0.45;
+    }
+
+    50% {
+        transform: translateY(-10px);
+        opacity: 0.85;
+    }
+}
+
+/* =========================
+   Neon AI Lab Background
+========================= */
+
+@keyframes labScan {
+    0% {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 0.35;
+    }
+
+    100% {
+        transform: translateY(120%);
+        opacity: 0;
+    }
+}
+
+@keyframes neonDrift {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    33% {
+        transform: translate3d(32px, -24px, 0) scale(1.08);
+    }
+
+    66% {
+        transform: translate3d(-22px, 28px, 0) scale(0.96);
+    }
+}
+
+@keyframes gridFloat {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 48px 48px;
+    }
+}
+
+.neon-lab-bg {
+    background: radial-gradient(circle at 15% 15%, rgba(236, 72, 153, 0.24), transparent 28%), radial-gradient(circle at 85% 18%, rgba(139, 92, 246, 0.28), transparent 30%), radial-gradient(circle at 50% 72%, rgba(14, 165, 233, 0.18), transparent 32%), linear-gradient(135deg, #fff7fb 0%, #f7f2ff 45%, #eef8ff 100%);
+}
+
+.dark .neon-lab-bg {
+    background: radial-gradient(circle at 15% 12%, rgba(236, 72, 153, 0.24), transparent 30%), radial-gradient(circle at 85% 18%, rgba(139, 92, 246, 0.28), transparent 32%), radial-gradient(circle at 50% 75%, rgba(14, 165, 233, 0.18), transparent 34%), linear-gradient(135deg, #050716 0%, #0b1022 45%, #11142c 100%);
+}
+
+.lab-grid {
+    background-image: linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: gridFloat 22s linear infinite;
+}
+
+.dark .lab-grid {
+    background-image: linear-gradient(rgba(125, 211, 252, 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(216, 180, 254, 0.08) 1px, transparent 1px);
+}
+
+.lab-noise {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 0.8px, transparent 0.8px);
+    background-size: 20px 20px;
+    opacity: 0.22;
+    mix-blend-mode: soft-light;
+}
+
+.lab-scanline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 180px;
+    background: linear-gradient( to bottom, transparent, rgba(56, 189, 248, 0.12), rgba(168, 85, 247, 0.10), transparent );
+    animation: labScan 8s ease-in-out infinite;
+}
+
+.lab-vignette {
+    background: radial-gradient(circle at center, transparent 42%, rgba(15, 23, 42, 0.10) 100%);
+}
+
+.dark .lab-vignette {
+    background: radial-gradient(circle at center, transparent 35%, rgba(2, 6, 23, 0.52) 100%);
+}
+
+.neon-orb {
+    animation: neonDrift 13s ease-in-out infinite;
+}
+
+.neon-orb-reverse {
+    animation: neonDrift 17s ease-in-out infinite reverse;
+}
+
+/* =========================
+   Older Background Helpers
+   Bazı eski sayfalar kullanıyor olabilir
+========================= */
+
+.ai-grid-bg {
+    background-image: linear-gradient(rgba(148, 163, 184, 0.10) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.10) 1px, transparent 1px);
+    background-size: 36px 36px;
+}
+
+.mesh-bg {
+    background: radial-gradient(circle at 20% 20%, rgba(244, 114, 182, 0.22), transparent 26%), radial-gradient(circle at 80% 18%, rgba(168, 85, 247, 0.22), transparent 28%), radial-gradient(circle at 50% 78%, rgba(56, 189, 248, 0.18), transparent 28%), radial-gradient(circle at 15% 85%, rgba(251, 191, 36, 0.12), transparent 20%);
+}
+
+.dark .mesh-bg {
+    background: radial-gradient(circle at 20% 20%, rgba(236, 72, 153, 0.20), transparent 28%), radial-gradient(circle at 80% 18%, rgba(139, 92, 246, 0.20), transparent 28%), radial-gradient(circle at 50% 78%, rgba(14, 165, 233, 0.16), transparent 30%), radial-gradient(circle at 15% 85%, rgba(99, 102, 241, 0.10), transparent 22%);
+}
+
+.noise-overlay {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 0.7px, transparent 0.7px);
+    background-size: 18px 18px;
+    opacity: 0.28;
+    mix-blend-mode: soft-light;
+}
+
+.twinkle-overlay {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.9) 1px, transparent 1.4px), radial-gradient(circle, rgba(255, 255, 255, 0.7) 1px, transparent 1.4px), radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1.4px);
+    background-size: 180px 180px, 240px 240px, 320px 320px;
+    background-position: 0 0, 60px 100px, 120px 40px;
+    animation: twinkleMove 7s ease-in-out infinite;
+    opacity: 0.24;
+}
+
+.vignette-overlay {
+    background: radial-gradient(circle at center, transparent 42%, rgba(15, 23, 42, 0.08) 100%);
+}
+
+.dark .vignette-overlay {
+    background: radial-gradient(circle at center, transparent 35%, rgba(2, 6, 23, 0.42) 100%);
+}
+
+/* =========================
+   Reusable UI Helpers
+========================= */
 
 .animate-float-slow {
     animation: floatSlow 7s ease-in-out infinite;
@@ -296,6 +307,14 @@ body {
     animation: softPulse 4s ease-in-out infinite;
 }
 
+.soft-pulse {
+    animation: softPulse 2.4s ease-in-out infinite;
+}
+
+.float-card {
+    animation: floatCard 5s ease-in-out infinite;
+}
+
 .floating-resume-card {
     animation: orbitCard 6s ease-in-out infinite;
 }
@@ -303,6 +322,30 @@ body {
 .live-dot {
     animation: blinkDot 1.6s ease-in-out infinite;
 }
+
+.aurora-orb {
+    animation: auroraMove 11s ease-in-out infinite;
+}
+
+.aurora-orb-slow {
+    animation: auroraMove 15s ease-in-out infinite reverse;
+}
+
+.shine-button {
+    position: relative;
+    overflow: hidden;
+}
+
+    .shine-button::before {
+        content: "";
+        position: absolute;
+        top: -40%;
+        left: 0;
+        height: 180%;
+        width: 45%;
+        background: linear-gradient( 90deg, transparent, rgba(255, 255, 255, 0.45), transparent );
+        animation: shineSweep 3.2s ease-in-out infinite;
+    }
 
 .glass-card {
     background: rgba(255, 255, 255, 0.72);

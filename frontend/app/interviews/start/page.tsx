@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import {
     ApiResponse,
@@ -59,6 +59,8 @@ const interviewModes = [
 export default function StartInterviewPage() {
     const router = useRouter();
 
+    const searchParams = useSearchParams();
+
     const [positions, setPositions] = useState<Position[]>([]);
     const [resumes, setResumes] = useState<Resume[]>([]);
 
@@ -99,7 +101,23 @@ export default function StartInterviewPage() {
                 }
 
                 if (resumesResponse.data.success) {
-                    setResumes(resumesResponse.data.data);
+                    const loadedResumes = resumesResponse.data.data;
+                    setResumes(loadedResumes);
+
+                    const resumeIdFromUrl = searchParams.get("resumeId");
+
+                    if (resumeIdFromUrl) {
+                        const parsedResumeId = Number(resumeIdFromUrl);
+
+                        const resumeExists = loadedResumes.some(
+                            (resume) => resume.id === parsedResumeId
+                        );
+
+                        if (resumeExists) {
+                            setSelectedResumeId(parsedResumeId);
+                            setMessage("Seçtiğin CV mülakat için hazırlandı.");
+                        }
+                    }
                 } else {
                     setMessage(resumesResponse.data.message);
                 }
@@ -119,7 +137,7 @@ export default function StartInterviewPage() {
         }
 
         void loadPageData();
-    }, [router]);
+    }, [router, searchParams]);
 
     const selectedPosition = positions.find(
         (position) => position.id === selectedPositionId

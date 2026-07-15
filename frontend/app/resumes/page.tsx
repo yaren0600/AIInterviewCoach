@@ -454,7 +454,7 @@ export default function ResumesPage() {
                                                 </button>
 
                                                 <button
-                                                    onClick={() => router.push("/interviews/start")}
+                                                    onClick={() => router.push(`/interviews/start?resumeId=${resume.id}`)}
                                                     className="rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-700 shadow transition hover:scale-105 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                                 >
                                                     Mülakatta Kullan

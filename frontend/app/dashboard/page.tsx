@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import axios from "axios";
+import { motion, type Variants } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
@@ -68,9 +69,66 @@ export default function DashboardPage() {
 
     const focusCategory = dashboard?.weakestCategory || "Henüz veri oluşmadı";
 
+    const fadeUp: Variants = {
+        hidden: {
+            opacity: 0,
+            y: 24,
+        },
+        visible: {
+            opacity: 1,
+            y: 0,
+        },
+    };
+
+    const staggerContainer: Variants = {
+        hidden: {},
+        visible: {
+            transition: {
+                staggerChildren: 0.12,
+            },
+        },
+    };
+
+    const statCards = dashboard
+        ? [
+            {
+                title: "Toplam Pratik",
+                value: dashboard.totalInterviews,
+                badge: "Oturum",
+                description: "Başlatılan toplam mülakat pratiği",
+                badgeClass:
+                    "bg-rose-100 text-rose-600 dark:bg-rose-400/10 dark:text-rose-300",
+            },
+            {
+                title: "Tamamlanan",
+                value: dashboard.completedInterviews,
+                badge: "Bitti",
+                description: "AI geri bildirimi alınan oturumlar",
+                badgeClass:
+                    "bg-emerald-100 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300",
+            },
+            {
+                title: "Hazırlık Skoru",
+                value: dashboard.averageScore ?? "-",
+                badge: "Skor",
+                description: "Cevaplarından hesaplanan ortalama skor",
+                badgeClass:
+                    "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300",
+            },
+            {
+                title: "Tamamlama Oranı",
+                value: `${dashboard.completionRate}%`,
+                badge: "İlerleme",
+                description: "Tüm pratiklerindeki genel ilerleme",
+                badgeClass:
+                    "bg-sky-100 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300",
+            },
+        ]
+        : [];
+
     if (isLoading) {
         return (
-            <main className="min-h-screen bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 flex items-center justify-center px-4">
+            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
                 <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
                     <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
                         Dashboard yükleniyor...
@@ -86,7 +144,7 @@ export default function DashboardPage() {
 
     if (message) {
         return (
-            <main className="min-h-screen bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 flex items-center justify-center px-4">
+            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
                 <div className="w-full max-w-md rounded-3xl border border-white/70 bg-white/80 p-8 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
                     <h2 className="text-2xl font-black text-slate-900 dark:text-white">
                         Bir sorun oluştu
@@ -108,14 +166,55 @@ export default function DashboardPage() {
     }
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
-            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
-            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
-            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
-            <div className="absolute bottom-16 right-16 h-40 w-40 rounded-full bg-fuchsia-200/30 blur-3xl dark:bg-fuchsia-500/10" />
+        <main className="neon-lab-bg relative min-h-screen overflow-hidden px-4 py-8 text-slate-900 dark:text-slate-100 md:px-6">
+            <div className="lab-grid absolute inset-0" />
+            <div className="lab-noise absolute inset-0" />
+            <div className="lab-scanline" />
+            <div className="lab-vignette absolute inset-0" />
 
-            <div className="relative z-10 mx-auto max-w-7xl">
-                <header className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-8">
+            <motion.div
+                animate={{
+                    x: [0, 24, 0],
+                    y: [0, -18, 0],
+                    scale: [1, 1.08, 1],
+                }}
+                transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                }}
+                className="neon-orb absolute -left-16 top-0 h-[30rem] w-[30rem] rounded-full bg-pink-300/28 blur-[120px] dark:bg-pink-500/18"
+            />
+
+            <motion.div
+                animate={{
+                    x: [0, -28, 0],
+                    y: [0, 20, 0],
+                    scale: [1, 1.12, 1],
+                }}
+                transition={{
+                    duration: 10,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                }}
+                className="neon-orb-reverse absolute -right-20 top-10 h-[34rem] w-[34rem] rounded-full bg-violet-300/28 blur-[130px] dark:bg-violet-500/18"
+            />
+
+            <div className="absolute left-1/2 top-[34%] h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-sky-300/16 blur-[150px] dark:bg-sky-500/12" />
+            <div className="absolute bottom-0 left-[16%] h-80 w-80 rounded-full bg-cyan-300/18 blur-[120px] dark:bg-cyan-500/10" />
+            <div className="absolute bottom-8 right-[10%] h-72 w-72 rounded-full bg-fuchsia-200/22 blur-[110px] dark:bg-fuchsia-500/12" />
+
+            <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="relative z-10 mx-auto max-w-7xl"
+            >
+                <motion.header
+                    variants={fadeUp}
+                    transition={{ duration: 0.55, ease: "easeOut" }}
+                    className="rounded-[2rem] border border-white/70 bg-white/72 p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/55 md:p-8"
+                >
                     <div className="grid grid-cols-1 items-center gap-8 xl:grid-cols-[1.05fr_0.95fr]">
                         <div>
                             <div className="flex flex-wrap items-center gap-3">
@@ -145,14 +244,14 @@ export default function DashboardPage() {
                             <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                                 <button
                                     onClick={() => router.push("/interviews/start")}
-                                    className="rounded-full bg-slate-950 px-6 py-3 font-bold text-white shadow-lg transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                                    className="shine-button rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-7 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
                                 >
-                                    Mülakata Başla
+                                    Mülakata Başla ✨
                                 </button>
 
                                 <button
                                     onClick={() => router.push("/resumes")}
-                                    className="rounded-full bg-white/90 px-6 py-3 font-bold text-slate-800 shadow transition hover:scale-105 hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                                    className="rounded-full border border-violet-200 bg-white/80 px-7 py-3 font-black text-violet-700 shadow-lg transition hover:scale-105 hover:bg-violet-50 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-200 dark:hover:bg-violet-400/20"
                                 >
                                     CV Yükle
                                 </button>
@@ -166,18 +265,34 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        <div className="rounded-[2rem] border border-white/70 bg-white/60 p-5 shadow-inner backdrop-blur dark:border-slate-700 dark:bg-slate-950/40 md:p-6">
-                            <div className="flex items-center justify-between gap-4">
-                                <p className="text-sm font-black text-slate-700 dark:text-slate-200">
-                                    Canlı pratik önizlemesi
-                                </p>
+                        <motion.div
+                            variants={fadeUp}
+                            whileHover={{ rotateX: 2, rotateY: -2, scale: 1.01 }}
+                            transition={{ duration: 0.35 }}
+                            className="float-card relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/65 p-5 shadow-2xl shadow-violet-500/20 backdrop-blur-2xl dark:border-violet-400/25 dark:bg-slate-950/60 dark:shadow-violet-500/10 md:p-6"
+                        >
+                            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-violet-400/25 blur-3xl" />
+                            <div className="absolute -bottom-20 -left-16 h-44 w-44 rounded-full bg-pink-400/20 blur-3xl" />
+                            <div className="pointer-events-none absolute inset-0 rounded-[2rem] border border-white/40" />
 
-                                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
-                                    Aktif
+                            <div className="relative z-10 flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                                        AI Coach Live Panel
+                                    </p>
+
+                                    <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                                        Cevapların gerçek zamanlı analiz edilir
+                                    </p>
+                                </div>
+
+                                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
+                                    <span className="soft-pulse h-2 w-2 rounded-full bg-emerald-500" />
+                                    Live
                                 </span>
                             </div>
 
-                            <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            <div className="relative z-10 mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
                                 <div className="min-h-[160px] rounded-3xl bg-slate-950 p-5 text-white shadow-xl dark:bg-black/60">
                                     <p className="text-xs text-slate-300">
                                         Mülakat sorusu
@@ -217,7 +332,8 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="mt-4 rounded-3xl border border-slate-100 bg-white/95 p-5 shadow-xl dark:border-slate-700 dark:bg-slate-900/95">
+
+                            <div className="relative z-10 mt-4 rounded-3xl border border-slate-100 bg-white/95 p-5 shadow-xl dark:border-slate-700 dark:bg-slate-900/95">
                                 <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                                     Canlı performans özeti
                                 </p>
@@ -262,11 +378,15 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
-                </header>
+                </motion.header>
 
-                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/70 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                <motion.nav
+                    variants={fadeUp}
+                    transition={{ duration: 0.45, ease: "easeOut" }}
+                    className="mt-5 rounded-3xl border border-white/70 bg-white/65 px-4 py-3 shadow-xl shadow-violet-500/5 backdrop-blur-2xl dark:border-violet-400/15 dark:bg-slate-950/45"
+                >
                     <div className="flex flex-wrap gap-3">
                         <button className="rounded-full bg-slate-950 px-5 py-2 text-sm font-bold text-white dark:bg-white dark:text-slate-950">
                             Dashboard
@@ -307,91 +427,45 @@ export default function DashboardPage() {
                             Ayarlar
                         </button>
                     </div>
-                </nav>
+                </motion.nav>
 
                 {dashboard && (
                     <>
-                        <section className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                        Toplam Pratik
+                        <motion.section
+                            variants={staggerContainer}
+                            className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4"
+                        >
+                            {statCards.map((card) => (
+                                <motion.div
+                                    key={card.title}
+                                    variants={fadeUp}
+                                    whileHover={{ y: -6, scale: 1.02 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="group relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur-xl transition dark:border-slate-700 dark:bg-slate-900/70"
+                                >
+                                    <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-gradient-to-br from-pink-300/40 to-violet-300/30 blur-2xl transition group-hover:scale-125 dark:from-pink-500/10 dark:to-violet-500/10" />
+                                    <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-pink-400 via-violet-400 to-sky-400 opacity-0 transition group-hover:opacity-100" />
+
+                                    <div className="relative z-10 flex items-center justify-between">
+                                        <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                                            {card.title}
+                                        </p>
+
+                                        <span className={`rounded-full px-3 py-1 text-xs font-black ${card.badgeClass}`}>
+                                            {card.badge}
+                                        </span>
+                                    </div>
+
+                                    <p className="relative z-10 mt-4 text-4xl font-black text-slate-950 dark:text-white">
+                                        {card.value}
                                     </p>
 
-                                    <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-600 dark:bg-rose-400/10 dark:text-rose-300">
-                                        Oturum
-                                    </span>
-                                </div>
-
-                                <p className="mt-4 text-4xl font-black text-slate-950 dark:text-white">
-                                    {dashboard.totalInterviews}
-                                </p>
-
-                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                    Başlatılan toplam mülakat pratiği
-                                </p>
-                            </div>
-
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                        Tamamlanan
+                                    <p className="relative z-10 mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                        {card.description}
                                     </p>
-
-                                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
-                                        Bitti
-                                    </span>
-                                </div>
-
-                                <p className="mt-4 text-4xl font-black text-slate-950 dark:text-white">
-                                    {dashboard.completedInterviews}
-                                </p>
-
-                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                    AI geri bildirimi alınan oturumlar
-                                </p>
-                            </div>
-
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                        Hazırlık Skoru
-                                    </p>
-
-                                    <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
-                                        Skor
-                                    </span>
-                                </div>
-
-                                <p className="mt-4 text-4xl font-black text-slate-950 dark:text-white">
-                                    {dashboard.averageScore ?? "-"}
-                                </p>
-
-                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                    Cevaplarından hesaplanan ortalama skor
-                                </p>
-                            </div>
-
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                        Tamamlama Oranı
-                                    </p>
-
-                                    <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
-                                        İlerleme
-                                    </span>
-                                </div>
-
-                                <p className="mt-4 text-4xl font-black text-slate-950 dark:text-white">
-                                    {dashboard.completionRate}%
-                                </p>
-
-                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                    Tüm pratiklerindeki genel ilerleme
-                                </p>
-                            </div>
-                        </section>
+                                </motion.div>
+                            ))}
+                        </motion.section>
 
                         <section className="relative mt-6 overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
                             <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
@@ -485,44 +559,48 @@ export default function DashboardPage() {
                         </section>
 
                         <section className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
-                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                    En Güçlü Alan
-                                </p>
+                            {[
+                                {
+                                    title: "En Güçlü Alan",
+                                    value: dashboard.strongestCategory || "Henüz veri yok",
+                                    text: "Şu anda mülakat performansında en iyi göründüğün alan.",
+                                    valueClass: "text-emerald-600 dark:text-emerald-300",
+                                },
+                                {
+                                    title: "Gelişim Alanı",
+                                    value: dashboard.weakestCategory || "Henüz veri yok",
+                                    text: "Burada biraz daha pratik yapmak genel skorunu hızlıca yükseltebilir.",
+                                    valueClass: "text-rose-500 dark:text-rose-300",
+                                },
+                                {
+                                    title: "AI Koç Notu",
+                                    value: "Her pratikten sonra güncellenir",
+                                    text: "Güçlü yönlerin, gelişim alanların ve çalışma önerilerin otomatik olarak güncellenir.",
+                                    valueClass: "text-violet-600 dark:text-violet-300",
+                                },
+                            ].map((item) => (
+                                <motion.div
+                                    key={item.title}
+                                    variants={fadeUp}
+                                    whileHover={{ y: -6, scale: 1.02 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="group relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur-xl transition dark:border-slate-700 dark:bg-slate-900/70"
+                                >
+                                    <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-gradient-to-br from-pink-300/40 to-violet-300/30 blur-2xl transition group-hover:scale-125 dark:from-pink-500/10 dark:to-violet-500/10" />
 
-                                <p className="mt-4 text-xl font-black text-emerald-600 dark:text-emerald-300">
-                                    {dashboard.strongestCategory || "Henüz veri yok"}
-                                </p>
+                                    <p className="relative z-10 text-sm font-bold text-slate-500 dark:text-slate-400">
+                                        {item.title}
+                                    </p>
 
-                                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                    Şu anda mülakat performansında en iyi göründüğün alan.
-                                </p>
-                            </div>
+                                    <p className={`relative z-10 mt-4 text-xl font-black ${item.valueClass}`}>
+                                        {item.value}
+                                    </p>
 
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
-                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                    Gelişim Alanı
-                                </p>
-
-                                <p className="mt-4 text-xl font-black text-rose-500 dark:text-rose-300">
-                                    {dashboard.weakestCategory || "Henüz veri yok"}
-                                </p>
-
-                                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                    Burada biraz daha pratik yapmak genel skorunu hızlıca yükseltebilir.
-                                </p>
-                            </div>
-
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-900/70">
-                                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                    AI Koç Notu
-                                </p>
-
-                                <p className="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-300">
-                                    Her pratikten sonra güçlü yönlerin, gelişim alanların ve çalışma
-                                    önerilerin otomatik olarak güncellenir.
-                                </p>
-                            </div>
+                                    <p className="relative z-10 mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                        {item.text}
+                                    </p>
+                                </motion.div>
+                            ))}
                         </section>
 
                         <section className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
@@ -677,7 +755,7 @@ export default function DashboardPage() {
                         </section>
                     </>
                 )}
-            </div>
+            </motion.div>
         </main>
     );
 }
