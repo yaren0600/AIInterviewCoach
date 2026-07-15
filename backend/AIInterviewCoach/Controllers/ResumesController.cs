@@ -125,4 +125,41 @@ public class ResumesController : ControllerBase
             Data = result
         });
     }
+
+    [HttpDelete("{resumeId}")]
+    public async Task<IActionResult> DeleteResume(int resumeId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Kullanıcı bilgisi alınamadı.",
+                Data = null
+            });
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var isDeleted = await _resumeService.DeleteResumeAsync(userId, resumeId);
+
+        if (!isDeleted)
+        {
+            return NotFound(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "CV bulunamadı veya bu kullanıcıya ait değil.",
+                Data = null
+            });
+        }
+
+        return Ok(new ApiResponseDto<string>
+        {
+            Success = true,
+            Message = "CV başarıyla silindi.",
+            Data = null
+        });
+    }
 }

@@ -16,6 +16,7 @@ export default function ResumesPage() {
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
+    const [deletingResumeId, setDeletingResumeId] = useState<number | null>(null);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -122,6 +123,47 @@ export default function ResumesPage() {
             }
         } finally {
             setIsUploading(false);
+        }
+    };
+
+    const handleDeleteResume = async (resumeId: number) => {
+        const isConfirmed = window.confirm(
+            "Bu CV’yi silmek istediğine emin misin? Bu işlem geri alınamaz."
+        );
+
+        if (!isConfirmed) {
+            return;
+        }
+
+        setDeletingResumeId(resumeId);
+        setMessage("");
+
+        try {
+            const response = await api.delete<ApiResponse<string>>(
+                `/Resumes/${resumeId}`
+            );
+
+            if (response.data.success) {
+                setResumes((currentResumes) =>
+                    currentResumes.filter((resume) => resume.id !== resumeId)
+                );
+
+                setMessage("CV başarıyla silindi.");
+            } else {
+                setMessage(response.data.message);
+            }
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                setMessage(
+                    error.response?.data?.message ||
+                    error.message ||
+                    "CV silinirken bir hata oluştu."
+                );
+            } else {
+                setMessage("CV silinirken bir hata oluştu.");
+            }
+        } finally {
+            setDeletingResumeId(null);
         }
     };
 
@@ -416,6 +458,14 @@ export default function ResumesPage() {
                                                     className="rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-700 shadow transition hover:scale-105 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                                                 >
                                                     Mülakatta Kullan
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleDeleteResume(resume.id)}
+                                                    disabled={deletingResumeId === resume.id}
+                                                    className="rounded-full bg-rose-50 px-5 py-2 text-sm font-bold text-rose-600 shadow transition hover:scale-105 hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-rose-400/10 dark:text-rose-300 dark:hover:bg-rose-400/20"
+                                                >
+                                                    {deletingResumeId === resume.id ? "Siliniyor..." : "Sil"}
                                                 </button>
                                             </div>
                                         </div>

@@ -139,6 +139,30 @@ public class ResumeService : IResumeService
         };
     }
 
+    public async Task<bool> DeleteResumeAsync(int userId, int resumeId)
+    {
+        var resume = await _context.Resumes
+            .FirstOrDefaultAsync(r =>
+                r.Id == resumeId &&
+                r.UserId == userId);
+
+        if (resume is null)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(resume.FilePath) && File.Exists(resume.FilePath))
+        {
+            File.Delete(resume.FilePath);
+        }
+
+        _context.Resumes.Remove(resume);
+
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
     /// <summary>
     /// Dosya PDF ise → PDF okuma metoduna gönder
     /// Dosya DOCX ise → DOCX okuma metoduna gönder
