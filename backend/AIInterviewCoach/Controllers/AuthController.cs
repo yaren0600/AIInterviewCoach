@@ -2,6 +2,7 @@
 using AIInterviewCoach.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 
 namespace AIInterviewCoach.Controllers;
@@ -85,6 +86,44 @@ public class AuthController : ControllerBase
             Success = true,
             Message = "Profil bilgileri başarıyla getirildi.",
             Data = profile
+        });
+    }
+
+    [Authorize]
+    [HttpDelete("delete-account")]
+    public async Task<IActionResult> DeleteAccount(DeleteAccountRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim is null)
+        {
+            return Unauthorized(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Kullanıcı bilgisi alınamadı.",
+                Data = null
+            });
+        }
+
+        var userId = int.Parse(userIdClaim);
+
+        var isDeleted = await _authService.DeleteAccountAsync(userId, request.Password);
+
+        if (!isDeleted)
+        {
+            return BadRequest(new ApiResponseDto<string>
+            {
+                Success = false,
+                Message = "Şifre hatalı veya kullanıcı bulunamadı.",
+                Data = null
+            });
+        }
+
+        return Ok(new ApiResponseDto<string>
+        {
+            Success = true,
+            Message = "Hesabınız başarıyla silindi.",
+            Data = null
         });
     }
 }

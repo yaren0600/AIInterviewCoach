@@ -118,4 +118,62 @@ public class AuthService : IAuthService
         var token = GenerateJwtToken(user);
         return token;
     }
+
+    public async Task<bool> DeleteAccountAsync(int userId, string password)
+    {
+        var user = await _context.Users
+            .Include(u => u.Resumes)
+            .Include(u => u.InterviewSessions)
+                .ThenInclude(s => s.Questions)
+                    .ThenInclude(q => q.Answer)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return false;
+        }
+
+        var passwordHash = HashPassword(password);
+
+        if (user.PasswordHash != passwordHash)
+        {
+            return false;
+        }
+
+        var answers = user.InterviewSessions
+            .SelectMany(session => session.Questions)
+            .Where(question => question.Answer is not null)
+            .Select(question => question.Answer!)
+            .ToList();
+
+        if (answers.Count > 0)
+        {
+            _context.Answers.RemoveRange(answers);
+        }
+
+        var questions = user.InterviewSessions
+            .SelectMany(session => session.Questions)
+            .ToList();
+
+        if (questions.Count > 0)
+        {
+            _context.Questions.RemoveRange(questions);
+        }
+
+        if (user.InterviewSessions.Count > 0)
+        {
+            _context.InterviewSessions.RemoveRange(user.InterviewSessions);
+        }
+
+        if (user.Resumes.Count > 0)
+        {
+            _context.Resumes.RemoveRange(user.Resumes);
+        }
+
+        _context.Users.Remove(user);
+
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
 }

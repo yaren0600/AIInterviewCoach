@@ -20,6 +20,7 @@ public interface IAuthService
     Task<string> LoginAsync(LoginRequestDto request);
     //Bu şu demek: Controller ben login işlemii yapmak istiyorum diyebilecek ama detayı bilmeyecek.
     //Detay AuthService içinde olacak.
+    Task<bool> DeleteAccountAsync(int userId, string password);
 }
 
 //Burada Task<string> dememizin sebebi:
