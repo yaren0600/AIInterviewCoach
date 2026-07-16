@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import axios from "axios";
+import { motion, type Variants } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
@@ -52,95 +53,188 @@ export default function LoginPage() {
         }
     };
 
+    const fadeUp: Variants = {
+        hidden: {
+            opacity: 0,
+            y: 24,
+        },
+        visible: {
+            opacity: 1,
+            y: 0,
+        },
+    };
+
+    const staggerContainer: Variants = {
+        hidden: {},
+        visible: {
+            transition: {
+                staggerChildren: 0.12,
+            },
+        },
+    };
+
+    const features = [
+        {
+            title: "CV odaklı mülakat",
+            text: "Yüklediğin CV’ye göre kişiselleştirilmiş soru akışı oluştur.",
+            icon: "📄",
+            color: "from-rose-400 to-pink-500",
+        },
+        {
+            title: "AI geri bildirim",
+            text: "Cevapların için skor, güçlü alan ve gelişim önerisi al.",
+            icon: "✨",
+            color: "from-violet-400 to-fuchsia-500",
+        },
+        {
+            title: "Gelişim planı",
+            text: "Gemini destekli haftalık görevlerle mülakat performansını takip et.",
+            icon: "🚀",
+            color: "from-sky-400 to-cyan-500",
+        },
+    ];
+
     return (
-        <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-10 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100">
-            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
-            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
-            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
+        <main className="neon-lab-bg relative min-h-screen overflow-hidden px-4 py-8 text-slate-900 dark:text-slate-100 md:px-6">
+            <div className="lab-grid absolute inset-0" />
+            <div className="lab-noise absolute inset-0" />
+            <div className="lab-scanline" />
+            <div className="lab-vignette absolute inset-0" />
 
-            <div className="relative z-10 grid w-full max-w-6xl grid-cols-1 items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-                <section className="hidden rounded-[2rem] border border-white/70 bg-white/70 p-8 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 lg:block">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        AI Interview Coach
-                    </div>
+            <motion.div
+                animate={{
+                    x: [0, 24, 0],
+                    y: [0, -18, 0],
+                    scale: [1, 1.08, 1],
+                }}
+                transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                }}
+                className="neon-orb absolute -left-20 top-0 h-[30rem] w-[30rem] rounded-full bg-pink-300/28 blur-[120px] dark:bg-pink-500/18"
+            />
 
-                    <h1 className="mt-6 text-4xl font-black leading-tight text-slate-950 dark:text-white xl:text-5xl">
-                        Mülakatlara
-                        <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
-                            {" "}
-                            daha güvenli
-                        </span>{" "}
-                        hazırlan
-                    </h1>
+            <motion.div
+                animate={{
+                    x: [0, -28, 0],
+                    y: [0, 20, 0],
+                    scale: [1, 1.12, 1],
+                }}
+                transition={{
+                    duration: 10,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                }}
+                className="neon-orb-reverse absolute -right-24 top-16 h-[34rem] w-[34rem] rounded-full bg-violet-300/28 blur-[130px] dark:bg-violet-500/18"
+            />
 
-                    <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 dark:text-slate-300">
-                        CV’ni yükle, hedef pozisyonunu seç, AI destekli sorularla pratik yap
-                        ve her cevabın için kişisel geri bildirim al.
-                    </p>
+            <div className="absolute left-1/2 top-[42%] h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-sky-300/16 blur-[150px] dark:bg-sky-500/12" />
+            <div className="absolute bottom-0 left-[12%] h-80 w-80 rounded-full bg-cyan-300/18 blur-[120px] dark:bg-cyan-500/10" />
+            <div className="absolute bottom-8 right-[10%] h-72 w-72 rounded-full bg-fuchsia-200/22 blur-[110px] dark:bg-fuchsia-500/12" />
 
-                    <div className="mt-8 grid gap-4">
-                        {[
-                            {
-                                title: "CV odaklı sorular",
-                                text: "Yüklediğin CV’ye göre kişiselleştirilmiş mülakat pratiği.",
-                                color: "bg-rose-100 text-rose-600 dark:bg-rose-400/10 dark:text-rose-300",
-                            },
-                            {
-                                title: "AI koç raporu",
-                                text: "Skor, güçlü yönler, gelişim alanları ve daha iyi cevap örnekleri.",
-                                color: "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300",
-                            },
-                            {
-                                title: "SQL ve kodlama pratiği",
-                                text: "Teknik mülakatlar için SQL ve programlama odaklı soru akışı.",
-                                color: "bg-sky-100 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300",
-                            },
-                        ].map((item) => (
-                            <div
-                                key={item.title}
-                                className="flex gap-4 rounded-3xl border border-white/70 bg-white/75 p-4 dark:border-slate-700 dark:bg-slate-950/40"
-                            >
-                                <div
-                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-lg font-black ${item.color}`}
+            <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="relative z-10 mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl grid-cols-1 items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]"
+            >
+                <motion.section
+                    variants={fadeUp}
+                    transition={{ duration: 0.55, ease: "easeOut" }}
+                    className="hidden overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.72] p-8 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/55 lg:block"
+                >
+                    <div className="relative">
+                        <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-violet-400/20 blur-3xl" />
+                        <div className="absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-pink-400/20 blur-3xl" />
+
+                        <div className="relative z-10 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                            AI Interview Coach
+                        </div>
+
+                        <h1 className="relative z-10 mt-6 text-4xl font-black leading-tight text-slate-950 dark:text-white xl:text-6xl">
+                            Mülakatlara
+                            <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
+                                {" "}
+                                AI destekli
+                            </span>{" "}
+                            hazırlan
+                        </h1>
+
+                        <p className="relative z-10 mt-5 max-w-xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                            CV’ni yükle, hedef pozisyonunu seç, AI destekli sorularla pratik yap
+                            ve her cevabın için kişisel geri bildirim al. Gelişim planın da seni
+                            adım adım yönlendirsin.
+                        </p>
+
+                        <div className="relative z-10 mt-8 grid gap-4">
+                            {features.map((item) => (
+                                <motion.div
+                                    key={item.title}
+                                    variants={fadeUp}
+                                    whileHover={{ x: 6, scale: 1.01 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="group relative overflow-hidden rounded-3xl border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/40"
                                 >
-                                    ✓
-                                </div>
+                                    <div className={`absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br ${item.color} opacity-25 blur-2xl transition group-hover:scale-125`} />
 
-                                <div>
-                                    <p className="font-black text-slate-900 dark:text-white">
-                                        {item.title}
-                                    </p>
+                                    <div className="relative z-10 flex gap-4">
+                                        <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${item.color} text-xl shadow-lg shadow-violet-500/20`}>
+                                            {item.icon}
+                                        </div>
 
-                                    <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                                        {item.text}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
+                                        <div>
+                                            <p className="font-black text-slate-900 dark:text-white">
+                                                {item.title}
+                                            </p>
+
+                                            <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                                                {item.text}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        <div className="relative z-10 mt-8 grid grid-cols-3 gap-3">
+                            <MiniBadge value="AI" label="Soru üretimi" />
+                            <MiniBadge value="100" label="Skor analizi" />
+                            <MiniBadge value="7 gün" label="Plan takibi" />
+                        </div>
                     </div>
-                </section>
+                </motion.section>
 
-                <section className="w-full rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75 md:p-8">
-                    <div className="flex items-center justify-between gap-3">
+                <motion.section
+                    variants={fadeUp}
+                    transition={{ duration: 0.55, ease: "easeOut" }}
+                    className="relative w-full overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.76] p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60 md:p-8"
+                >
+                    <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-violet-400/25 blur-3xl" />
+                    <div className="absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-pink-400/20 blur-3xl" />
+                    <div className="pointer-events-none absolute inset-0 rounded-[2rem] border border-white/40" />
+
+                    <div className="relative z-10 flex items-start justify-between gap-3">
                         <div>
                             <div className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-4 py-2 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                <span className="h-2 w-2 rounded-full bg-violet-500" />
                                 Tekrar hoş geldin
                             </div>
 
-                            <h2 className="mt-4 text-3xl font-black text-slate-950 dark:text-white">
+                            <h2 className="mt-4 text-3xl font-black text-slate-950 dark:text-white md:text-4xl">
                                 Giriş Yap
                             </h2>
 
                             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                                Mülakat pratiklerine devam etmek için hesabına giriş yap.
+                                Mülakat pratiklerine ve AI gelişim planına devam etmek için hesabına giriş yap.
                             </p>
                         </div>
 
                         <ThemeToggle />
                     </div>
 
-                    <form onSubmit={handleLogin} className="mt-8 space-y-5">
+                    <form onSubmit={handleLogin} className="relative z-10 mt-8 space-y-5">
                         <div>
                             <label className="block text-sm font-black text-slate-700 dark:text-slate-200">
                                 E-posta
@@ -174,31 +268,55 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full rounded-full bg-slate-950 px-6 py-3 font-black text-white shadow transition hover:scale-105 hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                            className="shine-button w-full rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
+                            {isLoading ? "Giriş yapılıyor..." : "Giriş Yap ✨"}
                         </button>
                     </form>
 
                     {message && (
-                        <div className="mt-5 rounded-2xl border border-rose-100 bg-rose-50/80 p-4 text-center dark:border-rose-400/20 dark:bg-rose-400/10">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="relative z-10 mt-5 rounded-2xl border border-rose-100 bg-rose-50/80 p-4 text-center dark:border-rose-400/20 dark:bg-rose-400/10"
+                        >
                             <p className="text-sm font-semibold text-rose-600 dark:text-rose-300">
                                 {message}
                             </p>
-                        </div>
+                        </motion.div>
                     )}
 
-                    <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+                    <p className="relative z-10 mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
                         Hesabın yok mu?{" "}
                         <button
                             onClick={() => router.push("/register")}
-                            className="font-black text-slate-950 underline underline-offset-4 dark:text-white"
+                            className="font-black text-violet-700 underline underline-offset-4 transition hover:text-pink-600 dark:text-violet-300 dark:hover:text-pink-300"
                         >
                             Kayıt Ol
                         </button>
                     </p>
-                </section>
-            </div>
+                </motion.section>
+            </motion.div>
         </main>
+    );
+}
+
+function MiniBadge({
+    value,
+    label,
+}: {
+    value: string;
+    label: string;
+}) {
+    return (
+        <div className="rounded-3xl border border-white/70 bg-white/70 p-4 text-center shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/40">
+            <p className="text-xl font-black text-slate-950 dark:text-white">
+                {value}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {label}
+            </p>
+        </div>
     );
 }
