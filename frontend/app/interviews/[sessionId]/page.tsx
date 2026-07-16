@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import axios from "axios";
+import { motion, type Variants } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
@@ -174,11 +175,36 @@ export default function InterviewSessionPage() {
         router.push("/login");
     };
 
+    const fadeUp: Variants = {
+        hidden: {
+            opacity: 0,
+            y: 24,
+        },
+        visible: {
+            opacity: 1,
+            y: 0,
+        },
+    };
+
+    const staggerContainer: Variants = {
+        hidden: {},
+        visible: {
+            transition: {
+                staggerChildren: 0.1,
+            },
+        },
+    };
+
     if (isLoading) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
-                <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
-                    <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+            <main className="neon-lab-bg relative flex min-h-screen items-center justify-center overflow-hidden px-4 text-slate-900 dark:text-slate-100">
+                <div className="lab-grid absolute inset-0" />
+                <div className="lab-noise absolute inset-0" />
+                <div className="lab-scanline" />
+                <div className="lab-vignette absolute inset-0" />
+
+                <div className="relative z-10 rounded-3xl border border-white/70 bg-white/[0.76] px-8 py-6 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60">
+                    <p className="text-lg font-black text-slate-700 dark:text-slate-100">
                         Mülakat oturumu yükleniyor...
                     </p>
 
@@ -192,19 +218,27 @@ export default function InterviewSessionPage() {
 
     if (message && !session) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
-                <div className="w-full max-w-md rounded-3xl border border-white/70 bg-white/80 p-8 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
-                    <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+            <main className="neon-lab-bg relative flex min-h-screen items-center justify-center overflow-hidden px-4 text-slate-900 dark:text-slate-100">
+                <div className="lab-grid absolute inset-0" />
+                <div className="lab-noise absolute inset-0" />
+                <div className="lab-scanline" />
+                <div className="lab-vignette absolute inset-0" />
+
+                <div className="relative z-10 w-full max-w-md overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.76] p-8 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60">
+                    <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-400/25 blur-3xl" />
+                    <div className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-pink-400/20 blur-3xl" />
+
+                    <h2 className="relative z-10 text-2xl font-black text-slate-950 dark:text-white">
                         Mülakat yüklenemedi
                     </h2>
 
-                    <p className="mt-3 text-rose-600 dark:text-rose-300">
+                    <p className="relative z-10 mt-3 text-sm font-semibold leading-6 text-rose-600 dark:text-rose-300">
                         {message}
                     </p>
 
                     <button
                         onClick={() => router.push("/interviews/start")}
-                        className="mt-6 rounded-full bg-slate-950 px-6 py-3 font-bold text-white transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                        className="shine-button relative z-10 mt-6 rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
                     >
                         Mülakat başlatma ekranına dön
                     </button>
@@ -230,14 +264,56 @@ export default function InterviewSessionPage() {
         : 0;
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
-            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
-            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
-            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
+        <main className="neon-lab-bg relative min-h-screen overflow-hidden px-4 py-8 text-slate-900 dark:text-slate-100 md:px-6">
+            <div className="lab-grid absolute inset-0" />
+            <div className="lab-noise absolute inset-0" />
+            <div className="lab-scanline" />
+            <div className="lab-vignette absolute inset-0" />
 
-            <div className="relative z-10 mx-auto max-w-7xl">
-                <header className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-8">
-                    <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+            <motion.div
+                animate={{
+                    x: [0, 24, 0],
+                    y: [0, -18, 0],
+                    scale: [1, 1.08, 1],
+                }}
+                transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                }}
+                className="neon-orb absolute -left-20 top-0 h-[30rem] w-[30rem] rounded-full bg-pink-300/28 blur-[120px] dark:bg-pink-500/18"
+            />
+
+            <motion.div
+                animate={{
+                    x: [0, -28, 0],
+                    y: [0, 20, 0],
+                    scale: [1, 1.12, 1],
+                }}
+                transition={{
+                    duration: 10,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                }}
+                className="neon-orb-reverse absolute -right-24 top-16 h-[34rem] w-[34rem] rounded-full bg-violet-300/28 blur-[130px] dark:bg-violet-500/18"
+            />
+
+            <div className="absolute left-1/2 top-[38%] h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-sky-300/16 blur-[150px] dark:bg-sky-500/12" />
+            <div className="absolute bottom-0 left-[12%] h-80 w-80 rounded-full bg-cyan-300/18 blur-[120px] dark:bg-cyan-500/10" />
+            <div className="absolute bottom-8 right-[10%] h-72 w-72 rounded-full bg-fuchsia-200/22 blur-[110px] dark:bg-fuchsia-500/12" />
+
+            <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={staggerContainer}
+                className="relative z-10 mx-auto max-w-7xl"
+            >
+                <motion.header
+                    variants={fadeUp}
+                    transition={{ duration: 0.55, ease: "easeOut" }}
+                    className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.72] p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/55 md:p-8"
+                >
+                    <div className="grid grid-cols-1 items-center gap-8 xl:grid-cols-[1.08fr_0.92fr]">
                         <div>
                             <div className="flex flex-wrap items-center gap-3">
                                 <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
@@ -259,67 +335,100 @@ export default function InterviewSessionPage() {
 
                             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
                                 Cevabını yaz, gönder ve yapay zekadan skor, geri bildirim ve
-                                gelişim önerisi al. Her sorudan sonra bir sonraki adıma geçebilirsin.
+                                gelişim önerisi al. Her cevap mülakat performansını daha görünür
+                                hale getirir.
                             </p>
+
+                            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <HeroMetric
+                                    value={currentQuestionIndex + 1}
+                                    label="aktif soru"
+                                />
+
+                                <HeroMetric
+                                    value={session?.questions.length ?? 0}
+                                    label="toplam soru"
+                                />
+
+                                <HeroMetric
+                                    value={progressPercentage}
+                                    label="ilerleme %"
+                                />
+                            </div>
                         </div>
 
-                        <div className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl dark:border-slate-700 dark:bg-slate-950/40">
-                            <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                        <motion.div
+                            variants={fadeUp}
+                            whileHover={{ rotateX: 2, rotateY: -2, scale: 1.01 }}
+                            transition={{ duration: 0.35 }}
+                            className="float-card relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/65 p-6 shadow-2xl shadow-violet-500/20 backdrop-blur-2xl dark:border-violet-400/25 dark:bg-slate-950/60 dark:shadow-violet-500/10"
+                        >
+                            <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-400/25 blur-3xl" />
+                            <div className="absolute -bottom-20 -left-16 h-44 w-44 rounded-full bg-pink-400/20 blur-3xl" />
+
+                            <p className="relative z-10 text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                 Oturum Özeti
                             </p>
 
-                            <p className="mt-4 text-2xl font-black text-slate-950 dark:text-white">
+                            <h2 className="relative z-10 mt-3 text-3xl font-black text-slate-950 dark:text-white">
                                 {session?.positionName}
-                            </p>
+                            </h2>
 
-                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            <p className="relative z-10 mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                                 {session?.resumeFileName
                                     ? `CV: ${session.resumeFileName}`
                                     : "CV olmadan standart mülakat"}
                             </p>
 
-                            <div className="mt-5">
-                                <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
+                            <div className="relative z-10 mt-6">
+                                <div className="flex justify-between text-xs font-black text-slate-600 dark:text-slate-300">
                                     <span>
                                         Soru {currentQuestionIndex + 1} /{" "}
                                         {session?.questions.length}
                                     </span>
+
                                     <span>{progressPercentage}%</span>
                                 </div>
 
-                                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                                <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
                                     <div
-                                        className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 transition-all"
+                                        className="h-full rounded-full bg-gradient-to-r from-rose-400 via-violet-500 to-sky-500 transition-all"
                                         style={{ width: `${progressPercentage}%` }}
                                     />
                                 </div>
                             </div>
-                        </div>
+
+                            <div className="relative z-10 mt-6 rounded-3xl border border-white/60 bg-white/70 p-5 shadow-inner dark:border-slate-700 dark:bg-slate-900/70">
+                                <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                                    Aktif kategori
+                                </p>
+
+                                <p className="mt-2 text-sm font-bold leading-6 text-slate-800 dark:text-slate-100">
+                                    {currentQuestion?.category ?? "Genel"}
+                                </p>
+                            </div>
+                        </motion.div>
                     </div>
-                </header>
+                </motion.header>
 
-                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/70 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                <motion.nav
+                    variants={fadeUp}
+                    transition={{ duration: 0.45, ease: "easeOut" }}
+                    className="mt-5 rounded-3xl border border-white/70 bg-white/65 px-4 py-3 shadow-xl shadow-violet-500/5 backdrop-blur-2xl dark:border-violet-400/15 dark:bg-slate-950/45"
+                >
                     <div className="flex flex-wrap gap-3">
-                        <button
-                            onClick={() => router.push("/dashboard")}
-                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                        >
-                            Dashboard
-                        </button>
-
-                        <button
-                            onClick={() => router.push("/resumes")}
-                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                        >
-                            CV’lerim
-                        </button>
-
-                        <button
-                            onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                        >
-                            Yeni Mülakat
-                        </button>
+                        <NavButton label="Dashboard" onClick={() => router.push("/dashboard")} />
+                        <NavButton label="CV’lerim" onClick={() => router.push("/resumes")} />
+                        <NavButton label="Yeni Mülakat" onClick={() => router.push("/interviews/start")} />
+                        <NavButton
+                            label="Geçmiş Mülakatlar"
+                            onClick={() => router.push("/interviews/sessions")}
+                        />
+                        <NavButton
+                            label="AI Gelişim Planım"
+                            onClick={() => router.push("/study-plan")}
+                        />
+                        <NavButton label="Ayarlar" onClick={() => router.push("/settings")} />
 
                         <button
                             onClick={handleLogout}
@@ -328,27 +437,43 @@ export default function InterviewSessionPage() {
                             Çıkış Yap
                         </button>
                     </div>
-                </nav>
+                </motion.nav>
 
-                <section className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                    <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                        <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                            Soru
-                        </p>
+                <motion.section
+                    variants={staggerContainer}
+                    className="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]"
+                >
+                    <motion.div
+                        variants={fadeUp}
+                        className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70"
+                    >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                    Soru
+                                </p>
 
-                        <h2 className="mt-4 text-2xl font-black leading-tight text-slate-950 dark:text-white md:text-3xl">
+                                <p className="mt-2 text-sm font-bold text-slate-500 dark:text-slate-400">
+                                    Sıra {currentQuestion?.orderNo}
+                                </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                    {currentQuestion?.category}
+                                </span>
+
+                                {isCodePractice && (
+                                    <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
+                                        Kod/Sorgu Modu
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        <h2 className="mt-5 text-2xl font-black leading-tight text-slate-950 dark:text-white md:text-3xl">
                             {currentQuestion?.text ?? "Soru metni yüklenemedi."}
                         </h2>
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
-                                {currentQuestion?.category}
-                            </span>
-
-                            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
-                                Sıra {currentQuestion?.orderNo}
-                            </span>
-                        </div>
 
                         {isCodePractice && (
                             <div className="mt-5 rounded-3xl border border-sky-100 bg-sky-50/80 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">
@@ -375,12 +500,16 @@ export default function InterviewSessionPage() {
                                         ? "Kodunu buraya yaz...\n\nÖrnek:\npublic int FindSecondLargest(int[] numbers)\n{\n    // çözümünü buraya yaz\n}"
                                         : "Cevabını buraya yaz...\n\nİpucu: Kısa bir giriş yap, kullandığın yaklaşımı anlat ve örnekle güçlendir."
                             }
-                            className={`mt-6 min-h-[280px] w-full rounded-3xl border border-white/70 bg-white/85 p-5 text-slate-800 outline-none shadow-inner transition focus:ring-4 focus:ring-violet-200 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-violet-500/20 ${isCodePractice ? "font-mono text-sm leading-7" : "text-sm leading-7"
+                            className={`mt-6 min-h-[300px] w-full rounded-3xl border border-white/70 bg-white/85 p-5 text-slate-800 outline-none shadow-inner transition focus:ring-4 focus:ring-violet-200 disabled:opacity-70 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-violet-500/20 ${isCodePractice ? "font-mono text-sm leading-7" : "text-sm leading-7"
                                 }`}
                         />
 
                         {isSubmitting && (
-                            <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/80 p-4 dark:border-violet-400/20 dark:bg-violet-400/10">
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/80 p-4 dark:border-violet-400/20 dark:bg-violet-400/10"
+                            >
                                 <p className="text-sm font-black text-violet-900 dark:text-violet-200">
                                     AI cevabını değerlendiriyor...
                                 </p>
@@ -389,11 +518,11 @@ export default function InterviewSessionPage() {
                                     Cevabın doğruluk, soruya uygunluk, yapı ve gelişim önerileri
                                     açısından inceleniyor.
                                 </p>
-                            </div>
+                            </motion.div>
                         )}
 
                         {message && (
-                            <p className="mt-4 text-center text-sm font-semibold text-rose-600 dark:text-rose-300">
+                            <p className="mt-4 rounded-2xl border border-rose-100 bg-rose-50/80 p-3 text-center text-sm font-semibold text-rose-600 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-300">
                                 {message}
                             </p>
                         )}
@@ -401,7 +530,7 @@ export default function InterviewSessionPage() {
                         <button
                             onClick={handleSubmitAnswer}
                             disabled={isSubmitting || !!lastFeedback}
-                            className="mt-5 w-full rounded-full bg-slate-950 px-6 py-3 font-black text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                            className="shine-button mt-5 w-full rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {isSubmitting
                                 ? "AI cevabını değerlendiriyor..."
@@ -409,19 +538,26 @@ export default function InterviewSessionPage() {
                                     ? "SQL Cevabını Gönder"
                                     : isCodingPractice
                                         ? "Kod Cevabını Gönder"
-                                        : "Cevabımı Gönder"}
+                                        : "Cevabımı Gönder ✨"}
                         </button>
-                    </div>
+                    </motion.div>
 
                     <div className="space-y-6">
-                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                        <motion.div
+                            variants={fadeUp}
+                            className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70"
+                        >
                             <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                                 AI Geri Bildirim
                             </p>
 
                             {!lastFeedback ? (
                                 <div className="mt-5 rounded-3xl border border-white/60 bg-white/75 p-6 dark:border-slate-700 dark:bg-slate-950/40">
-                                    <p className="font-black text-slate-800 dark:text-white">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-gradient-to-br from-pink-500 via-violet-500 to-sky-500 text-2xl shadow-xl shadow-violet-500/20">
+                                        ✨
+                                    </div>
+
+                                    <p className="mt-5 font-black text-slate-800 dark:text-white">
                                         Cevabını gönderdikten sonra AI koç raporu burada görünecek.
                                     </p>
 
@@ -434,7 +570,11 @@ export default function InterviewSessionPage() {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="mt-5 rounded-3xl border border-white/70 bg-white/80 p-6 dark:border-slate-700 dark:bg-slate-950/40">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 18 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-5 rounded-3xl border border-white/70 bg-white/80 p-6 dark:border-slate-700 dark:bg-slate-950/40"
+                                >
                                     <div className="flex items-center justify-between gap-4">
                                         <p className="font-black text-slate-950 dark:text-white">
                                             Skor
@@ -445,24 +585,34 @@ export default function InterviewSessionPage() {
                                         </span>
                                     </div>
 
+                                    <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                                        <div
+                                            className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-500 to-violet-500 transition-all"
+                                            style={{ width: `${lastFeedback.score}%` }}
+                                        />
+                                    </div>
+
                                     <p className="mt-5 text-sm leading-7 text-slate-700 dark:text-slate-300">
                                         {lastFeedback.feedback}
                                     </p>
 
                                     <button
                                         onClick={handleNextQuestion}
-                                        className="mt-6 w-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500 px-6 py-3 font-black text-white shadow transition hover:scale-105"
+                                        className="shine-button mt-6 w-full rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
                                     >
                                         {session &&
                                             currentQuestionIndex === session.questions.length - 1
                                             ? "Sonucu Gör"
                                             : "Sonraki Soru"}
                                     </button>
-                                </div>
+                                </motion.div>
                             )}
-                        </div>
+                        </motion.div>
 
-                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                        <motion.div
+                            variants={fadeUp}
+                            className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70"
+                        >
                             <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                                 Cevap İpucu
                             </p>
@@ -482,10 +632,47 @@ export default function InterviewSessionPage() {
                                     Tanım → Yaklaşım → Örnek → Sonuç
                                 </p>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
-                </section>
-            </div>
+                </motion.section>
+            </motion.div>
         </main>
+    );
+}
+
+function NavButton({
+    label,
+    onClick,
+}: {
+    label: string;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+        >
+            {label}
+        </button>
+    );
+}
+
+function HeroMetric({
+    value,
+    label,
+}: {
+    value: number;
+    label: string;
+}) {
+    return (
+        <div className="rounded-3xl border border-white/70 bg-white/70 p-4 text-center shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/40">
+            <p className="text-2xl font-black text-slate-950 dark:text-white">
+                {value}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {label}
+            </p>
+        </div>
     );
 }

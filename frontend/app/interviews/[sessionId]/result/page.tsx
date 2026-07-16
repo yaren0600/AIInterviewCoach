@@ -4,7 +4,11 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
-import { ApiResponse, InterviewResult } from "@/types/api";
+import {
+    ApiResponse,
+    InterviewResult,
+    InterviewResultQuestion,
+} from "@/types/api";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function InterviewResultPage() {
@@ -54,11 +58,16 @@ export default function InterviewResultPage() {
         void loadResult();
     }, [router, sessionId]);
 
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        router.push("/login");
+    };
+
     if (isLoading) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
-                <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
-                    <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+            <PageShell center>
+                <div className="relative z-10 rounded-3xl border border-white/70 bg-white/[0.76] px-8 py-6 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60">
+                    <p className="text-lg font-black text-slate-700 dark:text-slate-100">
                         Mülakat sonucu yükleniyor...
                     </p>
 
@@ -66,361 +75,311 @@ export default function InterviewResultPage() {
                         AI koç raporun hazırlanıyor.
                     </p>
                 </div>
-            </main>
+            </PageShell>
         );
     }
 
     if (message) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
-                <div className="w-full max-w-md rounded-3xl border border-white/70 bg-white/80 p-8 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
-                    <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+            <PageShell center>
+                <div className="relative z-10 w-full max-w-md overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.76] p-8 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60">
+                    <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-400/25 blur-3xl" />
+                    <div className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-pink-400/20 blur-3xl" />
+
+                    <h2 className="relative z-10 text-2xl font-black text-slate-950 dark:text-white">
                         Sonuç yüklenemedi
                     </h2>
 
-                    <p className="mt-3 text-rose-600 dark:text-rose-300">
+                    <p className="relative z-10 mt-3 text-sm font-semibold leading-6 text-rose-600 dark:text-rose-300">
                         {message}
                     </p>
 
                     <button
                         onClick={() => router.push("/dashboard")}
-                        className="mt-6 rounded-full bg-slate-950 px-6 py-3 font-bold text-white transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                        className="shine-button relative z-10 mt-6 rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
                     >
                         Dashboard’a dön
                     </button>
                 </div>
-            </main>
+            </PageShell>
         );
     }
 
     if (!result) {
         return (
-            <main className="min-h-screen bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-6 py-10 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
-                <div className="mx-auto max-w-5xl">
-                    <div className="rounded-3xl border border-white/70 bg-white/75 p-8 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
-                        <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                            Yükleniyor
-                        </p>
+            <PageShell center>
+                <div className="relative z-10 rounded-3xl border border-white/70 bg-white/[0.76] p-8 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60">
+                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                        Yükleniyor
+                    </p>
 
-                        <h1 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-                            Sonuç bilgileri hazırlanıyor...
-                        </h1>
+                    <h1 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                        Sonuç bilgileri hazırlanıyor...
+                    </h1>
 
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                            Lütfen birkaç saniye bekle.
-                        </p>
-                    </div>
+                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                        Lütfen birkaç saniye bekle.
+                    </p>
                 </div>
-            </main>
+            </PageShell>
         );
     }
 
+    const strongAreas = result.strongAreas ?? [];
+    const improvementAreas = result.improvementAreas ?? [];
+    const studyRecommendations = result.studyRecommendations ?? [];
+    const categoryPerformances = result.categoryPerformances ?? [];
+    const questions = result.questions ?? [];
+
+    const averageScore =
+        result.averageScore ??
+        (questions.length > 0
+            ? Math.round(
+                questions.reduce(
+                    (total, question) => total + (question.score ?? 0),
+                    0
+                ) / questions.length
+            )
+            : null);
+
+    const answeredQuestions =
+        result.answeredQuestions ??
+        questions.filter(
+            (question) =>
+                question.userAnswer && question.userAnswer.trim().length > 0
+        ).length;
+
+    const totalQuestions = result.totalQuestions ?? questions.length;
+
+    const scoreForBar = Math.min(
+        100,
+        Math.max(0, Number(averageScore ?? result.totalScore ?? 0))
+    );
+
     return (
-        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
-            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
-            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
-            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
-
+        <PageShell>
             <div className="relative z-10 mx-auto max-w-7xl">
-                <section className="rounded-[2rem] border border-white/70 bg-white/70 p-8 text-center shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-10">
-                    <div className="flex flex-wrap justify-center gap-3">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                            Mülakat Tamamlandı
+                <header className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.72] p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/55 md:p-8">
+                    <div className="grid grid-cols-1 items-center gap-8 xl:grid-cols-[1.08fr_0.92fr]">
+                        <div>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
+                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                    Mülakat Tamamlandı
+                                </div>
+
+                                <ThemeToggle />
+                            </div>
+
+                            <h1 className="mt-5 text-3xl font-black leading-tight text-slate-950 dark:text-white md:text-5xl">
+                                AI mülakat sonucun
+                                <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
+                                    {" "}
+                                    hazır
+                                </span>
+                            </h1>
+
+                            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                                Skorunu, güçlü yönlerini, gelişim alanlarını, soru bazlı AI koç
+                                raporunu ve sonraki çalışma önerilerini buradan inceleyebilirsin.
+                            </p>
+
+                            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <HeroMetric
+                                    value={averageScore ?? result.totalScore ?? "-"}
+                                    label="ortalama skor"
+                                />
+
+                                <HeroMetric
+                                    value={answeredQuestions}
+                                    label="cevaplanan soru"
+                                />
+
+                                <HeroMetric
+                                    value={totalQuestions}
+                                    label="toplam soru"
+                                />
+                            </div>
                         </div>
 
-                        <ThemeToggle />
+                        <div className="float-card relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/65 p-6 shadow-2xl shadow-violet-500/20 backdrop-blur-2xl dark:border-violet-400/25 dark:bg-slate-950/60 dark:shadow-violet-500/10">
+                            <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-400/25 blur-3xl" />
+                            <div className="absolute -bottom-20 -left-16 h-44 w-44 rounded-full bg-pink-400/20 blur-3xl" />
+
+                            <p className="relative z-10 text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                                Performans Özeti
+                            </p>
+
+                            <div className="relative z-10 mt-5 flex items-end gap-3">
+                                <p className="text-6xl font-black text-slate-950 dark:text-white">
+                                    {averageScore ?? result.totalScore ?? "-"}
+                                </p>
+
+                                <p className="mb-2 text-sm font-black text-slate-500 dark:text-slate-400">
+                                    /100
+                                </p>
+                            </div>
+
+                            <p className="relative z-10 mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                Hedef pozisyon:{" "}
+                                <span className="font-black text-violet-700 dark:text-violet-300">
+                                    {result.positionName}
+                                </span>
+                            </p>
+
+                            <div className="relative z-10 mt-5 h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                                <div
+                                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-sky-500 to-violet-500 transition-all"
+                                    style={{ width: `${scoreForBar}%` }}
+                                />
+                            </div>
+
+                            <div className="relative z-10 mt-6 grid grid-cols-2 gap-3">
+                                <MiniInfo label="Oturum" value={`#${result.sessionId}`} />
+
+                                <MiniInfo
+                                    label="Gelişim alanı"
+                                    value={improvementAreas[0] ?? "Genel tekrar"}
+                                />
+                            </div>
+                        </div>
                     </div>
+                </header>
 
-                    <h1 className="mt-6 text-3xl font-black leading-tight text-slate-950 dark:text-white md:text-5xl">
-                        AI mülakat sonucun
-                        <span className="bg-gradient-to-r from-rose-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
-                            {" "}
-                            hazır
-                        </span>
-                    </h1>
+                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/65 px-4 py-3 shadow-xl shadow-violet-500/5 backdrop-blur-2xl dark:border-violet-400/15 dark:bg-slate-950/45">
+                    <div className="flex flex-wrap gap-3">
+                        <NavButton label="Dashboard" onClick={() => router.push("/dashboard")} />
+                        <NavButton label="CV’lerim" onClick={() => router.push("/resumes")} />
+                        <NavButton
+                            label="Yeni Mülakat"
+                            onClick={() => router.push("/interviews/start")}
+                        />
+                        <NavButton
+                            label="Geçmiş Mülakatlar"
+                            onClick={() => router.push("/interviews/sessions")}
+                        />
+                        <NavButton
+                            label="AI Gelişim Planım"
+                            onClick={() => router.push("/study-plan")}
+                        />
+                        <NavButton label="Ayarlar" onClick={() => router.push("/settings")} />
 
-                    <p className="mx-auto mt-4 max-w-2xl leading-7 text-slate-600 dark:text-slate-300">
-                        Skorunu, güçlü yönlerini, gelişim alanlarını, AI koç raporunu ve kişisel çalışma önerilerini buradan inceleyebilirsin.
+                        <button
+                            onClick={handleLogout}
+                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-rose-600 transition hover:bg-white dark:bg-slate-800 dark:text-rose-300 dark:hover:bg-slate-700"
+                        >
+                            Çıkış Yap
+                        </button>
+                    </div>
+                </nav>
+
+                <section className="mt-8 rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
+                    <SectionTitle
+                        eyebrow="Genel Değerlendirme"
+                        title="AI koç genel yorumu"
+                        description="Bu bölüm oturumdaki genel performansını kısa ve anlaşılır şekilde özetler."
+                    />
+
+                    <p className="mt-5 rounded-3xl border border-white/70 bg-white/70 p-5 text-sm leading-7 text-slate-700 shadow-inner dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
+                        {result.generalEvaluation || "Genel değerlendirme bulunamadı."}
                     </p>
-
-                    <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
-                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 text-left shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-950/40">
-                            <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                Toplam Skor
-                            </p>
-
-                            <p className="mt-4 text-5xl font-black text-slate-950 dark:text-white">
-                                {result.totalScore ?? "-"}
-                            </p>
-
-                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                Genel mülakat performans puanın
-                            </p>
-                        </div>
-
-                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 text-left shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-950/40">
-                            <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                Hedef Pozisyon
-                            </p>
-
-                            <p className="mt-4 text-2xl font-black text-violet-600 dark:text-violet-300">
-                                {result.positionName}
-                            </p>
-
-                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                Bu oturumdaki hedef rolün
-                            </p>
-                        </div>
-
-                        <div className="rounded-3xl border border-white/70 bg-white/75 p-6 text-left shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-950/40">
-                            <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
-                                Oturum
-                            </p>
-
-                            <p className="mt-4 text-5xl font-black text-sky-600 dark:text-sky-300">
-                                #{result.sessionId}
-                            </p>
-
-                            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                Tamamlanan mülakat oturumu
-                            </p>
-                        </div>
-                    </div>
                 </section>
 
-                <section className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+                    <AreaCard
+                        title="Güçlü Alanlar"
+                        badge="Güçlü"
+                        items={strongAreas}
+                        emptyText="Henüz güçlü alan bulunamadı."
+                        tone="emerald"
+                    />
+
+                    <AreaCard
+                        title="Gelişim Alanları"
+                        badge="Geliştir"
+                        items={improvementAreas}
+                        emptyText="Henüz gelişim alanı bulunamadı."
+                        tone="rose"
+                    />
+
+                    <AreaCard
+                        title="Çalışma Önerileri"
+                        badge="Sonraki"
+                        items={studyRecommendations}
+                        emptyText="Henüz çalışma önerisi bulunamadı."
+                        tone="violet"
+                    />
+                </section>
+
+                <section className="mt-6 rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                                Kişisel Çalışma Planı
-                            </p>
-
-                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-                                Sonuçlarına göre önerilen adımlar
-                            </h2>
-
-                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                Geliştirmen gereken alanları küçük, uygulanabilir çalışma adımlarına böldük.
-                            </p>
-                        </div>
+                        <SectionTitle
+                            eyebrow="Kişisel Çalışma Planı"
+                            title="Sonuçlarına göre önerilen adımlar"
+                            description="Geliştirmen gereken alanları küçük, uygulanabilir çalışma adımlarına böldük."
+                        />
 
                         <button
                             onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white shadow transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                            className="shine-button rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 text-sm font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
                         >
                             Zayıf Alanlarda Tekrar Pratik Yap
                         </button>
                     </div>
 
                     <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                        <div className="rounded-3xl border border-white/70 bg-white/75 p-5 dark:border-slate-700 dark:bg-slate-950/40">
-                            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                                Odak Alanı
-                            </p>
+                        <PlanCard
+                            eyebrow="Odak Alanı"
+                            title={improvementAreas[0] ?? "Genel tekrar"}
+                            text="Bugünkü ana odağın bu alan olsun. Önce temel kavramları tekrar et, sonra kısa örnek cevaplar hazırla."
+                        />
 
-                            <h3 className="mt-3 text-xl font-black text-slate-950 dark:text-white">
-                                {result.improvementAreas && result.improvementAreas.length > 0
-                                    ? result.improvementAreas[0]
-                                    : "Genel tekrar"}
-                            </h3>
+                        <PlanCard
+                            eyebrow="20 Dakikalık Görev"
+                            title="Kısa tekrar yap"
+                            text="Zayıf olduğun alandan 3 temel kavram seç. Her biri için bir tanım, kullanım amacı ve küçük bir örnek yaz."
+                        />
 
-                            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                Bugünkü ana odağın bu alan olsun. Önce temel kavramları tekrar et, sonra kısa örnek cevaplar hazırla.
-                            </p>
-                        </div>
-
-                        <div className="rounded-3xl border border-white/70 bg-white/75 p-5 dark:border-slate-700 dark:bg-slate-950/40">
-                            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                                20 Dakikalık Görev
-                            </p>
-
-                            <h3 className="mt-3 text-xl font-black text-slate-950 dark:text-white">
-                                Kısa tekrar yap
-                            </h3>
-
-                            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                Zayıf olduğun alandan 3 temel kavram seç. Her biri için bir tanım, kullanım amacı ve küçük bir örnek yaz.
-                            </p>
-                        </div>
-
-                        <div className="rounded-3xl border border-white/70 bg-white/75 p-5 dark:border-slate-700 dark:bg-slate-950/40">
-                            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                                Pratik Yöntemi
-                            </p>
-
-                            <h3 className="mt-3 text-xl font-black text-slate-950 dark:text-white">
-                                Sesli cevap pratiği
-                            </h3>
-
-                            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                Cevaplarını STAR veya tanım-amaç-örnek yapısıyla sesli anlat. Kısa, net ve örnekli cevap vermeye çalış.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 rounded-3xl border border-emerald-100 bg-emerald-50/80 p-5 dark:border-emerald-400/20 dark:bg-emerald-400/10">
-                        <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
-                            Önerilen Çalışma Adımları
-                        </p>
-
-                        <div className="mt-4 space-y-3">
-                            {result.studyRecommendations && result.studyRecommendations.length > 0 ? (
-                                result.studyRecommendations.map((recommendation, index) => (
-                                    <div
-                                        key={`${recommendation}-${index}`}
-                                        className="flex gap-3 rounded-2xl bg-white/70 p-4 dark:bg-slate-950/40"
-                                    >
-                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-black text-white dark:bg-emerald-300 dark:text-slate-950">
-                                            {index + 1}
-                                        </span>
-
-                                        <p className="text-sm leading-6 text-emerald-950 dark:text-emerald-100">
-                                            {recommendation}
-                                        </p>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-sm leading-6 text-emerald-950 dark:text-emerald-100">
-                                    Genel performansın iyi görünüyor. Yine de cevaplarını daha fazla örnek ve teknik detayla güçlendirebilirsin.
-                                </p>
-                            )}
-                        </div>
+                        <PlanCard
+                            eyebrow="Pratik Yöntemi"
+                            title="Sesli cevap pratiği"
+                            text="Cevaplarını STAR veya tanım-amaç-örnek yapısıyla sesli anlat. Kısa, net ve örnekli cevap vermeye çalış."
+                        />
                     </div>
                 </section>
 
-                <section className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                    <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                        Genel Değerlendirme
-                    </p>
-
-                    <p className="mt-4 leading-7 text-slate-700 dark:text-slate-300">
-                        {result.generalEvaluation}
-                    </p>
-                </section>
-
-                <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-                    <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                                Güçlü Alanlar
-                            </h2>
-
-                            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
-                                Güçlü
-                            </span>
-                        </div>
-
-                        <div className="mt-5 space-y-3">
-                            {result.strongAreas.length === 0 ? (
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    Henüz güçlü alan bulunamadı.
-                                </p>
-                            ) : (
-                                result.strongAreas.map((area) => (
-                                    <div
-                                        key={area}
-                                        className="rounded-2xl border border-white/70 bg-white/75 p-4 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-200"
-                                    >
-                                        {area}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                                Gelişim Alanları
-                            </h2>
-
-                            <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-600 dark:bg-rose-400/10 dark:text-rose-300">
-                                Geliştir
-                            </span>
-                        </div>
-
-                        <div className="mt-5 space-y-3">
-                            {result.improvementAreas.length === 0 ? (
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    Henüz gelişim alanı bulunamadı.
-                                </p>
-                            ) : (
-                                result.improvementAreas.map((area) => (
-                                    <div
-                                        key={area}
-                                        className="rounded-2xl border border-white/70 bg-white/75 p-4 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-200"
-                                    >
-                                        {area}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                                Çalışma Önerileri
-                            </h2>
-
-                            <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
-                                Sonraki
-                            </span>
-                        </div>
-
-                        <div className="mt-5 space-y-3">
-                            {result.studyRecommendations.length === 0 ? (
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    Henüz çalışma önerisi bulunamadı.
-                                </p>
-                            ) : (
-                                result.studyRecommendations.map((recommendation) => (
-                                    <div
-                                        key={recommendation}
-                                        className="rounded-2xl border border-white/70 bg-white/75 p-4 text-sm font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-200"
-                                    >
-                                        {recommendation}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-                </section>
-
-                <section className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div>
-                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                                Kategori Performansı
-                            </p>
-
-                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-                                Mülakat kategorilerine göre skor
-                            </h2>
-                        </div>
-                    </div>
+                <section className="mt-6 rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
+                    <SectionTitle
+                        eyebrow="Kategori Performansı"
+                        title="Mülakat kategorilerine göre skor"
+                        description="Hangi alanda daha güçlü olduğunu ve hangi alanı tekrar etmen gerektiğini buradan görebilirsin."
+                    />
 
                     <div className="mt-6 space-y-4">
-                        {result.categoryPerformances.length === 0 ? (
+                        {categoryPerformances.length === 0 ? (
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                                 Henüz kategori performansı bulunamadı.
                             </p>
                         ) : (
-                            result.categoryPerformances.map((category) => (
+                            categoryPerformances.map((category) => (
                                 <div
                                     key={category.category}
-                                    className="rounded-2xl border border-white/70 bg-white/75 p-5 dark:border-slate-700 dark:bg-slate-950/40"
+                                    className="rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-950/40"
                                 >
-                                    <div className="flex justify-between text-sm font-bold text-slate-700 dark:text-slate-200">
+                                    <div className="flex justify-between text-sm font-black text-slate-700 dark:text-slate-200">
                                         <span>{category.category}</span>
-                                        <span>{category.averageScore}</span>
+                                        <span>{category.averageScore}/100</span>
                                     </div>
 
-                                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
                                         <div
-                                            className="h-full rounded-full bg-gradient-to-r from-pink-500 to-violet-500"
-                                            style={{ width: `${category.averageScore}%` }}
+                                            className="h-full rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500"
+                                            style={{
+                                                width: `${Math.min(
+                                                    100,
+                                                    Math.max(0, category.averageScore)
+                                                )}%`,
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -429,185 +388,21 @@ export default function InterviewResultPage() {
                     </div>
                 </section>
 
-                <section className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                                Soru Analizi
-                            </p>
+                <section className="mt-6 rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
+                    <SectionTitle
+                        eyebrow="Soru Analizi"
+                        title="Cevaplarının detaylı incelemesi"
+                        description="Her soru için cevabını, skorunu, feedback’i, güçlü yönleri ve daha iyi cevap örneğini inceleyebilirsin."
+                    />
 
-                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-                                Cevaplarının detaylı incelemesi
-                            </h2>
-
-                            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                                Her soru için cevabını, skorunu ve AI koç raporunu buradan inceleyebilirsin.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 space-y-4">
-                        {result.questions && result.questions.length > 0 ? (
-                            result.questions.map((question, index) => (
-                                <div
+                    <div className="mt-6 space-y-5">
+                        {questions.length > 0 ? (
+                            questions.map((question, index) => (
+                                <QuestionAnalysisCard
                                     key={question.questionId}
-                                    className="rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-950/40"
-                                >
-                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                        <div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white dark:bg-white dark:text-slate-950">
-                                                    Soru {index + 1}
-                                                </span>
-
-                                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                                                    {question.category}
-                                                </span>
-
-                                                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                                                    {question.difficulty}
-                                                </span>
-                                            </div>
-
-                                            <h3 className="mt-4 text-lg font-black text-slate-950 dark:text-white">
-                                                {question.questionText}
-                                            </h3>
-                                        </div>
-
-                                        <div className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-white dark:bg-white dark:text-slate-950">
-                                            <p className="text-xs font-bold opacity-70">Skor</p>
-                                            <p className="text-2xl font-black">
-                                                {question.score ?? "-"}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-left dark:bg-slate-900">
-                                        <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                                            Cevabın
-                                        </p>
-
-                                        <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-700 dark:text-slate-300">
-                                            {question.userAnswer && question.userAnswer.trim().length > 0
-                                                ? question.userAnswer
-                                                : "Bu soru için cevap bulunmuyor."}
-                                        </p>
-                                    </div>
-
-                                    {(question.feedback ||
-                                        question.strongPoints?.length > 0 ||
-                                        question.improvementPoints?.length > 0 ||
-                                        question.betterAnswerExample) && (
-                                        <div className="mt-6 rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 p-6 text-left shadow-sm dark:border-violet-400/20 dark:from-violet-950/30 dark:via-slate-950/70 dark:to-fuchsia-950/20">
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div>
-                                                    <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-700 dark:text-violet-300">
-                                                        AI Koç Raporu
-                                                    </p>
-
-                                                    <h4 className="mt-2 text-lg font-black text-slate-950 dark:text-white">
-                                                        Bu cevaba özel değerlendirme
-                                                    </h4>
-
-                                                    <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                        Geri bildirim, güçlü yönler, gelişim alanları ve daha iyi cevap örneği bu raporda özetlenir.
-                                                    </p>
-                                                </div>
-
-                                                <div className="hidden rounded-2xl bg-violet-100 px-3 py-2 text-xs font-black text-violet-700 dark:bg-violet-400/10 dark:text-violet-300 md:block">
-                                                    AI
-                                                </div>
-                                            </div>
-
-                                            {question.feedback && (
-                                                <div className="mt-5 rounded-2xl border border-white/80 bg-white/80 p-4 dark:border-slate-700 dark:bg-slate-900/80">
-                                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                                                        Geri Bildirim
-                                                    </p>
-
-                                                    <p className="mt-2 text-sm leading-7 text-slate-800 dark:text-slate-300">
-                                                        {question.feedback}
-                                                    </p>
-                                                </div>
-                                            )}
-
-                                            {(question.strongPoints?.length > 0 ||
-                                                question.improvementPoints?.length > 0) && (
-                                                <div className="mt-4 grid gap-4 md:grid-cols-2">
-                                                    {question.strongPoints?.length > 0 && (
-                                                        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4 dark:border-emerald-400/20 dark:bg-emerald-400/10">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-300 dark:text-slate-950">
-                                                                    ✓
-                                                                </div>
-
-                                                                <div>
-                                                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
-                                                                        Güçlü Yönler
-                                                                    </p>
-
-                                                                    <p className="mt-1 text-xs text-emerald-900/70 dark:text-emerald-100">
-                                                                        Cevabında iyi olan noktalar
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-
-                                                            <ul className="mt-4 space-y-3 text-sm leading-6 text-emerald-950 dark:text-emerald-100">
-                                                                {question.strongPoints.map((point, pointIndex) => (
-                                                                    <li key={pointIndex} className="flex gap-3">
-                                                                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
-                                                                        <span>{point}</span>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                    )}
-
-                                                    {question.improvementPoints?.length > 0 && (
-                                                        <div className="rounded-2xl border border-amber-100 bg-amber-50/80 p-4 dark:border-amber-400/20 dark:bg-amber-400/10">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-300 dark:text-slate-950">
-                                                                    !
-                                                                </div>
-
-                                                                <div>
-                                                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
-                                                                        Gelişim Alanları
-                                                                    </p>
-
-                                                                    <p className="mt-1 text-xs text-amber-900/70 dark:text-amber-100">
-                                                                        Bir sonraki cevapta geliştirebileceğin noktalar
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-
-                                                            <ul className="mt-4 space-y-3 text-sm leading-6 text-amber-950 dark:text-amber-100">
-                                                                {question.improvementPoints.map((point, pointIndex) => (
-                                                                    <li key={pointIndex} className="flex gap-3">
-                                                                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-amber-500" />
-                                                                        <span>{point}</span>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {question.betterAnswerExample && (
-                                                <div className="mt-4 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 dark:border-indigo-400/20 dark:bg-indigo-400/10">
-                                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-700 dark:text-indigo-300">
-                                                        Daha Güçlü Cevap Örneği
-                                                    </p>
-
-                                                    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-indigo-950 dark:text-indigo-100">
-                                                        {question.betterAnswerExample}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
+                                    index={index}
+                                    question={question}
+                                />
                             ))
                         ) : (
                             <div className="rounded-3xl border border-dashed border-slate-300 bg-white/60 p-6 text-center dark:border-slate-700 dark:bg-slate-900/60">
@@ -619,18 +414,18 @@ export default function InterviewResultPage() {
                     </div>
                 </section>
 
-                <section className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                <section className="mt-6 rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
                     <div className="flex flex-col justify-center gap-3 sm:flex-row">
                         <button
                             onClick={() => router.push("/dashboard")}
-                            className="rounded-full bg-slate-950 px-6 py-3 font-bold text-white transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                            className="shine-button rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
                         >
                             Dashboard’a Dön
                         </button>
 
                         <button
                             onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-white px-6 py-3 font-bold text-slate-700 shadow transition hover:scale-105 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                            className="rounded-full border border-violet-200 bg-white/85 px-6 py-3 font-black text-violet-700 shadow-lg transition hover:scale-105 hover:bg-violet-50 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-200 dark:hover:bg-violet-400/20"
                         >
                             Yeni Mülakat Başlat
                         </button>
@@ -641,6 +436,333 @@ export default function InterviewResultPage() {
                     </p>
                 </section>
             </div>
+        </PageShell>
+    );
+}
+
+function PageShell({
+    children,
+    center = false,
+}: {
+    children: React.ReactNode;
+    center?: boolean;
+}) {
+    return (
+        <main
+            className={`neon-lab-bg relative min-h-screen overflow-hidden px-4 py-8 text-slate-900 dark:text-slate-100 md:px-6 ${center ? "flex items-center justify-center" : ""
+                }`}
+        >
+            <div className="lab-grid absolute inset-0" />
+            <div className="lab-noise absolute inset-0" />
+            <div className="lab-scanline" />
+            <div className="lab-vignette absolute inset-0" />
+
+            <div className="neon-orb absolute -left-20 top-0 h-[30rem] w-[30rem] rounded-full bg-pink-300/28 blur-[120px] dark:bg-pink-500/18" />
+            <div className="neon-orb-reverse absolute -right-24 top-16 h-[34rem] w-[34rem] rounded-full bg-violet-300/28 blur-[130px] dark:bg-violet-500/18" />
+            <div className="absolute left-1/2 top-[38%] h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-sky-300/16 blur-[150px] dark:bg-sky-500/12" />
+            <div className="absolute bottom-0 left-[12%] h-80 w-80 rounded-full bg-cyan-300/18 blur-[120px] dark:bg-cyan-500/10" />
+            <div className="absolute bottom-8 right-[10%] h-72 w-72 rounded-full bg-fuchsia-200/22 blur-[110px] dark:bg-fuchsia-500/12" />
+
+            {children}
         </main>
+    );
+}
+
+function NavButton({
+    label,
+    onClick,
+}: {
+    label: string;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+        >
+            {label}
+        </button>
+    );
+}
+
+function HeroMetric({
+    value,
+    label,
+}: {
+    value: string | number;
+    label: string;
+}) {
+    return (
+        <div className="rounded-3xl border border-white/70 bg-white/70 p-4 text-center shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/40">
+            <p className="text-2xl font-black text-slate-950 dark:text-white">
+                {value}
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {label}
+            </p>
+        </div>
+    );
+}
+
+function MiniInfo({
+    label,
+    value,
+}: {
+    label: string;
+    value: string;
+}) {
+    return (
+        <div className="rounded-3xl border border-white/60 bg-white/70 p-4 shadow-inner dark:border-slate-700 dark:bg-slate-900/70">
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                {label}
+            </p>
+
+            <p className="mt-1 text-sm font-bold leading-6 text-slate-800 dark:text-slate-100">
+                {value}
+            </p>
+        </div>
+    );
+}
+
+function SectionTitle({
+    eyebrow,
+    title,
+    description,
+}: {
+    eyebrow: string;
+    title: string;
+    description: string;
+}) {
+    return (
+        <div>
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                {eyebrow}
+            </p>
+
+            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                {title}
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                {description}
+            </p>
+        </div>
+    );
+}
+
+function PlanCard({
+    eyebrow,
+    title,
+    text,
+}: {
+    eyebrow: string;
+    title: string;
+    text: string;
+}) {
+    return (
+        <div className="rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-950/40">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                {eyebrow}
+            </p>
+
+            <h3 className="mt-3 text-xl font-black text-slate-950 dark:text-white">
+                {title}
+            </h3>
+
+            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                {text}
+            </p>
+        </div>
+    );
+}
+
+function AreaCard({
+    title,
+    badge,
+    items,
+    emptyText,
+    tone,
+}: {
+    title: string;
+    badge: string;
+    items: string[];
+    emptyText: string;
+    tone: "emerald" | "rose" | "violet";
+}) {
+    const badgeClass =
+        tone === "emerald"
+            ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300"
+            : tone === "rose"
+                ? "bg-rose-100 text-rose-600 dark:bg-rose-400/10 dark:text-rose-300"
+                : "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300";
+
+    return (
+        <div className="rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-black text-slate-950 dark:text-white">
+                    {title}
+                </h2>
+
+                <span className={`rounded-full px-3 py-1 text-xs font-black ${badgeClass}`}>
+                    {badge}
+                </span>
+            </div>
+
+            <div className="mt-5 space-y-3">
+                {items.length === 0 ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {emptyText}
+                    </p>
+                ) : (
+                    items.map((item, index) => (
+                        <div
+                            key={`${item}-${index}`}
+                            className="rounded-2xl border border-white/70 bg-white/75 p-4 text-sm font-bold leading-6 text-slate-700 dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-200"
+                        >
+                            {item}
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+}
+
+function QuestionAnalysisCard({
+    index,
+    question,
+}: {
+    index: number;
+    question: InterviewResultQuestion;
+}) {
+    return (
+        <div className="rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-950/40">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white dark:bg-white dark:text-slate-950">
+                            Soru {index + 1}
+                        </span>
+
+                        <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-700 dark:bg-violet-400/10 dark:text-violet-300">
+                            {question.category}
+                        </span>
+
+                        <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-700 dark:bg-sky-400/10 dark:text-sky-300">
+                            {question.difficulty}
+                        </span>
+                    </div>
+
+                    <h3 className="mt-4 text-lg font-black leading-7 text-slate-950 dark:text-white">
+                        {question.questionText}
+                    </h3>
+                </div>
+
+                <div className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-white dark:bg-white dark:text-slate-950">
+                    <p className="text-xs font-bold opacity-70">Skor</p>
+                    <p className="text-2xl font-black">{question.score ?? "-"}</p>
+                </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-left dark:bg-slate-900">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                    Cevabın
+                </p>
+
+                <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-700 dark:text-slate-300">
+                    {question.userAnswer && question.userAnswer.trim().length > 0
+                        ? question.userAnswer
+                        : "Bu soru için cevap bulunmuyor."}
+                </p>
+            </div>
+
+            {question.feedback && (
+                <div className="mt-5 rounded-2xl border border-violet-100 bg-violet-50/80 p-4 dark:border-violet-400/20 dark:bg-violet-400/10">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-700 dark:text-violet-300">
+                        AI Geri Bildirim
+                    </p>
+
+                    <p className="mt-2 text-sm leading-7 text-violet-950 dark:text-violet-100">
+                        {question.feedback}
+                    </p>
+                </div>
+            )}
+
+            {(question.strongPoints?.length > 0 ||
+                question.improvementPoints?.length > 0) && (
+                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+                        {question.strongPoints?.length > 0 && (
+                            <PointList
+                                title="Güçlü Yönler"
+                                points={question.strongPoints}
+                                tone="emerald"
+                            />
+                        )}
+
+                        {question.improvementPoints?.length > 0 && (
+                            <PointList
+                                title="Gelişim Alanları"
+                                points={question.improvementPoints}
+                                tone="amber"
+                            />
+                        )}
+                    </div>
+                )}
+
+            {question.betterAnswerExample && (
+                <div className="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 dark:border-indigo-400/20 dark:bg-indigo-400/10">
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-700 dark:text-indigo-300">
+                        Daha Güçlü Cevap Örneği
+                    </p>
+
+                    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-indigo-950 dark:text-indigo-100">
+                        {question.betterAnswerExample}
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function PointList({
+    title,
+    points,
+    tone,
+}: {
+    title: string;
+    points: string[];
+    tone: "emerald" | "amber";
+}) {
+    const wrapperClass =
+        tone === "emerald"
+            ? "border-emerald-100 bg-emerald-50/80 dark:border-emerald-400/20 dark:bg-emerald-400/10"
+            : "border-amber-100 bg-amber-50/80 dark:border-amber-400/20 dark:bg-amber-400/10";
+
+    const textClass =
+        tone === "emerald"
+            ? "text-emerald-950 dark:text-emerald-100"
+            : "text-amber-950 dark:text-amber-100";
+
+    const titleClass =
+        tone === "emerald"
+            ? "text-emerald-700 dark:text-emerald-300"
+            : "text-amber-700 dark:text-amber-300";
+
+    return (
+        <div className={`rounded-2xl border p-4 ${wrapperClass}`}>
+            <p className={`text-xs font-black uppercase tracking-[0.18em] ${titleClass}`}>
+                {title}
+            </p>
+
+            <ul className={`mt-3 space-y-2 text-sm leading-6 ${textClass}`}>
+                {points.map((point, index) => (
+                    <li key={`${point}-${index}`} className="flex gap-2">
+                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-current" />
+                        <span>{point}</span>
+                    </li>
+                ))}
+            </ul>
+        </div>
     );
 }
