@@ -1,7 +1,4 @@
-﻿// id klasörünün köşeli parantezli olma sebebi Next.js'te dinamik route olmasıdır.
-// Bu sayede CV id'si değiştiğinde hangi CV için işlem yapıldığı URL üzerinden anlaşılır.
-
-"use client";
+﻿"use client";
 
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -54,7 +51,9 @@ export default function ResumeAnalysisPage() {
             }
         }
 
-        void loadAnalysis();
+        if (resumeId) {
+            void loadAnalysis();
+        }
     }, [resumeId, router]);
 
     const handleLogout = () => {
@@ -64,9 +63,9 @@ export default function ResumeAnalysisPage() {
 
     if (isLoading) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
-                <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
-                    <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+            <PageShell center>
+                <div className="relative z-10 rounded-3xl border border-white/70 bg-white/[0.76] px-8 py-6 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60">
+                    <p className="text-lg font-black text-slate-700 dark:text-slate-100">
                         CV analizi yükleniyor...
                     </p>
 
@@ -74,42 +73,64 @@ export default function ResumeAnalysisPage() {
                         Becerilerin ve önerilen roller hazırlanıyor.
                     </p>
                 </div>
-            </main>
+            </PageShell>
         );
     }
 
     if (message) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
-                <div className="w-full max-w-md rounded-3xl border border-white/70 bg-white/80 p-8 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
-                    <h2 className="text-2xl font-black text-slate-950 dark:text-white">
+            <PageShell center>
+                <div className="relative z-10 w-full max-w-md overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.76] p-8 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60">
+                    <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-400/25 blur-3xl" />
+                    <div className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-pink-400/20 blur-3xl" />
+
+                    <h2 className="relative z-10 text-2xl font-black text-slate-950 dark:text-white">
                         Analiz yüklenemedi
                     </h2>
 
-                    <p className="mt-3 text-rose-600 dark:text-rose-300">
+                    <p className="relative z-10 mt-3 text-sm font-semibold leading-6 text-rose-600 dark:text-rose-300">
                         {message}
                     </p>
 
                     <button
                         onClick={() => router.push("/resumes")}
-                        className="mt-6 rounded-full bg-slate-950 px-6 py-3 font-bold text-white transition hover:scale-105 hover:bg-slate-700 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"
+                        className="shine-button relative z-10 mt-6 rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
                     >
                         CV’lerime Dön
                     </button>
                 </div>
-            </main>
+            </PageShell>
         );
     }
 
-    return (
-        <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 py-8 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-slate-100 md:px-6">
-            <div className="absolute left-8 top-8 h-44 w-44 rounded-full bg-pink-300/30 blur-3xl dark:bg-pink-500/10" />
-            <div className="absolute right-10 top-24 h-56 w-56 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
-            <div className="absolute bottom-10 left-1/4 h-52 w-52 rounded-full bg-cyan-300/25 blur-3xl dark:bg-cyan-500/10" />
+    if (!analysis) {
+        return (
+            <PageShell center>
+                <div className="relative z-10 rounded-3xl border border-white/70 bg-white/[0.76] p-8 text-center shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/60">
+                    <h1 className="text-2xl font-black text-slate-950 dark:text-white">
+                        Analiz bilgisi bulunamadı.
+                    </h1>
 
+                    <button
+                        onClick={() => router.push("/resumes")}
+                        className="shine-button mt-6 rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
+                    >
+                        CV’lerime Dön
+                    </button>
+                </div>
+            </PageShell>
+        );
+    }
+
+    const detectedSkills = analysis.detectedSkills ?? [];
+    const missingSkills = analysis.missingSkills ?? [];
+    const suggestedPositions = analysis.suggestedPositions ?? [];
+
+    return (
+        <PageShell>
             <div className="relative z-10 mx-auto max-w-7xl">
-                <header className="rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/70 md:p-8">
-                    <div className="flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+                <header className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.72] p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/55 md:p-8">
+                    <div className="grid grid-cols-1 items-center gap-8 xl:grid-cols-[1.1fr_0.9fr]">
                         <div>
                             <div className="flex flex-wrap items-center gap-3">
                                 <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-200">
@@ -134,46 +155,53 @@ export default function ResumeAnalysisPage() {
                                 pozisyon önerilerini burada görebilirsin. Bu analiz, CV odaklı
                                 mülakat sorularını daha kişisel hale getirir.
                             </p>
+
+                            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <HeroMetric
+                                    value={detectedSkills.length}
+                                    label="tespit edilen beceri"
+                                />
+
+                                <HeroMetric
+                                    value={missingSkills.length}
+                                    label="gelişim alanı"
+                                />
+
+                                <HeroMetric
+                                    value={suggestedPositions.length}
+                                    label="önerilen rol"
+                                />
+                            </div>
                         </div>
 
-                        <div className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-xl dark:border-slate-700 dark:bg-slate-950/40">
-                            <p className="text-sm font-black text-slate-700 dark:text-slate-200">
+                        <div className="float-card relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/65 p-6 shadow-2xl shadow-violet-500/20 backdrop-blur-2xl dark:border-violet-400/25 dark:bg-slate-950/60 dark:shadow-violet-500/10">
+                            <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-violet-400/25 blur-3xl" />
+                            <div className="absolute -bottom-20 -left-16 h-44 w-44 rounded-full bg-pink-400/20 blur-3xl" />
+
+                            <p className="relative z-10 text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                 Analiz Özeti
                             </p>
 
-                            <p className="mt-4 text-5xl font-black text-slate-950 dark:text-white">
-                                {analysis?.detectedSkills.length ?? 0}
+                            <p className="relative z-10 mt-5 text-6xl font-black text-slate-950 dark:text-white">
+                                {detectedSkills.length}
                             </p>
 
-                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            <p className="relative z-10 mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                                 tespit edilen teknik beceri
                             </p>
 
-                            <div className="mt-5 grid grid-cols-3 gap-2">
-                                <div className="rounded-2xl bg-rose-100 px-3 py-3 text-center text-xs font-black text-rose-600 dark:bg-rose-400/10 dark:text-rose-300">
-                                    Beceri
-                                </div>
-
-                                <div className="rounded-2xl bg-violet-100 px-3 py-3 text-center text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
-                                    Rol
-                                </div>
-
-                                <div className="rounded-2xl bg-sky-100 px-3 py-3 text-center text-xs font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
-                                    Öneri
-                                </div>
+                            <div className="relative z-10 mt-6 grid grid-cols-3 gap-2">
+                                <MiniLabel label="Beceri" tone="rose" />
+                                <MiniLabel label="Rol" tone="violet" />
+                                <MiniLabel label="Öneri" tone="sky" />
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/70 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                <nav className="mt-5 rounded-3xl border border-white/70 bg-white/65 px-4 py-3 shadow-xl shadow-violet-500/5 backdrop-blur-2xl dark:border-violet-400/15 dark:bg-slate-950/45">
                     <div className="flex flex-wrap gap-3">
-                        <button
-                            onClick={() => router.push("/dashboard")}
-                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                        >
-                            Dashboard
-                        </button>
+                        <NavButton label="Dashboard" onClick={() => router.push("/dashboard")} />
 
                         <button
                             onClick={() => router.push("/resumes")}
@@ -182,19 +210,22 @@ export default function ResumeAnalysisPage() {
                             CV’lerim
                         </button>
 
-                        <button
+                        <NavButton
+                            label="Yeni Mülakat"
                             onClick={() => router.push("/interviews/start")}
-                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                        >
-                            Yeni Mülakat
-                        </button>
+                        />
 
-                        <button
+                        <NavButton
+                            label="Geçmiş Mülakatlar"
                             onClick={() => router.push("/interviews/sessions")}
-                            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                        >
-                            Geçmiş Mülakatlar
-                        </button>
+                        />
+
+                        <NavButton
+                            label="AI Gelişim Planım"
+                            onClick={() => router.push("/study-plan")}
+                        />
+
+                        <NavButton label="Ayarlar" onClick={() => router.push("/settings")} />
 
                         <button
                             onClick={handleLogout}
@@ -205,139 +236,232 @@ export default function ResumeAnalysisPage() {
                     </div>
                 </nav>
 
-                {analysis && (
-                    <>
-                        <section className="mt-8 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                                Dosya
-                            </p>
+                <section className="mt-8 rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
+                    <SectionTitle
+                        eyebrow="Dosya"
+                        title={analysis.fileName}
+                        description="CV içeriğinden çıkarılan kısa özet ve analiz bilgileri."
+                    />
 
-                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-                                {analysis.fileName}
-                            </h2>
+                    <p className="mt-5 rounded-3xl border border-white/70 bg-white/70 p-5 text-sm leading-7 text-slate-700 shadow-inner dark:border-slate-700 dark:bg-slate-950/40 dark:text-slate-300">
+                        {analysis.summary || "CV özeti bulunamadı."}
+                    </p>
+                </section>
 
-                            <p className="mt-3 leading-7 text-slate-600 dark:text-slate-300">
-                                {analysis.summary}
-                            </p>
-                        </section>
+                <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+                    <AnalysisCard
+                        title="Tespit Edilen Beceriler"
+                        badge="Bulundu"
+                        items={detectedSkills}
+                        emptyText="Teknik beceri tespit edilemedi."
+                        tone="emerald"
+                    />
 
-                        <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                                <div className="flex items-center justify-between gap-3">
-                                    <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                                        Tespit Edilen Beceriler
-                                    </h2>
+                    <AnalysisCard
+                        title="Eksik Görünen Beceriler"
+                        badge="Geliştir"
+                        items={missingSkills}
+                        emptyText="Eksik beceri bulunamadı."
+                        tone="rose"
+                    />
 
-                                    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
-                                        Bulundu
-                                    </span>
-                                </div>
+                    <AnalysisCard
+                        title="Önerilen Pozisyonlar"
+                        badge="Uyum"
+                        items={suggestedPositions}
+                        emptyText="Önerilen pozisyon bulunamadı."
+                        tone="violet"
+                    />
+                </section>
 
-                                <div className="mt-5 flex flex-wrap gap-2">
-                                    {analysis.detectedSkills.length === 0 ? (
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            Teknik beceri tespit edilemedi.
-                                        </p>
-                                    ) : (
-                                        analysis.detectedSkills.map((skill) => (
-                                            <span
-                                                key={skill}
-                                                className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-black text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300"
-                                            >
-                                                {skill}
-                                            </span>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
+                <section className="mt-6 rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <SectionTitle
+                            eyebrow="Sonraki Adım"
+                            title="CV odaklı mülakat pratiği başlat"
+                            description="Bu CV’yi kullanarak tespit edilen becerilerine ve önerilen rollere göre daha kişisel mülakat soruları oluşturabilirsin."
+                        />
 
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                                <div className="flex items-center justify-between gap-3">
-                                    <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                                        Eksik Görünen Beceriler
-                                    </h2>
+                        <button
+                            onClick={() => router.push(`/interviews/start?resumeId=${resumeId}`)}
+                            className="shine-button rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
+                        >
+                            Bu CV ile Mülakat Başlat
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </PageShell>
+    );
+}
 
-                                    <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-600 dark:bg-rose-400/10 dark:text-rose-300">
-                                        Geliştir
-                                    </span>
-                                </div>
+function PageShell({
+    children,
+    center = false,
+}: {
+    children: React.ReactNode;
+    center?: boolean;
+}) {
+    return (
+        <main
+            className={`neon-lab-bg relative min-h-screen overflow-hidden px-4 py-8 text-slate-900 dark:text-slate-100 md:px-6 ${center ? "flex items-center justify-center" : ""
+                }`}
+        >
+            <div className="lab-grid absolute inset-0" />
+            <div className="lab-noise absolute inset-0" />
+            <div className="lab-scanline" />
+            <div className="lab-vignette absolute inset-0" />
 
-                                <div className="mt-5 flex flex-wrap gap-2">
-                                    {analysis.missingSkills.length === 0 ? (
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            Eksik beceri bulunamadı.
-                                        </p>
-                                    ) : (
-                                        analysis.missingSkills.map((skill) => (
-                                            <span
-                                                key={skill}
-                                                className="rounded-full bg-rose-100 px-4 py-2 text-sm font-black text-rose-700 dark:bg-rose-400/10 dark:text-rose-300"
-                                            >
-                                                {skill}
-                                            </span>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
+            <div className="neon-orb absolute -left-20 top-0 h-[30rem] w-[30rem] rounded-full bg-pink-300/28 blur-[120px] dark:bg-pink-500/18" />
+            <div className="neon-orb-reverse absolute -right-24 top-16 h-[34rem] w-[34rem] rounded-full bg-violet-300/28 blur-[130px] dark:bg-violet-500/18" />
+            <div className="absolute left-1/2 top-[38%] h-[32rem] w-[32rem] -translate-x-1/2 rounded-full bg-sky-300/16 blur-[150px] dark:bg-sky-500/12" />
+            <div className="absolute bottom-0 left-[12%] h-80 w-80 rounded-full bg-cyan-300/18 blur-[120px] dark:bg-cyan-500/10" />
+            <div className="absolute bottom-8 right-[10%] h-72 w-72 rounded-full bg-fuchsia-200/22 blur-[110px] dark:bg-fuchsia-500/12" />
 
-                            <div className="rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                                <div className="flex items-center justify-between gap-3">
-                                    <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                                        Önerilen Pozisyonlar
-                                    </h2>
+            {children}
+        </main>
+    );
+}
 
-                                    <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
-                                        Uyum
-                                    </span>
-                                </div>
+function NavButton({
+    label,
+    onClick,
+}: {
+    label: string;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className="rounded-full bg-white/80 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+        >
+            {label}
+        </button>
+    );
+}
 
-                                <div className="mt-5 flex flex-wrap gap-2">
-                                    {analysis.suggestedPositions.length === 0 ? (
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            Önerilen pozisyon bulunamadı.
-                                        </p>
-                                    ) : (
-                                        analysis.suggestedPositions.map((position) => (
-                                            <span
-                                                key={position}
-                                                className="rounded-full bg-violet-100 px-4 py-2 text-sm font-black text-violet-700 dark:bg-violet-400/10 dark:text-violet-300"
-                                            >
-                                                {position}
-                                            </span>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </section>
+function HeroMetric({
+    value,
+    label,
+}: {
+    value: string | number;
+    label: string;
+}) {
+    return (
+        <div className="rounded-3xl border border-white/70 bg-white/70 p-4 text-center shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-950/40">
+            <p className="text-2xl font-black text-slate-950 dark:text-white">
+                {value}
+            </p>
 
-                        <section className="mt-6 rounded-3xl border border-white/70 bg-white/75 p-6 shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                                <div>
-                                    <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                                        Sonraki Adım
-                                    </p>
+            <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {label}
+            </p>
+        </div>
+    );
+}
 
-                                    <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-                                        CV odaklı mülakat pratiği başlat
-                                    </h2>
+function MiniLabel({
+    label,
+    tone,
+}: {
+    label: string;
+    tone: "rose" | "violet" | "sky";
+}) {
+    const toneClass =
+        tone === "rose"
+            ? "bg-rose-100 text-rose-600 dark:bg-rose-400/10 dark:text-rose-300"
+            : tone === "violet"
+                ? "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300"
+                : "bg-sky-100 text-sky-600 dark:bg-sky-400/10 dark:text-sky-300";
 
-                                    <p className="mt-2 max-w-3xl leading-7 text-slate-600 dark:text-slate-300">
-                                        Bu CV’yi kullanarak tespit edilen becerilerine ve önerilen rollere göre
-                                        daha kişisel mülakat soruları oluşturabilirsin.
-                                    </p>
-                                </div>
+    return (
+        <div className={`rounded-2xl px-3 py-3 text-center text-xs font-black ${toneClass}`}>
+            {label}
+        </div>
+    );
+}
 
-                                <button
-                                    onClick={() => router.push("/interviews/start")}
-                                    className="rounded-full bg-gradient-to-r from-pink-500 to-violet-500 px-6 py-3 font-black text-white shadow transition hover:scale-105"
-                                >
-                                    Mülakat Pratiği Başlat
-                                </button>
-                            </div>
-                        </section>
-                    </>
+function SectionTitle({
+    eyebrow,
+    title,
+    description,
+}: {
+    eyebrow: string;
+    title: string;
+    description: string;
+}) {
+    return (
+        <div>
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                {eyebrow}
+            </p>
+
+            <h2 className="mt-3 break-words text-2xl font-black text-slate-950 dark:text-white">
+                {title}
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                {description}
+            </p>
+        </div>
+    );
+}
+
+function AnalysisCard({
+    title,
+    badge,
+    items,
+    emptyText,
+    tone,
+}: {
+    title: string;
+    badge: string;
+    items: string[];
+    emptyText: string;
+    tone: "emerald" | "rose" | "violet";
+}) {
+    const badgeClass =
+        tone === "emerald"
+            ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300"
+            : tone === "rose"
+                ? "bg-rose-100 text-rose-600 dark:bg-rose-400/10 dark:text-rose-300"
+                : "bg-violet-100 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300";
+
+    const itemClass =
+        tone === "emerald"
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300"
+            : tone === "rose"
+                ? "bg-rose-100 text-rose-700 dark:bg-rose-400/10 dark:text-rose-300"
+                : "bg-violet-100 text-violet-700 dark:bg-violet-400/10 dark:text-violet-300";
+
+    return (
+        <div className="rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
+            <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-black text-slate-950 dark:text-white">
+                    {title}
+                </h2>
+
+                <span className={`rounded-full px-3 py-1 text-xs font-black ${badgeClass}`}>
+                    {badge}
+                </span>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+                {items.length === 0 ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {emptyText}
+                    </p>
+                ) : (
+                    items.map((item, index) => (
+                        <span
+                            key={`${item}-${index}`}
+                            className={`rounded-full px-4 py-2 text-sm font-black ${itemClass}`}
+                        >
+                            {item}
+                        </span>
+                    ))
                 )}
             </div>
-        </main>
+        </div>
     );
 }
