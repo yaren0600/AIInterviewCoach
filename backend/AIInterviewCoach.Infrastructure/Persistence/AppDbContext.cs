@@ -21,10 +21,10 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
-
     public DbSet<Position> Positions { get; set; }
     public DbSet<InterviewSession> InterviewSessions { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
     public DbSet<Resume> Resumes { get; set; }
+    public DbSet<StudyPlanTaskProgress> StudyPlanTaskProgresses { get; set; }
 }

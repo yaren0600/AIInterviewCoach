@@ -235,14 +235,20 @@ export interface RawInterviewSessionSummary {
 }
 
 export interface WeeklyStudyPlanItem {
+    id: number;
     day: string;
     focus: string;
     task: string;
     practiceMode: string;
+    isCompleted: boolean;
+    completedAt: string | null;
 }
 
 export interface StudyPlan {
     generalSummary: string;
+    totalTaskCount: number;
+    completedTaskCount: number;
+    developmentProgress: number;
     strongAreas: string[];
     weakAreas: string[];
     recommendedPracticeModes: string[];
