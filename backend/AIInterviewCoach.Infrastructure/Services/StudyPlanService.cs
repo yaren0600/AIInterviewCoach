@@ -9,10 +9,14 @@ namespace AIInterviewCoach.Infrastructure.Services;
 public class StudyPlanService : IStudyPlanService
 {
     private readonly AppDbContext _context;
+    private readonly IStudyPlanAiService _studyPlanAiService;
 
-    public StudyPlanService(AppDbContext context)
+    public StudyPlanService(
+        AppDbContext context,
+        IStudyPlanAiService studyPlanAiService)
     {
         _context = context;
+        _studyPlanAiService = studyPlanAiService;
     }
 
     public async Task<StudyPlanDto> GetMyStudyPlanAsync(int userId)
@@ -81,9 +85,59 @@ public class StudyPlanService : IStudyPlanService
         var communicationFocusTopics = GetCommunicationFocusTopics(categories);
         var recommendedPracticeModes = GetRecommendedPracticeModes(categories);
 
-        var generatedWeeklyPlan = GenerateWeeklyPlan(weakestCategory, recommendedPracticeModes);
+        var fallbackWeeklyPlan = GenerateWeeklyPlan(weakestCategory, recommendedPracticeModes);
 
-        var trackedWeeklyPlan = await SyncWeeklyPlanTasksAsync(userId, generatedWeeklyPlan);
+        var aiInput = new StudyPlanAiInputDto
+        {
+            TotalSessions = sessions.Count,
+            AnsweredQuestionCount = answeredQuestions.Count,
+            StrongestCategory = strongestCategory,
+            WeakestCategory = weakestCategory,
+            StrongAreas = strongAreas,
+            WeakAreas = weakAreas,
+            RecommendedPracticeModes = recommendedPracticeModes,
+            TechnicalFocusTopics = technicalFocusTopics,
+            CommunicationFocusTopics = communicationFocusTopics,
+            CategoryPerformanceSummaries = categoryPerformances
+                .Select(x => $"{x.Category} - Ortalama skor: {x.AverageScore}, Soru sayısı: {x.QuestionCount}")
+                .ToList()
+        };
+
+        var aiGeneratedPlan = await _studyPlanAiService.GenerateStudyPlanAsync(aiInput);
+
+        var selectedGeneralSummary = string.IsNullOrWhiteSpace(aiGeneratedPlan?.GeneralSummary)
+            ? GenerateGeneralSummary(
+                sessions.Count,
+                answeredQuestions.Count,
+                strongestCategory,
+                weakestCategory)
+            : aiGeneratedPlan.GeneralSummary;
+
+        var selectedStrongAreas = aiGeneratedPlan?.StrongAreas.Any() == true
+            ? aiGeneratedPlan.StrongAreas
+            : strongAreas;
+
+        var selectedWeakAreas = aiGeneratedPlan?.WeakAreas.Any() == true
+            ? aiGeneratedPlan.WeakAreas
+            : weakAreas;
+
+        var selectedRecommendedPracticeModes = aiGeneratedPlan?.RecommendedPracticeModes.Any() == true
+            ? aiGeneratedPlan.RecommendedPracticeModes
+            : recommendedPracticeModes;
+
+        var selectedTechnicalFocusTopics = aiGeneratedPlan?.TechnicalFocusTopics.Any() == true
+            ? aiGeneratedPlan.TechnicalFocusTopics
+            : technicalFocusTopics;
+
+        var selectedCommunicationFocusTopics = aiGeneratedPlan?.CommunicationFocusTopics.Any() == true
+            ? aiGeneratedPlan.CommunicationFocusTopics
+            : communicationFocusTopics;
+
+        var selectedWeeklyPlan = aiGeneratedPlan?.WeeklyPlan.Count == 7
+            ? aiGeneratedPlan.WeeklyPlan
+            : fallbackWeeklyPlan;
+
+        var trackedWeeklyPlan = await SyncWeeklyPlanTasksAsync(userId, selectedWeeklyPlan);
 
         var completedTaskCount = trackedWeeklyPlan.Count(x => x.IsCompleted);
         var totalTaskCount = trackedWeeklyPlan.Count;
@@ -91,21 +145,17 @@ public class StudyPlanService : IStudyPlanService
 
         return new StudyPlanDto
         {
-            GeneralSummary = GenerateGeneralSummary(
-                sessions.Count,
-                answeredQuestions.Count,
-                strongestCategory,
-                weakestCategory),
+            GeneralSummary = selectedGeneralSummary,
 
             TotalTaskCount = totalTaskCount,
             CompletedTaskCount = completedTaskCount,
             DevelopmentProgress = developmentProgress,
 
-            StrongAreas = strongAreas,
-            WeakAreas = weakAreas,
-            RecommendedPracticeModes = recommendedPracticeModes,
-            TechnicalFocusTopics = technicalFocusTopics,
-            CommunicationFocusTopics = communicationFocusTopics,
+            StrongAreas = selectedStrongAreas,
+            WeakAreas = selectedWeakAreas,
+            RecommendedPracticeModes = selectedRecommendedPracticeModes,
+            TechnicalFocusTopics = selectedTechnicalFocusTopics,
+            CommunicationFocusTopics = selectedCommunicationFocusTopics,
             WeeklyPlan = trackedWeeklyPlan
         };
     }
@@ -457,16 +507,38 @@ public class StudyPlanService : IStudyPlanService
         int userId,
         List<WeeklyStudyPlanItemDto> generatedTasks)
     {
+        var normalizedGeneratedTasks = generatedTasks
+            .Take(7)
+            .Select((task, index) => new WeeklyStudyPlanItemDto
+            {
+                Id = 0,
+                Day = string.IsNullOrWhiteSpace(task.Day)
+                    ? $"{index + 1}. Gün"
+                    : task.Day,
+                Focus = string.IsNullOrWhiteSpace(task.Focus)
+                    ? "Günlük çalışma"
+                    : task.Focus,
+                Task = string.IsNullOrWhiteSpace(task.Task)
+                    ? "Kısa bir mülakat pratiği yap ve geri bildirimlerini incele."
+                    : task.Task,
+                PracticeMode = string.IsNullOrWhiteSpace(task.PracticeMode)
+                    ? "Mixed"
+                    : task.PracticeMode,
+                IsCompleted = false,
+                CompletedAt = null
+            })
+            .ToList();
+
         var existingTasks = await _context.StudyPlanTaskProgresses
             .Where(t => t.UserId == userId)
             .ToListAsync();
 
-        foreach (var generatedTask in generatedTasks)
+        foreach (var generatedTask in normalizedGeneratedTasks)
         {
+            var generatedDayNumber = GetDayNumber(generatedTask.Day);
+
             var existingTask = existingTasks.FirstOrDefault(t =>
-                t.Day == generatedTask.Day &&
-                t.Focus == generatedTask.Focus &&
-                t.Task == generatedTask.Task);
+                GetDayNumber(t.Day) == generatedDayNumber);
 
             if (existingTask is null)
             {
@@ -484,6 +556,13 @@ public class StudyPlanService : IStudyPlanService
 
                 _context.StudyPlanTaskProgresses.Add(newTask);
             }
+            else
+            {
+                existingTask.Day = generatedTask.Day;
+                existingTask.Focus = generatedTask.Focus;
+                existingTask.Task = generatedTask.Task;
+                existingTask.PracticeMode = generatedTask.PracticeMode;
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -493,8 +572,11 @@ public class StudyPlanService : IStudyPlanService
             .ToListAsync();
 
         return trackedTasks
+            .GroupBy(t => GetDayNumber(t.Day))
+            .Select(g => g.OrderByDescending(t => t.Id).First())
             .OrderBy(t => GetDayNumber(t.Day))
             .ThenBy(t => t.Id)
+            .Take(7)
             .Select(t => new WeeklyStudyPlanItemDto
             {
                 Id = t.Id,

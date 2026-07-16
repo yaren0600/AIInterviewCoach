@@ -36,6 +36,9 @@ builder.Services.AddHttpClient<IAiQuestionGenerationService, AiQuestionGeneratio
 
 builder.Services.AddHttpClient<IAiEvaluationService, AiEvaluationService>();
 
+// Bu kısımda, uygulamanın farklı bölümlerinde kullanacağımız servisleri Dependency Injection ile ekliyoruz.
+builder.Services.AddHttpClient<IStudyPlanAiService, StudyPlanAiService>();
+
 builder.Services.Configure<AiProviderSettings>(
     builder.Configuration.GetSection("AiProvider"));
 
