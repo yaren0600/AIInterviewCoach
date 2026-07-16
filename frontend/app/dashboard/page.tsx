@@ -213,7 +213,7 @@ export default function DashboardPage() {
                 <motion.header
                     variants={fadeUp}
                     transition={{ duration: 0.55, ease: "easeOut" }}
-                    className="rounded-[2rem] border border-white/70 bg-white/72 p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/55 md:p-8"
+                    className="rounded-[2rem] border border-white/70 bg-white/[0.72] p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl dark:border-violet-400/20 dark:bg-slate-950/55 md:p-8"
                 >
                     <div className="grid grid-cols-1 items-center gap-8 xl:grid-cols-[1.05fr_0.95fr]">
                         <div>
@@ -558,6 +558,290 @@ export default function DashboardPage() {
                             </div>
                         </section>
 
+                        <section className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+                            <motion.div
+                                variants={fadeUp}
+                                whileHover={{ y: -4, scale: 1.01 }}
+                                transition={{ duration: 0.25 }}
+                                className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70"
+                            >
+                                <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-violet-300/25 blur-3xl dark:bg-violet-500/10" />
+                                <div className="absolute -bottom-20 -left-16 h-52 w-52 rounded-full bg-pink-300/20 blur-3xl dark:bg-pink-500/10" />
+
+                                <div className="relative z-10">
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div>
+                                            <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                                AI Performans Çekirdeği
+                                            </p>
+
+                                            <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                                                Hazırlık enerjin
+                                            </h2>
+
+                                            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                                Ortalama skorun, tamamlama oranın ve odak alanın tek bir koç panelinde özetlenir.
+                                            </p>
+                                        </div>
+
+                                        <span className="rounded-full bg-violet-100 px-4 py-2 text-sm font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                            Pulse
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-[0.9fr_1.1fr]">
+                                        <div className="flex items-center justify-center">
+                                            <div className="relative flex h-56 w-56 items-center justify-center rounded-full border border-violet-200 bg-white/70 shadow-inner dark:border-violet-400/20 dark:bg-slate-950/40">
+                                                <div className="absolute h-44 w-44 rounded-full border border-pink-200 dark:border-pink-400/20" />
+                                                <div className="absolute h-32 w-32 rounded-full border border-sky-200 dark:border-sky-400/20" />
+
+                                                <div
+                                                    className="absolute inset-5 rounded-full bg-gradient-to-tr from-pink-500 via-violet-500 to-sky-400 opacity-20 blur-xl"
+                                                    style={{
+                                                        transform: `scale(${0.65 + interviewReadiness / 250})`,
+                                                    }}
+                                                />
+
+                                                <div className="relative z-10 text-center">
+                                                    <p className="text-6xl font-black text-slate-950 dark:text-white">
+                                                        {dashboard.averageScore ?? "-"}
+                                                    </p>
+
+                                                    <p className="mt-1 text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                                                        skor
+                                                    </p>
+                                                </div>
+
+                                                <div className="absolute left-4 top-8 rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-600 dark:bg-rose-400/10 dark:text-rose-300">
+                                                    AI
+                                                </div>
+
+                                                <div className="absolute bottom-8 right-3 rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
+                                                    Coach
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <PulseRow
+                                                label="Mülakat hazırlığı"
+                                                value={interviewReadiness}
+                                                helper={`${dashboard.averageScore ?? 0}/100 ortalama skor`}
+                                                tone="violet"
+                                            />
+
+                                            <PulseRow
+                                                label="Pratik tamamlama"
+                                                value={practiceCompletion}
+                                                helper={`%${dashboard.completionRate ?? 0} tamamlama oranı`}
+                                                tone="sky"
+                                            />
+
+                                            <div className="rounded-3xl border border-white/70 bg-white/70 p-5 dark:border-slate-700 dark:bg-slate-950/40">
+                                                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                                                    Bugünkü odak sinyali
+                                                </p>
+
+                                                <p className="mt-3 text-lg font-black text-slate-950 dark:text-white">
+                                                    {dashboard.weakestCategory || "Genel tekrar"}
+                                                </p>
+
+                                                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                                    Bu alanda kısa bir pratik oturumu açarsan skor trendin daha hızlı yükselir.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            <motion.div
+                                variants={fadeUp}
+                                whileHover={{ y: -4, scale: 1.01 }}
+                                transition={{ duration: 0.25 }}
+                                className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70"
+                            >
+                                <div className="absolute -right-16 bottom-0 h-52 w-52 rounded-full bg-sky-300/20 blur-3xl dark:bg-sky-500/10" />
+
+                                <div className="relative z-10 flex items-start justify-between gap-4">
+                                    <div>
+                                        <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                            Son Pratik Akışı
+                                        </p>
+
+                                        <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                                            Mülakat zaman çizgin
+                                        </h2>
+
+                                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                            Son oturumların klasik grafik yerine AI lab kayıt akışı gibi gösterilir.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        onClick={() => router.push("/interviews/sessions")}
+                                        className="rounded-full bg-slate-950 px-4 py-2 text-sm font-black text-white transition hover:scale-105 dark:bg-white dark:text-slate-950"
+                                    >
+                                        Tümü
+                                    </button>
+                                </div>
+
+                                <div className="relative z-10 mt-6 space-y-4">
+                                    {dashboard.recentInterviews.length === 0 ? (
+                                        <div className="rounded-3xl border border-white/70 bg-white/70 p-6 text-center dark:border-slate-700 dark:bg-slate-950/40">
+                                            <p className="font-bold text-slate-600 dark:text-slate-300">
+                                                Henüz mülakat kaydı yok.
+                                            </p>
+
+                                            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                                İlk pratiğini başlatınca akış burada oluşacak.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        dashboard.recentInterviews.slice(0, 4).map((interview, index) => {
+                                            const score = Math.min(
+                                                100,
+                                                Math.max(0, Number(interview.totalScore ?? 0))
+                                            );
+
+                                            return (
+                                                <div
+                                                    key={`${interview.sessionId}-${index}`}
+                                                    className="group relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-5 shadow-sm transition hover:scale-[1.01] dark:border-slate-700 dark:bg-slate-950/40"
+                                                >
+                                                    <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-pink-500 via-violet-500 to-sky-500 opacity-70" />
+
+                                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                                        <div className="pl-3">
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                                                    #{index + 1}
+                                                                </span>
+
+                                                                <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-600 shadow dark:bg-slate-800 dark:text-slate-200">
+                                                                    {interview.status}
+                                                                </span>
+                                                            </div>
+
+                                                            <p className="mt-3 font-black text-slate-950 dark:text-white">
+                                                                {interview.positionName}
+                                                            </p>
+
+                                                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                                                AI koç oturum kaydı
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-14 w-14 rounded-2xl bg-slate-950 p-1 dark:bg-white">
+                                                                <div
+                                                                    className="h-full rounded-xl bg-gradient-to-t from-pink-500 via-violet-500 to-sky-400"
+                                                                    style={{
+                                                                        opacity: score > 0 ? score / 100 : 0.25,
+                                                                    }}
+                                                                />
+                                                            </div>
+
+                                                            <div className="min-w-16 text-right">
+                                                                <p className="text-2xl font-black text-slate-950 dark:text-white">
+                                                                    {interview.totalScore ?? "-"}
+                                                                </p>
+
+                                                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                                    skor
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </motion.div>
+                        </section>
+
+                        <section className="mt-6 rounded-[2rem] border border-white/70 bg-white/[0.75] p-6 shadow-xl backdrop-blur-2xl dark:border-slate-700 dark:bg-slate-900/70">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                                        Rol Haritası
+                                    </p>
+
+                                    <h2 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+                                        Pozisyon performans kartları
+                                    </h2>
+                                </div>
+
+                                <span className="w-fit rounded-full bg-sky-100 px-4 py-2 text-sm font-black text-sky-600 dark:bg-sky-400/10 dark:text-sky-300">
+                                    Skill Map
+                                </span>
+                            </div>
+
+                            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                {dashboard.positionSummaries.length === 0 ? (
+                                    <div className="rounded-3xl border border-white/70 bg-white/70 p-6 text-center dark:border-slate-700 dark:bg-slate-950/40 md:col-span-2 xl:col-span-4">
+                                        <p className="font-bold text-slate-600 dark:text-slate-300">
+                                            Henüz pozisyon performansı oluşmadı.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    dashboard.positionSummaries.slice(0, 4).map((position, index) => {
+                                        const averageScore = Math.min(
+                                            100,
+                                            Math.max(0, Number(position.averageScore ?? 0))
+                                        );
+
+                                        return (
+                                            <div
+                                                key={position.positionName}
+                                                className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-950/40"
+                                            >
+                                                <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-gradient-to-br from-pink-300/40 to-violet-300/30 blur-2xl dark:from-pink-500/10 dark:to-violet-500/10" />
+
+                                                <div className="relative z-10">
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white dark:bg-white dark:text-slate-950">
+                                                            Role 0{index + 1}
+                                                        </span>
+
+                                                        <span className="text-xl font-black text-violet-600 dark:text-violet-300">
+                                                            {position.averageScore ?? "-"}
+                                                        </span>
+                                                    </div>
+
+                                                    <h3 className="mt-4 text-lg font-black text-slate-950 dark:text-white">
+                                                        {position.positionName}
+                                                    </h3>
+
+                                                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                                        {position.interviewCount} mülakat pratiği
+                                                    </p>
+
+                                                    <div className="mt-5 grid grid-cols-10 gap-1">
+                                                        {Array.from({ length: 10 }).map((_, itemIndex) => {
+                                                            const isActive =
+                                                                itemIndex < Math.round(averageScore / 10);
+
+                                                            return (
+                                                                <div
+                                                                    key={itemIndex}
+                                                                    className={`h-8 rounded-full transition ${isActive
+                                                                            ? "bg-gradient-to-t from-pink-500 via-violet-500 to-sky-400"
+                                                                            : "bg-slate-200 dark:bg-slate-800"
+                                                                        }`}
+                                                                />
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </section>
+
                         <section className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
                             {[
                                 {
@@ -757,5 +1041,49 @@ export default function DashboardPage() {
                 )}
             </motion.div>
         </main>
+    );
+}
+
+function PulseRow({
+    label,
+    value,
+    helper,
+    tone,
+}: {
+    label: string;
+    value: number;
+    helper: string;
+    tone: "violet" | "sky";
+}) {
+    const gradientClass =
+        tone === "violet"
+            ? "from-pink-500 via-violet-500 to-fuchsia-500"
+            : "from-violet-500 via-sky-500 to-cyan-400";
+
+    return (
+        <div className="rounded-3xl border border-white/70 bg-white/70 p-5 dark:border-slate-700 dark:bg-slate-950/40">
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <p className="font-black text-slate-900 dark:text-white">
+                        {label}
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        {helper}
+                    </p>
+                </div>
+
+                <span className="text-lg font-black text-slate-950 dark:text-white">
+                    %{value}
+                </span>
+            </div>
+
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                <div
+                    className={`h-full rounded-full bg-gradient-to-r ${gradientClass}`}
+                    style={{ width: `${value}%` }}
+                />
+            </div>
+        </div>
     );
 }
