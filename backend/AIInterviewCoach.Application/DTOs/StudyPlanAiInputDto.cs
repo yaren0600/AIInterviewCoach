@@ -12,4 +12,6 @@ public class StudyPlanAiInputDto
     public List<string> TechnicalFocusTopics { get; set; } = new();
     public List<string> CommunicationFocusTopics { get; set; } = new();
     public List<string> CategoryPerformanceSummaries { get; set; } = new();
+    public bool IsRegenerationRequested { get; set; }
+    public string RegenerationSeed { get; set; } = string.Empty;
 }

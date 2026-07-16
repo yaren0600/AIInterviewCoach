@@ -100,7 +100,10 @@ public class StudyPlanService : IStudyPlanService
             CommunicationFocusTopics = communicationFocusTopics,
             CategoryPerformanceSummaries = categoryPerformances
                 .Select(x => $"{x.Category} - Ortalama skor: {x.AverageScore}, Soru sayısı: {x.QuestionCount}")
-                .ToList()
+                .ToList(),
+
+            IsRegenerationRequested = true,
+            RegenerationSeed = DateTime.Now.Ticks.ToString()
         };
 
         var aiGeneratedPlan = await _studyPlanAiService.GenerateStudyPlanAsync(aiInput);
@@ -194,6 +197,21 @@ public class StudyPlanService : IStudyPlanService
         await _context.SaveChangesAsync();
 
         return true;
+    }
+
+    public async Task<StudyPlanDto> RegenerateStudyPlanAsync(int userId)
+    {
+        var existingTasks = await _context.StudyPlanTaskProgresses
+            .Where(t => t.UserId == userId)
+            .ToListAsync();
+
+        if (existingTasks.Count > 0)
+        {
+            _context.StudyPlanTaskProgresses.RemoveRange(existingTasks);
+            await _context.SaveChangesAsync();
+        }
+
+        return await GetMyStudyPlanAsync(userId);
     }
 
     private StudyPlanDto CreateEmptyStudyPlan()

@@ -46,17 +46,23 @@ public class StudyPlanAiService : IStudyPlanAiService
             var request = new GeminiGenerateContentRequest
             {
                 Contents = new List<GeminiContent>
+    {
+        new()
+        {
+            Parts = new List<GeminiPart>
+            {
+                new()
                 {
-                    new()
-                    {
-                        Parts = new List<GeminiPart>
-                        {
-                            new()
-                            {
-                                Text = prompt
-                            }
-                        }
-                    }
+                    Text = prompt
+                }
+            }
+        }
+    },
+                GenerationConfig = new GeminiGenerationConfig
+                {
+                    Temperature = 1.25,
+                    TopP = 0.95,
+                    TopK = 40
                 }
             };
 
@@ -166,6 +172,9 @@ Teknik odak konuları:
 İletişim odak konuları:
 {{communicationTopics}}
 
+Yeniden plan oluşturma isteği: {{input.IsRegenerationRequested}}
+Plan varyasyon kodu: {{input.RegenerationSeed}}
+
 Kurallar:
 - Cevap tamamen Türkçe olmalı.
 - Kullanıcı yeni mezun / junior seviyesine yakın düşünülmeli.
@@ -173,14 +182,16 @@ Kurallar:
 - Haftalık plan tam 7 görev içermeli.
 - Her görev tek oturuşta yapılabilecek kadar net olmalı.
 - Görevler mülakat pratiğine doğrudan katkı sağlamalı.
+- Yeni plan oluşturuluyorsa haftalık görevler önceki klasik plana benzememeli.
+- “5 soruluk kısa pratik yap”, “STAR tekniğiyle 3 soru cevapla”, “AI geri bildirimlerini incele” gibi genel görevleri aynen tekrar etme.
+- Her görev daha spesifik olmalı: konu, süre, çıktı ve uygulanacak yöntem içermeli.
+- Görevlerde farklı pratik formatları kullan: mini teknik anlatım, mock interview, proje pitch, hata analizi, SQL/kod pratiği, cevap yeniden yazımı, sesli prova.
+- weeklyPlan içindeki her task cümlesi birbirinden belirgin şekilde farklı olmalı.
+- Varyasyon kodunu dikkate al ve aynı veriyle bile farklı plan üret: {{input.RegenerationSeed}}
 - Sadece geçerli JSON object döndür.
 - Markdown kullanma.
 - ```json bloğu kullanma.
 - Ek açıklama yazma.
-- developmentProgress, completedTaskCount, totalTaskCount alanlarını 0 olarak döndür. Bu alanları sistem kendisi hesaplayacak.
-- weeklyPlan içindeki id alanlarını 0 döndür.
-- weeklyPlan içindeki isCompleted alanlarını false döndür.
-- weeklyPlan içindeki completedAt alanlarını null döndür.
 
 JSON formatı:
 {
@@ -268,6 +279,21 @@ JSON formatı:
     {
         [JsonPropertyName("contents")]
         public List<GeminiContent> Contents { get; set; } = new();
+
+        [JsonPropertyName("generationConfig")]
+        public GeminiGenerationConfig? GenerationConfig { get; set; }
+    }
+
+    private class GeminiGenerationConfig
+    {
+        [JsonPropertyName("temperature")]
+        public double Temperature { get; set; }
+
+        [JsonPropertyName("topP")]
+        public double TopP { get; set; }
+
+        [JsonPropertyName("topK")]
+        public int TopK { get; set; }
     }
 
     private class GeminiContent

@@ -15,6 +15,7 @@ export default function StudyPlanPage() {
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null);
+    const [isRegenerating, setIsRegenerating] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -94,6 +95,44 @@ export default function StudyPlanPage() {
             }
         } finally {
             setUpdatingTaskId(null);
+        }
+    };
+
+    const handleRegeneratePlan = async () => {
+        const isConfirmed = window.confirm(
+            "Yeni plan oluşturulunca mevcut haftalık görevlerin ve tamamlanma ilerlemen sıfırlanacak. Devam etmek istiyor musun?"
+        );
+
+        if (!isConfirmed) {
+            return;
+        }
+
+        setIsRegenerating(true);
+        setMessage("");
+
+        try {
+            const response = await api.post<ApiResponse<StudyPlan>>(
+                "/StudyPlan/regenerate"
+            );
+
+            if (response.data.success) {
+                setStudyPlan(response.data.data);
+                setMessage("Yeni AI gelişim planın başarıyla oluşturuldu.");
+            } else {
+                setMessage(response.data.message);
+            }
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                setMessage(
+                    error.response?.data?.message ||
+                    error.message ||
+                    "Yeni plan oluşturulurken bir hata oluştu."
+                );
+            } else {
+                setMessage("Yeni plan oluşturulurken bir hata oluştu.");
+            }
+        } finally {
+            setIsRegenerating(false);
         }
     };
 
@@ -453,12 +492,22 @@ export default function StudyPlanPage() {
                                     </h2>
                                 </div>
 
-                                <button
-                                    onClick={() => router.push("/interviews/start")}
-                                    className="shine-button rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
-                                >
-                                    Rotaya Başla
-                                </button>
+                                <div className="flex flex-col gap-3 sm:flex-row">
+                                    <button
+                                        onClick={() => router.push("/interviews/start")}
+                                        className="shine-button rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105"
+                                    >
+                                        Rotaya Başla
+                                    </button>
+
+                                    <button
+                                        onClick={handleRegeneratePlan}
+                                        disabled={isRegenerating}
+                                        className="rounded-full border border-violet-200 bg-white/85 px-6 py-3 font-black text-violet-700 shadow-lg transition hover:scale-105 hover:bg-violet-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-200 dark:hover:bg-violet-400/20"
+                                    >
+                                        {isRegenerating ? "Yeni plan hazırlanıyor..." : "Yeni Plan Oluştur ✨"}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="relative mt-8">
