@@ -902,54 +902,78 @@ function QuestionAnalysisCard({
             </div>
 
             {question.feedback && (
-                <div className="mt-5 rounded-2xl border border-violet-100 bg-violet-50/80 p-4 dark:border-violet-400/20 dark:bg-violet-400/10">
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-700 dark:text-violet-300">
-                        AI Geri Bildirim
-                    </p>
-
-                    <p className="mt-2 text-sm leading-7 text-violet-950 dark:text-violet-100">
-                        {question.feedback}
-                    </p>
-                </div>
+                <ResultInfoBlock
+                    title="AI Geri Bildirim"
+                    text={question.feedback}
+                    tone="violet"
+                />
             )}
 
-            {(question.strongPoints?.length > 0 ||
-                question.improvementPoints?.length > 0) && (
-                    <div className="mt-5 grid gap-4 md:grid-cols-2">
-                        {question.strongPoints?.length > 0 && (
-                            <PointList
-                                title="Güçlü Yönler"
-                                points={question.strongPoints}
-                                tone="emerald"
-                            />
-                        )}
-
-                        {question.improvementPoints?.length > 0 && (
-                            <PointList
-                                title="Gelişim Alanları"
-                                points={question.improvementPoints}
-                                tone="amber"
-                            />
-                        )}
-                    </div>
-                )}
-
             {question.betterAnswerExample && (
-                <div className="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 dark:border-indigo-400/20 dark:bg-indigo-400/10">
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-indigo-700 dark:text-indigo-300">
-                        Daha Güçlü Cevap Örneği
-                    </p>
+                <ResultInfoBlock
+                    title="Daha Güçlü Cevap Örneği"
+                    text={question.betterAnswerExample}
+                    tone="indigo"
+                />
+            )}
 
-                    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-indigo-950 dark:text-indigo-100">
-                        {question.betterAnswerExample}
-                    </p>
-                </div>
+            {question.strongPoints?.length > 0 && (
+                <ResultPointBlock
+                    title="Güçlü Yönler"
+                    points={question.strongPoints}
+                    tone="emerald"
+                />
+            )}
+
+            {question.improvementPoints?.length > 0 && (
+                <ResultPointBlock
+                    title="Gelişim Alanları"
+                    points={question.improvementPoints}
+                    tone="amber"
+                />
             )}
         </div>
     );
 }
 
-function PointList({
+function ResultInfoBlock({
+    title,
+    text,
+    tone,
+}: {
+    title: string;
+    text: string;
+    tone: "violet" | "indigo";
+}) {
+    const styles =
+        tone === "violet"
+            ? {
+                  wrapper:
+                      "border-violet-100 bg-violet-50/80 dark:border-violet-400/20 dark:bg-violet-400/10",
+                  title: "text-violet-700 dark:text-violet-300",
+                  text: "text-violet-950 dark:text-violet-100",
+              }
+            : {
+                  wrapper:
+                      "border-indigo-100 bg-indigo-50/70 dark:border-indigo-400/20 dark:bg-indigo-400/10",
+                  title: "text-indigo-700 dark:text-indigo-300",
+                  text: "text-indigo-950 dark:text-indigo-100",
+              };
+
+    return (
+        <div className={`mt-5 rounded-2xl border p-4 ${styles.wrapper}`}>
+            <p className={`text-xs font-black uppercase tracking-[0.18em] ${styles.title}`}>
+                {title}
+            </p>
+
+            <p className={`mt-3 whitespace-pre-line text-sm leading-7 ${styles.text}`}>
+                {text}
+            </p>
+        </div>
+    );
+}
+
+function ResultPointBlock({
     title,
     points,
     tone,
@@ -958,38 +982,58 @@ function PointList({
     points: string[];
     tone: "emerald" | "amber";
 }) {
-    const wrapperClass =
-        tone === "emerald"
-            ? "border-emerald-100 bg-emerald-50/80 dark:border-emerald-400/20 dark:bg-emerald-400/10"
-            : "border-amber-100 bg-amber-50/80 dark:border-amber-400/20 dark:bg-amber-400/10";
+    const isEmerald = tone === "emerald";
 
-    const textClass =
-        tone === "emerald"
-            ? "text-emerald-950 dark:text-emerald-100"
-            : "text-amber-950 dark:text-amber-100";
+    const wrapperClass = isEmerald
+        ? "border-emerald-200 bg-white dark:border-emerald-400/20 dark:bg-slate-900"
+        : "border-orange-200 bg-white dark:border-orange-400/20 dark:bg-slate-900";
 
-    const titleClass =
-        tone === "emerald"
-            ? "text-emerald-700 dark:text-emerald-300"
-            : "text-amber-700 dark:text-amber-300";
+    const headerClass = isEmerald
+        ? "bg-emerald-500 text-white"
+        : "bg-orange-500 text-white";
+
+    const itemClass = isEmerald
+        ? "border-l-4 border-emerald-500 bg-emerald-50 text-slate-800 dark:bg-emerald-400/10 dark:text-emerald-50"
+        : "border-l-4 border-orange-500 bg-orange-50 text-slate-800 dark:bg-orange-400/10 dark:text-orange-50";
+
+    const numberClass = isEmerald
+        ? "bg-emerald-500 text-white"
+        : "bg-orange-500 text-white";
 
     return (
-        <div className={`rounded-2xl border p-4 ${wrapperClass}`}>
-            <p className={`text-xs font-black uppercase tracking-[0.18em] ${titleClass}`}>
-                {title}
-            </p>
+        <div className={`mt-5 overflow-hidden rounded-2xl border shadow-sm ${wrapperClass}`}>
+            <div className={`flex items-center justify-between gap-3 px-5 py-4 ${headerClass}`}>
+                <p className="text-xs font-black uppercase tracking-[0.18em]">
+                    {title}
+                </p>
 
-            <ul className={`mt-3 space-y-2 text-sm leading-6 ${textClass}`}>
-                {points.map((point, index) => (
-                    <li key={`${point}-${index}`} className="flex gap-2">
-                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-current" />
-                        <span>{point}</span>
-                    </li>
+                <span className="rounded-full bg-white/20 px-3 py-1 text-[11px] font-black">
+                    {points.length} madde
+                </span>
+            </div>
+
+            <div className="space-y-3 p-4">
+                {points.map((point, pointIndex) => (
+                    <div
+                        key={`${point}-${pointIndex}`}
+                        className={`flex items-start gap-3 rounded-2xl p-4 text-sm leading-7 ${itemClass}`}
+                    >
+                        <span
+                            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black ${numberClass}`}
+                        >
+                            {pointIndex + 1}
+                        </span>
+
+                        <span className="min-w-0 flex-1 break-words">
+                            {point}
+                        </span>
+                    </div>
                 ))}
-            </ul>
+            </div>
         </div>
     );
 }
+
 
 function buildPdfReportElement({
     result,
