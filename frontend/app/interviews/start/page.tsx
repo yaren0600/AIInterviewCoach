@@ -2,8 +2,7 @@
 
 import axios from "axios";
 import { motion, type Variants } from "framer-motion";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react"; import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import {
     ApiResponse,
@@ -57,7 +56,7 @@ const interviewModes = [
     },
 ];
 
-export default function StartInterviewPage() {
+function StartInterviewContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -609,6 +608,24 @@ export default function StartInterviewPage() {
     );
 }
 
+export default function StartInterviewPage() {
+    return (
+        <Suspense
+            fallback={
+                <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-violet-50 to-sky-50 px-4 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950">
+                    <div className="rounded-3xl border border-white/70 bg-white/75 px-8 py-6 text-center shadow-xl backdrop-blur dark:border-slate-700 dark:bg-slate-900/75">
+                        <p className="text-lg font-bold text-slate-700 dark:text-slate-100">
+                            Mülakat ekranı hazırlanıyor...
+                        </p>
+                    </div>
+                </main>
+            }
+        >
+            <StartInterviewContent />
+        </Suspense>
+    );
+}
+
 function NavButton({
     label,
     onClick,
@@ -834,4 +851,6 @@ function LargeOptionButton({
             </span>
         </button>
     );
+
+
 }
