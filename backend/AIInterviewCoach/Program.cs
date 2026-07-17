@@ -1,15 +1,12 @@
-﻿using AIInterviewCoach.Application.DTOs;
+﻿using System.Text;
 using AIInterviewCoach.Application.Interfaces;
-using AIInterviewCoach.Domain.Entities;
 using AIInterviewCoach.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
 using AIInterviewCoach.Infrastructure.Services;
+using AIInterviewCoach.Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using AIInterviewCoach.Infrastructure.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
