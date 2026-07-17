@@ -21,6 +21,7 @@ export default function InterviewResultPage() {
     const [result, setResult] = useState<InterviewResult | null>(null);
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
 
     const [rewriteResults, setRewriteResults] = useState<
         Record<number, RewriteAnswerResponse>
@@ -68,6 +69,71 @@ export default function InterviewResultPage() {
     const handleLogout = () => {
         localStorage.removeItem("token");
         router.push("/login");
+    };
+
+    const handleExportPdf = async () => {
+        if (!result) {
+            return;
+        }
+
+        try {
+            setIsExportingPdf(true);
+
+            const html2canvas = (await import("html2canvas")).default;
+            const { jsPDF } = await import("jspdf");
+
+            const reportElement = buildPdfReportElement({
+                result,
+                averageScore,
+                answeredQuestions,
+                totalQuestions,
+                strongAreas,
+                improvementAreas,
+                studyRecommendations,
+                categoryPerformances,
+                questions,
+            });
+
+            document.body.appendChild(reportElement);
+
+            const canvas = await html2canvas(reportElement, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#ffffff",
+            });
+
+            document.body.removeChild(reportElement);
+
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            const safePositionName = result.positionName
+                .replace(/[^a-zA-Z0-9ğüşöçıİĞÜŞÖÇ-]/g, "-")
+                .toLowerCase();
+
+            pdf.save(`mulakat-raporu-${safePositionName}-${result.sessionId}.pdf`);
+        } finally {
+            setIsExportingPdf(false);
+        }
     };
 
     const handleRewriteAnswer = async (question: InterviewResultQuestion) => {
@@ -274,6 +340,24 @@ export default function InterviewResultPage() {
                                     label="toplam soru"
                                 />
                             </div>
+
+                            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                                <button
+                                    onClick={handleExportPdf}
+                                    disabled={isExportingPdf}
+                                    className="shine-button rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-6 py-3 font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    {isExportingPdf ? "PDF hazırlanıyor..." : "Raporu PDF Olarak İndir"}
+                                </button>
+
+                                <button
+                                    onClick={() => router.push("/study-plan")}
+                                    className="rounded-full border border-violet-200 bg-white/85 px-6 py-3 font-black text-violet-700 shadow-lg transition hover:scale-105 hover:bg-violet-50 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-200 dark:hover:bg-violet-400/20"
+                                >
+                                    AI Gelişim Planına Git
+                                </button>
+                            </div>
+
                         </div>
 
                         <div className="float-card relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/65 p-6 shadow-2xl shadow-violet-500/20 backdrop-blur-2xl dark:border-violet-400/25 dark:bg-slate-950/60 dark:shadow-violet-500/10">
@@ -906,3 +990,549 @@ function PointList({
         </div>
     );
 }
+
+function buildPdfReportElement({
+    result,
+    averageScore,
+    answeredQuestions,
+    totalQuestions,
+    strongAreas,
+    improvementAreas,
+    studyRecommendations,
+    categoryPerformances,
+    questions,
+}: {
+    result: InterviewResult;
+    averageScore: number | null;
+    answeredQuestions: number;
+    totalQuestions: number;
+    strongAreas: string[];
+    improvementAreas: string[];
+    studyRecommendations: string[];
+    categoryPerformances: InterviewResult["categoryPerformances"];
+    questions: InterviewResultQuestion[];
+}) {
+    const container = document.createElement("div");
+
+    Object.assign(container.style, {
+        position: "fixed",
+        left: "-10000px",
+        top: "0",
+        width: "794px",
+        background: "#ffffff",
+        color: "#111827",
+        fontFamily: "Arial, Helvetica, sans-serif",
+        padding: "36px",
+        boxSizing: "border-box",
+    });
+
+    const addText = (
+        parent: HTMLElement,
+        tag: "h1" | "h2" | "h3" | "p" | "span",
+        text: string,
+        styles: Partial<CSSStyleDeclaration> = {}
+    ) => {
+        const element = document.createElement(tag);
+        element.textContent = text;
+        Object.assign(element.style, styles);
+        parent.appendChild(element);
+        return element;
+    };
+
+    const addCard = (parent: HTMLElement) => {
+        const card = document.createElement("div");
+
+        Object.assign(card.style, {
+            border: "1px solid #e5e7eb",
+            borderRadius: "18px",
+            padding: "18px",
+            marginTop: "14px",
+            background: "#ffffff",
+            boxShadow: "0 8px 20px rgba(17, 24, 39, 0.06)",
+            boxSizing: "border-box",
+            breakInside: "avoid",
+            pageBreakInside: "avoid",
+        });
+
+        parent.appendChild(card);
+        return card;
+    };
+
+    const addBadge = (parent: HTMLElement, text: string) => {
+        const badge = document.createElement("span");
+        badge.textContent = text;
+
+        Object.assign(badge.style, {
+            display: "inline-block",
+            padding: "6px 10px",
+            borderRadius: "999px",
+            background: "#ede9fe",
+            color: "#6d28d9",
+            fontSize: "11px",
+            fontWeight: "700",
+            marginRight: "8px",
+            marginBottom: "8px",
+        });
+
+        parent.appendChild(badge);
+        return badge;
+    };
+
+    const addList = (
+        parent: HTMLElement,
+        items: string[],
+        emptyText: string
+    ) => {
+        if (!items || items.length === 0) {
+            addText(parent, "p", emptyText, {
+                margin: "8px 0 0",
+                fontSize: "13px",
+                lineHeight: "1.7",
+                color: "#6b7280",
+            });
+
+            return;
+        }
+
+        const list = document.createElement("ul");
+
+        Object.assign(list.style, {
+            margin: "10px 0 0",
+            paddingLeft: "18px",
+        });
+
+        items.forEach((item) => {
+            const li = document.createElement("li");
+            li.textContent = item;
+
+            Object.assign(li.style, {
+                marginBottom: "8px",
+                fontSize: "13px",
+                lineHeight: "1.7",
+                color: "#374151",
+            });
+
+            list.appendChild(li);
+        });
+
+        parent.appendChild(list);
+    };
+
+    const header = document.createElement("div");
+
+    Object.assign(header.style, {
+        padding: "24px",
+        borderRadius: "24px",
+        background: "linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 45%, #eff6ff 100%)",
+        border: "1px solid #e9d5ff",
+        marginBottom: "20px",
+        boxSizing: "border-box",
+    });
+
+    container.appendChild(header);
+
+    addText(header, "p", "AI Interview Coach", {
+        margin: "0 0 8px",
+        color: "#7c3aed",
+        fontSize: "12px",
+        fontWeight: "700",
+        letterSpacing: "2px",
+        textTransform: "uppercase",
+    });
+
+    addText(header, "h1", "Mülakat Sonuç Raporu", {
+        margin: "0",
+        fontSize: "30px",
+        lineHeight: "1.2",
+        color: "#111827",
+        fontWeight: "800",
+    });
+
+    addText(
+        header,
+        "p",
+        `Pozisyon: ${result.positionName} • Oturum ID: #${result.sessionId}`,
+        {
+            margin: "12px 0 0",
+            fontSize: "14px",
+            lineHeight: "1.6",
+            color: "#4b5563",
+        }
+    );
+
+    const metrics = document.createElement("div");
+
+    Object.assign(metrics.style, {
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: "12px",
+        marginTop: "18px",
+    });
+
+    header.appendChild(metrics);
+
+    [
+        {
+            label: "Ortalama Skor",
+            value: `${averageScore ?? result.totalScore ?? "-"}/100`,
+        },
+        {
+            label: "Cevaplanan Soru",
+            value: `${answeredQuestions}/${totalQuestions}`,
+        },
+        {
+            label: "Toplam Soru",
+            value: `${totalQuestions}`,
+        },
+    ].forEach((metric) => {
+        const metricCard = document.createElement("div");
+
+        Object.assign(metricCard.style, {
+            background: "#ffffff",
+            border: "1px solid #ede9fe",
+            borderRadius: "16px",
+            padding: "14px",
+            textAlign: "center",
+        });
+
+        addText(metricCard, "p", metric.value, {
+            margin: "0",
+            fontSize: "22px",
+            fontWeight: "800",
+            color: "#111827",
+        });
+
+        addText(metricCard, "p", metric.label, {
+            margin: "4px 0 0",
+            fontSize: "11px",
+            fontWeight: "700",
+            color: "#6b7280",
+        });
+
+        metrics.appendChild(metricCard);
+    });
+
+    const generalCard = addCard(container);
+
+    addText(generalCard, "h2", "Genel Değerlendirme", {
+        margin: "0",
+        fontSize: "18px",
+        color: "#111827",
+        fontWeight: "800",
+    });
+
+    addText(
+        generalCard,
+        "p",
+        result.generalEvaluation || "Genel değerlendirme bulunamadı.",
+        {
+            margin: "10px 0 0",
+            fontSize: "13px",
+            lineHeight: "1.8",
+            color: "#374151",
+        }
+    );
+
+    const grid = document.createElement("div");
+
+    Object.assign(grid.style, {
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: "14px",
+        marginTop: "14px",
+    });
+
+    container.appendChild(grid);
+
+    [
+        {
+            title: "Güçlü Alanlar",
+            items: strongAreas,
+            empty: "Henüz güçlü alan bulunamadı.",
+        },
+        {
+            title: "Gelişim Alanları",
+            items: improvementAreas,
+            empty: "Henüz gelişim alanı bulunamadı.",
+        },
+        {
+            title: "Çalışma Önerileri",
+            items: studyRecommendations,
+            empty: "Henüz çalışma önerisi bulunamadı.",
+        },
+    ].forEach((section) => {
+        const card = addCard(grid);
+        card.style.marginTop = "0";
+
+        addText(card, "h3", section.title, {
+            margin: "0",
+            fontSize: "15px",
+            color: "#111827",
+            fontWeight: "800",
+        });
+
+        addList(card, section.items, section.empty);
+    });
+
+    const categoryCard = addCard(container);
+
+    addText(categoryCard, "h2", "Kategori Performansı", {
+        margin: "0",
+        fontSize: "18px",
+        color: "#111827",
+        fontWeight: "800",
+    });
+
+    if (categoryPerformances.length === 0) {
+        addText(categoryCard, "p", "Henüz kategori performansı bulunamadı.", {
+            margin: "10px 0 0",
+            fontSize: "13px",
+            color: "#6b7280",
+        });
+    } else {
+        categoryPerformances.forEach((category) => {
+            const row = document.createElement("div");
+
+            Object.assign(row.style, {
+                marginTop: "12px",
+                padding: "12px",
+                borderRadius: "14px",
+                background: "#f9fafb",
+                border: "1px solid #e5e7eb",
+            });
+
+            addText(row, "p", `${category.category}: ${category.averageScore}/100`, {
+                margin: "0",
+                fontSize: "13px",
+                fontWeight: "700",
+                color: "#374151",
+            });
+
+            const barBg = document.createElement("div");
+
+            Object.assign(barBg.style, {
+                height: "8px",
+                borderRadius: "999px",
+                background: "#e5e7eb",
+                marginTop: "8px",
+                overflow: "hidden",
+            });
+
+            const bar = document.createElement("div");
+
+            Object.assign(bar.style, {
+                height: "8px",
+                width: `${Math.min(100, Math.max(0, category.averageScore))}%`,
+                background: "#8b5cf6",
+                borderRadius: "999px",
+            });
+
+            barBg.appendChild(bar);
+            row.appendChild(barBg);
+            categoryCard.appendChild(row);
+        });
+    }
+
+    const questionsTitle = addCard(container);
+
+    addText(questionsTitle, "h2", "Soru Bazlı Analiz", {
+        margin: "0",
+        fontSize: "18px",
+        color: "#111827",
+        fontWeight: "800",
+    });
+
+    addText(
+        questionsTitle,
+        "p",
+        "Her soru için cevap, skor, AI geri bildirim ve gelişim önerileri aşağıda listelenmiştir.",
+        {
+            margin: "8px 0 0",
+            fontSize: "13px",
+            lineHeight: "1.7",
+            color: "#6b7280",
+        }
+    );
+
+    if (questions.length === 0) {
+        const card = addCard(container);
+        addText(card, "p", "Henüz soru-cevap detayı bulunamadı.", {
+            margin: "0",
+            fontSize: "13px",
+            color: "#6b7280",
+        });
+    } else {
+        questions.forEach((question, index) => {
+            const card = addCard(container);
+
+            const top = document.createElement("div");
+
+            Object.assign(top.style, {
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "16px",
+                alignItems: "flex-start",
+            });
+
+            card.appendChild(top);
+
+            const left = document.createElement("div");
+            top.appendChild(left);
+
+            addBadge(left, `Soru ${index + 1}`);
+            addBadge(left, question.category);
+            addBadge(left, question.difficulty);
+
+            addText(left, "h3", question.questionText, {
+                margin: "10px 0 0",
+                fontSize: "15px",
+                lineHeight: "1.55",
+                color: "#111827",
+                fontWeight: "800",
+            });
+
+            const scoreBox = document.createElement("div");
+
+            Object.assign(scoreBox.style, {
+                minWidth: "70px",
+                borderRadius: "16px",
+                background: "#111827",
+                color: "#ffffff",
+                textAlign: "center",
+                padding: "10px",
+            });
+
+            addText(scoreBox, "p", "Skor", {
+                margin: "0",
+                fontSize: "10px",
+                color: "#d1d5db",
+                fontWeight: "700",
+            });
+
+            addText(scoreBox, "p", `${question.score ?? "-"}`, {
+                margin: "2px 0 0",
+                fontSize: "22px",
+                color: "#ffffff",
+                fontWeight: "800",
+            });
+
+            top.appendChild(scoreBox);
+
+            const answerBox = addCard(card);
+            answerBox.style.boxShadow = "none";
+            answerBox.style.background = "#f9fafb";
+
+            addText(answerBox, "h3", "Cevabın", {
+                margin: "0",
+                fontSize: "13px",
+                color: "#6d28d9",
+                fontWeight: "800",
+            });
+
+            addText(
+                answerBox,
+                "p",
+                question.userAnswer && question.userAnswer.trim().length > 0
+                    ? question.userAnswer
+                    : "Bu soru için cevap bulunmuyor.",
+                {
+                    margin: "8px 0 0",
+                    fontSize: "13px",
+                    lineHeight: "1.75",
+                    color: "#374151",
+                    whiteSpace: "pre-line",
+                }
+            );
+
+            if (question.feedback) {
+                const feedbackBox = addCard(card);
+                feedbackBox.style.boxShadow = "none";
+                feedbackBox.style.background = "#f5f3ff";
+
+                addText(feedbackBox, "h3", "AI Geri Bildirim", {
+                    margin: "0",
+                    fontSize: "13px",
+                    color: "#6d28d9",
+                    fontWeight: "800",
+                });
+
+                addText(feedbackBox, "p", question.feedback, {
+                    margin: "8px 0 0",
+                    fontSize: "13px",
+                    lineHeight: "1.75",
+                    color: "#374151",
+                });
+            }
+
+            if (question.betterAnswerExample) {
+                const betterBox = addCard(card);
+                betterBox.style.boxShadow = "none";
+                betterBox.style.background = "#eef2ff";
+
+                addText(betterBox, "h3", "Daha Güçlü Cevap Örneği", {
+                    margin: "0",
+                    fontSize: "13px",
+                    color: "#4338ca",
+                    fontWeight: "800",
+                });
+
+                addText(betterBox, "p", question.betterAnswerExample, {
+                    margin: "8px 0 0",
+                    fontSize: "13px",
+                    lineHeight: "1.75",
+                    color: "#374151",
+                    whiteSpace: "pre-line",
+                });
+            }
+
+            if (question.strongPoints?.length > 0) {
+                const strongBox = addCard(card);
+                strongBox.style.boxShadow = "none";
+                strongBox.style.background = "#ecfdf5";
+
+                addText(strongBox, "h3", "Güçlü Yönler", {
+                    margin: "0",
+                    fontSize: "13px",
+                    color: "#047857",
+                    fontWeight: "800",
+                });
+
+                addList(strongBox, question.strongPoints, "");
+            }
+
+            if (question.improvementPoints?.length > 0) {
+                const improveBox = addCard(card);
+                improveBox.style.boxShadow = "none";
+                improveBox.style.background = "#fffbeb";
+
+                addText(improveBox, "h3", "Gelişim Alanları", {
+                    margin: "0",
+                    fontSize: "13px",
+                    color: "#b45309",
+                    fontWeight: "800",
+                });
+
+                addList(improveBox, question.improvementPoints, "");
+            }
+        });
+    }
+
+    const footer = document.createElement("div");
+
+    Object.assign(footer.style, {
+        marginTop: "20px",
+        paddingTop: "14px",
+        borderTop: "1px solid #e5e7eb",
+        color: "#6b7280",
+        fontSize: "11px",
+        textAlign: "center",
+    });
+
+    footer.textContent =
+        "Bu rapor AI Interview Coach tarafından otomatik oluşturulmuştur.";
+
+    container.appendChild(footer);
+
+    return container;
+}
+
