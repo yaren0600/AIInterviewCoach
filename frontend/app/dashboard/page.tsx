@@ -69,6 +69,12 @@ export default function DashboardPage() {
 
     const focusCategory = dashboard?.weakestCategory || "Henüz veri oluşmadı";
 
+    const focusSignalText = getFocusSignalText(
+        dashboard?.weakestCategory,
+        dashboard?.averageScore,
+        dashboard?.completionRate
+    );
+
     const fadeUp: Variants = {
         hidden: {
             opacity: 0,
@@ -451,7 +457,9 @@ export default function DashboardPage() {
                                             {card.title}
                                         </p>
 
-                                        <span className={`rounded-full px-3 py-1 text-xs font-black ${card.badgeClass}`}>
+                                        <span
+                                            className={`rounded-full px-3 py-1 text-xs font-black ${card.badgeClass}`}
+                                        >
                                             {card.badge}
                                         </span>
                                     </div>
@@ -538,7 +546,9 @@ export default function DashboardPage() {
                                                 key={step.number}
                                                 className="flex gap-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900"
                                             >
-                                                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${step.color} text-xs font-black text-white`}>
+                                                <span
+                                                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${step.color} text-xs font-black text-white`}
+                                                >
                                                     {step.number}
                                                 </span>
 
@@ -580,7 +590,7 @@ export default function DashboardPage() {
                                             </h2>
 
                                             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                Ortalama skorun, tamamlama oranın ve odak alanın tek bir koç panelinde özetlenir.
+                                                {focusSignalText}
                                             </p>
                                         </div>
 
@@ -647,7 +657,7 @@ export default function DashboardPage() {
                                                 </p>
 
                                                 <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                                    Bu alanda kısa bir pratik oturumu açarsan skor trendin daha hızlı yükselir.
+                                                    {focusSignalText}
                                                 </p>
                                             </div>
                                         </div>
@@ -698,64 +708,69 @@ export default function DashboardPage() {
                                             </p>
                                         </div>
                                     ) : (
-                                        dashboard.recentInterviews.slice(0, 4).map((interview, index) => {
-                                            const score = Math.min(
-                                                100,
-                                                Math.max(0, Number(interview.totalScore ?? 0))
-                                            );
+                                        dashboard.recentInterviews
+                                            .slice(0, 4)
+                                            .map((interview, index) => {
+                                                const score = Math.min(
+                                                    100,
+                                                    Math.max(0, Number(interview.totalScore ?? 0))
+                                                );
 
-                                            return (
-                                                <div
-                                                    key={`${interview.sessionId}-${index}`}
-                                                    className="group relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-5 shadow-sm transition hover:scale-[1.01] dark:border-slate-700 dark:bg-slate-950/40"
-                                                >
-                                                    <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-pink-500 via-violet-500 to-sky-500 opacity-70" />
+                                                return (
+                                                    <div
+                                                        key={`${interview.sessionId}-${index}`}
+                                                        className="group relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-5 shadow-sm transition hover:scale-[1.01] dark:border-slate-700 dark:bg-slate-950/40"
+                                                    >
+                                                        <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-pink-500 via-violet-500 to-sky-500 opacity-70" />
 
-                                                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                                        <div className="pl-3">
-                                                            <div className="flex flex-wrap items-center gap-2">
-                                                                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
-                                                                    #{index + 1}
-                                                                </span>
+                                                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                                            <div className="pl-3">
+                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                    <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-black text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                                                        #{index + 1}
+                                                                    </span>
 
-                                                                <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-600 shadow dark:bg-slate-800 dark:text-slate-200">
-                                                                    {interview.status}
-                                                                </span>
-                                                            </div>
+                                                                    <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-600 shadow dark:bg-slate-800 dark:text-slate-200">
+                                                                        {interview.status}
+                                                                    </span>
+                                                                </div>
 
-                                                            <p className="mt-3 font-black text-slate-950 dark:text-white">
-                                                                {interview.positionName}
-                                                            </p>
-
-                                                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                                                AI koç oturum kaydı
-                                                            </p>
-                                                        </div>
-
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="h-14 w-14 rounded-2xl bg-slate-950 p-1 dark:bg-white">
-                                                                <div
-                                                                    className="h-full rounded-xl bg-gradient-to-t from-pink-500 via-violet-500 to-sky-400"
-                                                                    style={{
-                                                                        opacity: score > 0 ? score / 100 : 0.25,
-                                                                    }}
-                                                                />
-                                                            </div>
-
-                                                            <div className="min-w-16 text-right">
-                                                                <p className="text-2xl font-black text-slate-950 dark:text-white">
-                                                                    {interview.totalScore ?? "-"}
+                                                                <p className="mt-3 font-black text-slate-950 dark:text-white">
+                                                                    {interview.positionName}
                                                                 </p>
 
-                                                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                                                                    skor
+                                                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                                                    AI koç oturum kaydı
                                                                 </p>
+                                                            </div>
+
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="h-14 w-14 rounded-2xl bg-slate-950 p-1 dark:bg-white">
+                                                                    <div
+                                                                        className="h-full rounded-xl bg-gradient-to-t from-pink-500 via-violet-500 to-sky-400"
+                                                                        style={{
+                                                                            opacity:
+                                                                                score > 0
+                                                                                    ? score / 100
+                                                                                    : 0.25,
+                                                                        }}
+                                                                    />
+                                                                </div>
+
+                                                                <div className="min-w-16 text-right">
+                                                                    <p className="text-2xl font-black text-slate-950 dark:text-white">
+                                                                        {interview.totalScore ?? "-"}
+                                                                    </p>
+
+                                                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                                        skor
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })
+                                                );
+                                            })
                                     )}
                                 </div>
                             </motion.div>
@@ -786,58 +801,65 @@ export default function DashboardPage() {
                                         </p>
                                     </div>
                                 ) : (
-                                    dashboard.positionSummaries.slice(0, 4).map((position, index) => {
-                                        const averageScore = Math.min(
-                                            100,
-                                            Math.max(0, Number(position.averageScore ?? 0))
-                                        );
+                                    dashboard.positionSummaries
+                                        .slice(0, 4)
+                                        .map((position, index) => {
+                                            const averageScore = Math.min(
+                                                100,
+                                                Math.max(0, Number(position.averageScore ?? 0))
+                                            );
 
-                                        return (
-                                            <div
-                                                key={position.positionName}
-                                                className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-950/40"
-                                            >
-                                                <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-gradient-to-br from-pink-300/40 to-violet-300/30 blur-2xl dark:from-pink-500/10 dark:to-violet-500/10" />
+                                            return (
+                                                <div
+                                                    key={position.positionName}
+                                                    className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm transition hover:-translate-y-1 dark:border-slate-700 dark:bg-slate-950/40"
+                                                >
+                                                    <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-gradient-to-br from-pink-300/40 to-violet-300/30 blur-2xl dark:from-pink-500/10 dark:to-violet-500/10" />
 
-                                                <div className="relative z-10">
-                                                    <div className="flex items-center justify-between gap-3">
-                                                        <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white dark:bg-white dark:text-slate-950">
-                                                            Role 0{index + 1}
-                                                        </span>
+                                                    <div className="relative z-10">
+                                                        <div className="flex items-center justify-between gap-3">
+                                                            <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white dark:bg-white dark:text-slate-950">
+                                                                Role 0{index + 1}
+                                                            </span>
 
-                                                        <span className="text-xl font-black text-violet-600 dark:text-violet-300">
-                                                            {position.averageScore ?? "-"}
-                                                        </span>
-                                                    </div>
+                                                            <span className="text-xl font-black text-violet-600 dark:text-violet-300">
+                                                                {position.averageScore ?? "-"}
+                                                            </span>
+                                                        </div>
 
-                                                    <h3 className="mt-4 text-lg font-black text-slate-950 dark:text-white">
-                                                        {position.positionName}
-                                                    </h3>
+                                                        <h3 className="mt-4 text-lg font-black text-slate-950 dark:text-white">
+                                                            {position.positionName}
+                                                        </h3>
 
-                                                    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                                        {position.interviewCount} mülakat pratiği
-                                                    </p>
+                                                        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                                            {position.interviewCount} mülakat pratiği
+                                                        </p>
 
-                                                    <div className="mt-5 grid grid-cols-10 gap-1">
-                                                        {Array.from({ length: 10 }).map((_, itemIndex) => {
-                                                            const isActive =
-                                                                itemIndex < Math.round(averageScore / 10);
+                                                        <div className="mt-5 grid grid-cols-10 gap-1">
+                                                            {Array.from({ length: 10 }).map(
+                                                                (_, itemIndex) => {
+                                                                    const isActive =
+                                                                        itemIndex <
+                                                                        Math.round(
+                                                                            averageScore / 10
+                                                                        );
 
-                                                            return (
-                                                                <div
-                                                                    key={itemIndex}
-                                                                    className={`h-8 rounded-full transition ${isActive
-                                                                            ? "bg-gradient-to-t from-pink-500 via-violet-500 to-sky-400"
-                                                                            : "bg-slate-200 dark:bg-slate-800"
-                                                                        }`}
-                                                                />
-                                                            );
-                                                        })}
+                                                                    return (
+                                                                        <div
+                                                                            key={itemIndex}
+                                                                            className={`h-8 rounded-full transition ${isActive
+                                                                                    ? "bg-gradient-to-t from-pink-500 via-violet-500 to-sky-400"
+                                                                                    : "bg-slate-200 dark:bg-slate-800"
+                                                                                }`}
+                                                                        />
+                                                                    );
+                                                                }
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })
+                                            );
+                                        })
                                 )}
                             </div>
                         </section>
@@ -876,7 +898,9 @@ export default function DashboardPage() {
                                         {item.title}
                                     </p>
 
-                                    <p className={`relative z-10 mt-4 text-xl font-black ${item.valueClass}`}>
+                                    <p
+                                        className={`relative z-10 mt-4 text-xl font-black ${item.valueClass}`}
+                                    >
                                         {item.value}
                                     </p>
 
@@ -1086,4 +1110,36 @@ function PulseRow({
             </div>
         </div>
     );
+}
+
+function getFocusSignalText(
+    weakestCategory?: string | null,
+    averageScore?: number | null,
+    completionRate?: number | null
+) {
+    const category = weakestCategory || "genel mülakat pratiği";
+    const score = Number(averageScore ?? 0);
+    const completion = Number(completionRate ?? 0);
+
+    if (score === 0 && completion === 0) {
+        return "Henüz yeterli mülakat verisi oluşmadı. İlk pratik oturumunu başlatarak kişisel gelişim sinyalini oluşturabilirsin.";
+    }
+
+    if (score < 40) {
+        return `${category} alanında temel kavramları güçlendirmen gerekiyor. Bugün kısa tekrar ve örnek cevap pratiği yapman skorunu hızlıca toparlar.`;
+    }
+
+    if (score < 60) {
+        return `${category} alanında gelişim potansiyelin yüksek. Cevaplarını daha örnekli, daha net ve daha yapılandırılmış vermeye odaklanmalısın.`;
+    }
+
+    if (score < 75) {
+        return `${category} alanında iyi bir seviyeye yaklaşmışsın. Şimdi cevaplarını STAR tekniği, proje örneği ve ölçülebilir sonuçlarla güçlendirme zamanı.`;
+    }
+
+    if (score < 90) {
+        return `${category} alanında genel performansın güçlü. Küçük detayları iyileştirerek cevaplarını daha profesyonel ve mülakat seviyesine uygun hale getirebilirsin.`;
+    }
+
+    return `${category} alanında çok güçlü görünüyorsun. Bu seviyeyi korumak için kısa tekrarlar yapıp farklı pozisyon senaryolarıyla pratiklerini çeşitlendirebilirsin.`;
 }
