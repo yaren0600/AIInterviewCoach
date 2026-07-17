@@ -8,6 +8,7 @@ import {
     ApiResponse,
     InterviewResult,
     InterviewResultQuestion,
+    RewriteAnswerResponse,
 } from "@/types/api";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -21,6 +22,12 @@ export default function InterviewResultPage() {
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
+    const [rewriteResults, setRewriteResults] = useState<
+        Record<number, RewriteAnswerResponse>
+    >({});
+
+    const [rewriteErrors, setRewriteErrors] = useState<Record<number, string>>({});
+    const [rewritingQuestionId, setRewritingQuestionId] = useState<number | null>(null);
     useEffect(() => {
         const token = localStorage.getItem("token");
 
@@ -61,6 +68,73 @@ export default function InterviewResultPage() {
     const handleLogout = () => {
         localStorage.removeItem("token");
         router.push("/login");
+    };
+
+    const handleRewriteAnswer = async (question: InterviewResultQuestion) => {
+        if (!result) {
+            return;
+        }
+
+        if (!question.userAnswer || question.userAnswer.trim().length === 0) {
+            setRewriteErrors((currentErrors) => ({
+                ...currentErrors,
+                [question.questionId]: "Bu soru için geliştirilecek bir cevap bulunmuyor.",
+            }));
+
+            return;
+        }
+
+        setRewritingQuestionId(question.questionId);
+
+        setRewriteErrors((currentErrors) => {
+            const updatedErrors = { ...currentErrors };
+            delete updatedErrors[question.questionId];
+            return updatedErrors;
+        });
+
+        try {
+            const response = await api.post<ApiResponse<RewriteAnswerResponse>>(
+                "/Interviews/rewrite-answer",
+                {
+                    questionText: question.questionText,
+                    userAnswer: question.userAnswer,
+                    positionName: result.positionName,
+                    category: question.category,
+                }
+            );
+
+            if (response.data.success) {
+                setRewriteResults((currentResults) => ({
+                    ...currentResults,
+                    [question.questionId]: response.data.data,
+                }));
+            } else {
+                setRewriteErrors((currentErrors) => ({
+                    ...currentErrors,
+                    [question.questionId]:
+                        response.data.message || "Cevap yeniden yazılamadı.",
+                }));
+            }
+        } catch (error: unknown) {
+            let errorMessage = "Cevap yeniden yazılırken bir hata oluştu.";
+
+            if (axios.isAxiosError(error)) {
+                const responseMessage = error.response?.data?.message;
+
+                if (typeof responseMessage === "string" && responseMessage.length > 0) {
+                    errorMessage = responseMessage;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+            }
+
+            setRewriteErrors((currentErrors) => ({
+                ...currentErrors,
+                [question.questionId]: errorMessage,
+            }));
+        } finally {
+            setRewritingQuestionId(null);
+        }
     };
 
     if (isLoading) {
@@ -402,6 +476,10 @@ export default function InterviewResultPage() {
                                     key={question.questionId}
                                     index={index}
                                     question={question}
+                                    rewriteResult={rewriteResults[question.questionId]}
+                                    rewriteError={rewriteErrors[question.questionId]}
+                                    isRewriting={rewritingQuestionId === question.questionId}
+                                    onRewrite={() => handleRewriteAnswer(question)}
                                 />
                             ))
                         ) : (
@@ -632,9 +710,17 @@ function AreaCard({
 function QuestionAnalysisCard({
     index,
     question,
+    rewriteResult,
+    rewriteError,
+    isRewriting,
+    onRewrite,
 }: {
     index: number;
     question: InterviewResultQuestion;
+    rewriteResult?: RewriteAnswerResponse;
+    rewriteError?: string;
+    isRewriting: boolean;
+    onRewrite: () => void;
 }) {
     return (
         <div className="rounded-3xl border border-white/70 bg-white/75 p-5 shadow-sm dark:border-slate-700 dark:bg-slate-950/40">
@@ -675,6 +761,60 @@ function QuestionAnalysisCard({
                         ? question.userAnswer
                         : "Bu soru için cevap bulunmuyor."}
                 </p>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-white/70 bg-white/70 p-4 dark:border-slate-700 dark:bg-slate-900/70">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                            AI Answer Rewrite
+                        </p>
+
+                        <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                            Cevabını daha profesyonel, net ve mülakata uygun hale getir.
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={onRewrite}
+                        disabled={isRewriting}
+                        className="shine-button rounded-full bg-gradient-to-r from-pink-500 via-violet-500 to-sky-500 px-5 py-3 text-sm font-black text-white shadow-xl shadow-violet-500/20 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        {isRewriting
+                            ? "AI düzenliyor..."
+                            : "AI ile Daha Güçlü Cevap Oluştur"}
+                    </button>
+                </div>
+
+                {rewriteError && (
+                    <p className="mt-4 rounded-2xl border border-rose-100 bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-300">
+                        {rewriteError}
+                    </p>
+                )}
+
+                {rewriteResult && (
+                    <div className="mt-5 space-y-4">
+                        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4 dark:border-emerald-400/20 dark:bg-emerald-400/10">
+                            <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700 dark:text-emerald-300">
+                                Geliştirilmiş Cevap
+                            </p>
+
+                            <p className="mt-3 whitespace-pre-line text-sm leading-7 text-emerald-950 dark:text-emerald-100">
+                                {rewriteResult.rewrittenAnswer}
+                            </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-sky-100 bg-sky-50/80 p-4 dark:border-sky-400/20 dark:bg-sky-400/10">
+                            <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-700 dark:text-sky-300">
+                                AI Gelişim Notu
+                            </p>
+
+                            <p className="mt-3 text-sm leading-7 text-sky-950 dark:text-sky-100">
+                                {rewriteResult.improvementNote}
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {question.feedback && (

@@ -256,3 +256,15 @@ export interface StudyPlan {
     communicationFocusTopics: string[];
     weeklyPlan: WeeklyStudyPlanItem[];
 }
+
+export interface RewriteAnswerRequest {
+    questionText: string;
+    userAnswer: string;
+    positionName: string;
+    category: string;
+}
+
+export interface RewriteAnswerResponse {
+    rewrittenAnswer: string;
+    improvementNote: string;
+}
