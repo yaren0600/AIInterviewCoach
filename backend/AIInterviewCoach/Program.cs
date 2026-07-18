@@ -131,6 +131,22 @@ Console.WriteLine($"Model: {builder.Configuration["AiProvider:Model"]}");
 Console.WriteLine($"ApiKey Exists: {!string.IsNullOrEmpty(builder.Configuration["AiProvider:ApiKey"])}");
 Console.WriteLine("===============================");
 var app = builder.Build();
+Console.WriteLine("######## APPLICATION START ########");
+
+Console.WriteLine(
+    "Provider = " + builder.Configuration["AiProvider:Provider"]
+);
+
+Console.WriteLine(
+    "Model = " + builder.Configuration["AiProvider:Model"]
+);
+
+Console.WriteLine(
+    "ApiKey = " +
+    (!string.IsNullOrEmpty(builder.Configuration["AiProvider:ApiKey"]) ? "VAR" : "YOK")
+);
+
+Console.WriteLine("###################################");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
