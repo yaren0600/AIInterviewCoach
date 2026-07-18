@@ -1,5 +1,19 @@
 <div align="center">
 
+<a href="https://github.com/yaren0600/AIInterviewCoach">
+<img src="assets/logo.png" width="420"/>
+</a>
+
+# AI Interview Coach
+
+### 🤖 AI-Powered Technical Interview Preparation Platform
+
+Prepare smarter • Interview better • Get hired
+
+</div>
+
+<div align="center">
+
 # 🤖 AI Interview Coach
 
 ### AI-Powered Interview Preparation Platform
