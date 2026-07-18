@@ -121,6 +121,15 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+Console.WriteLine("========== AI CONFIG ==========");
+Console.WriteLine($"Provider: {builder.Configuration["AiProvider:Provider"]}");
+Console.WriteLine($"Model: {builder.Configuration["AiProvider:Model"]}");
+Console.WriteLine($"ApiKey Exists: {!string.IsNullOrEmpty(builder.Configuration["AiProvider:ApiKey"])}");
+Console.WriteLine("==============================="); Console.WriteLine("========== AI CONFIG ==========");
+Console.WriteLine($"Provider: {builder.Configuration["AiProvider:Provider"]}");
+Console.WriteLine($"Model: {builder.Configuration["AiProvider:Model"]}");
+Console.WriteLine($"ApiKey Exists: {!string.IsNullOrEmpty(builder.Configuration["AiProvider:ApiKey"])}");
+Console.WriteLine("===============================");
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
