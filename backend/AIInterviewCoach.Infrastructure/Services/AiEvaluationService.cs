@@ -33,6 +33,10 @@ public class AiEvaluationService : IAiEvaluationService
         string positionName,
         string? expectedAnswerGuide)
     {
+        Console.WriteLine("===== GEMINI PROVIDER ACTIVE =====");
+        Console.WriteLine($"Provider: {_aiProviderSettings.Provider}");
+        Console.WriteLine($"Model: {_aiProviderSettings.Model}");
+        Console.WriteLine($"Key Exists: {!string.IsNullOrEmpty(_aiProviderSettings.ApiKey)}");
         // Provider Gemini ise gerçek AI değerlendirmesine gider.
         if (_aiProviderSettings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
         {
