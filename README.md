@@ -16,534 +16,566 @@ Prepare smarter • Interview better • Get hired
 
 # 🤖 AI Interview Coach
 
-### AI-Powered Interview Preparation Platform
+### **Practice. Analyze. Improve.**
 
-<img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=24&pause=1000&color=8B5CF6&center=true&vCenter=true&width=800&lines=AI+Powered+Interview+Preparation+Platform;ASP.NET+Core+%7C+Next.js+%7C+Gemini+AI;Resume+Analysis+%7C+AI+Evaluation+%7C+Study+Planner;Helping+Developers+Ace+Their+Technical+Interviews"/>
+An AI-powered interview preparation platform designed to help candidates
+**practice technical interviews, analyze their answers, and improve their performance.**
 
 <br>
 
-<img src="https://img.shields.io/github/stars/yaren0600/AIInterviewCoach?style=for-the-badge&color=8b5cf6"/>
-<img src="https://img.shields.io/github/forks/yaren0600/AIInterviewCoach?style=for-the-badge&color=7c3aed"/>
-<img src="https://img.shields.io/github/license/yaren0600/AIInterviewCoach?style=for-the-badge"/>
-<img src="https://img.shields.io/github/last-commit/yaren0600/AIInterviewCoach?style=for-the-badge"/>
+![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-512BD4?style=for-the-badge\&logo=dotnet\&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge\&logo=react\&logoColor=61DAFB)
+![C%23](https://img.shields.io/badge/C%23-239120?style=for-the-badge\&logo=c-sharp\&logoColor=white)
+![Entity Framework](https://img.shields.io/badge/Entity%20Framework-512BD4?style=for-the-badge\&logo=.net\&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge\&logo=jsonwebtokens\&logoColor=white)
 
 <br><br>
 
-AI Interview Coach is an intelligent interview preparation platform powered by **Google Gemini AI** that helps candidates improve their technical and behavioral interview skills through personalized interview sessions, resume analysis, AI-based answer evaluation, and customized weekly study plans.
+> 🧠 **Your personal AI-powered interview laboratory.**
 
 </div>
 
 ---
 
-# ✨ Features
+## ✨ About the Project
 
-## 🤖 AI Powered Interview Experience
+**AI Interview Coach** is a full-stack web application created to simulate a modern technical interview experience.
 
-- AI Generated Technical Questions
-- AI Generated Behavioral Questions
-- AI Generated SQL Questions
-- AI Generated Coding Questions
-- AI Answer Evaluation
-- Better Answer Suggestions
-- Weekly AI Study Plans
-- Resume Analysis
-- Personalized Dashboard
+Instead of simply presenting predefined questions, the application is designed around an interactive workflow where users can:
+
+**Create an interview → Answer questions → Receive AI evaluation → Analyze performance → Improve**
+
+The project combines a **React frontend**, **ASP.NET Core Web API**, **Entity Framework Core**, **JWT authentication**, and **AI integration** into a single full-stack application.
 
 ---
 
-# 🚀 Key Features
+## 🎯 Why AI Interview Coach?
 
-### 👤 Authentication
+Technical interviews can be challenging because candidates often know the subject but struggle to:
 
-- JWT Authentication
-- Register
-- Login
-- Secure Profile
-- Delete Account
+* Explain their knowledge clearly
+* Structure their answers
+* Identify weaknesses
+* Understand what an interviewer expects
+* Receive meaningful feedback after practicing
 
----
-
-### 📄 Resume Analysis
-
-Upload your resume and receive
-
-- AI Resume Analysis
-- Strength Detection
-- Weakness Detection
-- Improvement Suggestions
-- ATS Friendly Feedback
+AI Interview Coach aims to provide an interactive environment where candidates can practice repeatedly and receive structured feedback.
 
 ---
 
-### 🎯 Interview Practice
-
-Practice interviews for different positions including
-
-- Backend Developer
-- Frontend Developer
-- Full Stack Developer
-- Business Analyst
-- Data Analyst
-- Software Engineer
-
-Questions are generated dynamically according to
-
-- Position
-- Difficulty
-- Category
-
----
-
-### 🧠 AI Answer Evaluation
-
-Each interview answer is evaluated using **Google Gemini AI**
-
-Evaluation includes
-
-- Score (0-100)
-- Personalized Feedback
-- Better Answer Example
-- Strong Points
-- Improvement Points
-
----
-
-### 📅 AI Weekly Study Plan
-
-Generate personalized study plans based on
-
-- Weak interview areas
-- Previous interview scores
-- Resume analysis
-- Position
-
----
-
-### 📊 Dashboard
-
-Track your progress with
-
-- Interview Count
-- Average Score
-- Resume Status
-- Weekly Plans
-- Recent Sessions
-
----
-
-# ⚙️ Tech Stack
+# 🚀 Core Features
 
 <div align="center">
 
-## Backend
+|       🧠 AI Evaluation       |     🎯 Interview Practice    |
+| :--------------------------: | :--------------------------: |
+|   Analyze candidate answers  |   Create interview sessions  |
+| Generate structured feedback |     Select interview type    |
+|  Provide performance scores  | Generate interview questions |
+|  Identify improvement areas  |   Track interview progress   |
 
-<img src="https://skillicons.dev/icons?i=dotnet,cs"/>
-
-ASP.NET Core Web API
-
-Entity Framework Core
-
-SQL Server
-
-JWT Authentication
-
-REST API
-
-Dependency Injection
-
----
-
-## Frontend
-
-<img src="https://skillicons.dev/icons?i=nextjs,react,ts,tailwind"/>
-
-Next.js
-
-React
-
-TypeScript
-
-TailwindCSS
-
-Axios
-
-Framer Motion
-
----
-
-## AI
-
-<img src="https://skillicons.dev/icons?i=google"/>
-
-Google Gemini AI
-
-Prompt Engineering
-
-AI Question Generation
-
-AI Evaluation
-
-AI Study Planner
-
----
-
-## Tools
-
-<img src="https://skillicons.dev/icons?i=git,github,vscode,visualstudio"/>
-
-Git
-
-GitHub
-
-Visual Studio
-
-VS Code
-
-Render
-
-Vercel
+|     🔐 Authentication    |      📊 Performance      |
+| :----------------------: | :----------------------: |
+| JWT-based authentication | Review interview results |
+|   Secure API endpoints   | Analyze previous answers |
+|    User-specific data    |  Track interview history |
 
 </div>
 
 ---
 
-# 🏛️ Project Architecture
+## 🧠 AI-Powered Evaluation
 
+The core idea of the project is to evaluate an answer based on its **meaning, relevance, and expected content**, rather than relying only on keyword matching.
+
+### Evaluation Flow
+
+```text
+              ┌──────────────────┐
+              │  Interview       │
+              │    Question      │
+              └────────┬─────────┘
+                       │
+                       ▼
+              ┌──────────────────┐
+              │ Candidate Answer │
+              └────────┬─────────┘
+                       │
+                       ▼
+              ┌──────────────────┐
+              │   AI Evaluation  │
+              └────────┬─────────┘
+                       │
+          ┌────────────┼────────────┐
+          ▼            ▼            ▼
+      📊 Score     💡 Feedback   🎯 Areas
+                                  to Improve
 ```
 
-Next.js Frontend
+The evaluation system is designed to consider:
 
-↓
+* Question requirements
+* Expected concepts
+* Candidate response
+* Relevance
+* Completeness
+* Clarity
+* Technical accuracy
 
-REST API
+---
 
-↓
+# 🏗️ System Architecture
 
-ASP.NET Core Web API
+```text
+                         ┌─────────────────────┐
+                         │                     │
+                         │    React Frontend   │
+                         │                     │
+                         └──────────┬──────────┘
+                                    │
+                                    │ HTTP / REST
+                                    ▼
+                         ┌─────────────────────┐
+                         │                     │
+                         │  ASP.NET Core API   │
+                         │                     │
+                         ├─────────────────────┤
+                         │ Authentication      │
+                         │ Controllers         │
+                         │ Business Logic      │
+                         │ Interview Services  │
+                         │ AI Integration      │
+                         └───────┬─────┬───────┘
+                                 │     │
+                       ┌─────────┘     └─────────┐
+                       ▼                         ▼
+              ┌─────────────────┐       ┌─────────────────┐
+              │                 │       │                 │
+              │  SQL Database   │       │   AI Provider   │
+              │                 │       │                 │
+              └─────────────────┘       └─────────────────┘
+```
 
-↓
+---
 
-Service Layer
+# 🛠️ Tech Stack
 
-↓
+### Backend
 
-Entity Framework Core
+| Technology                | Purpose             |
+| ------------------------- | ------------------- |
+| **C#**                    | Backend development |
+| **ASP.NET Core Web API**  | REST API            |
+| **Entity Framework Core** | ORM / data access   |
+| **JWT**                   | Authentication      |
+| **Swagger / OpenAPI**     | API documentation   |
 
-↓
+### Frontend
 
-SQL Server
+| Technology     | Purpose                   |
+| -------------- | ------------------------- |
+| **React**      | User interface            |
+| **JavaScript** | Frontend logic            |
+| **HTML5**      | Application structure     |
+| **CSS3**       | Styling and responsive UI |
 
-↓
+### Database
 
-Google Gemini AI
+* SQL
+* Entity Framework Core
+* EF Core Migrations
 
+### AI
+
+The application is structured to integrate an external AI provider for:
+
+* Answer evaluation
+* Scoring
+* Feedback generation
+* Interview assistance
+
+The AI layer is designed to remain independent from the core business logic so that different AI providers can be integrated in the future.
+
+---
+
+# 🔐 Authentication
+
+The application uses **JWT-based authentication**.
+
+```text
+       Register / Login
+              │
+              ▼
+      ASP.NET Core API
+              │
+              ▼
+         JWT Token
+              │
+              ▼
+       React Frontend
+              │
+              ▼
+     Authenticated Requests
+```
+
+Protected endpoints require a valid authentication token.
+
+This allows the application to keep interview sessions and results associated with the correct user.
+
+---
+
+# 🗄️ Database
+
+Entity Framework Core is used as the application's ORM.
+
+The database is responsible for storing information such as:
+
+```text
+User
+ │
+ ├── Interview Sessions
+ │       │
+ │       ├── Questions
+ │       │      └── Answers
+ │       │
+ │       └── Evaluation Results
+ │
+ └── Interview History
+```
+
+Database changes are managed through Entity Framework Core migrations.
+
+Example:
+
+```bash
+dotnet ef migrations add InitialCreate
+dotnet ef database update
 ```
 
 ---
 
 # 📂 Project Structure
 
-```
-
-AIInterviewCoach
-
+```text
+AIInterviewCoach/
 │
-
-├── AIInterviewCoach.Application
-
-├── AIInterviewCoach.Domain
-
-├── AIInterviewCoach.Infrastructure
-
-├── AIInterviewCoach
-
+├── Backend/
+│   │
+│   ├── Controllers/
+│   ├── Services/
+│   ├── Models/
+│   ├── DTOs/
+│   ├── Data/
+│   ├── Migrations/
+│   │
+│   ├── Program.cs
+│   └── appsettings.json
 │
+├── Frontend/
+│   │
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── ...
+│   │
+│   ├── public/
+│   └── package.json
+│
+└── README.md
+```
 
-└── frontend
+> The exact structure may evolve as the project continues to grow.
 
+---
+
+# ⚡ Getting Started
+
+## 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/yaren0600/AIInterviewCoach.git
+
+cd AIInterviewCoach
 ```
 
 ---
 
-# 🔐 Authentication
+## 2️⃣ Backend Setup
 
-Authentication is implemented using JWT.
+Navigate to the backend:
 
-Features include
-
-- Register
-- Login
-- Authorization
-- Protected Endpoints
-- Secure Token Validation
-
----
-
-# 🤖 Google Gemini AI Integration
-
-Google Gemini AI is responsible for
-
-- Interview Question Generation
-
-- Answer Evaluation
-
-- Resume Analysis
-
-- Weekly Study Plan Generation
-
-- Better Answer Suggestions
-
----
-
-# 📈 Dashboard Features
-
-The dashboard provides
-
-- Interview Statistics
-
-- Average Score
-
-- Recent Sessions
-
-- Study Plan Overview
-
-- Resume Status
-
----
-
-# 📄 Resume Analysis
-
-Users can upload their resume and receive
-
-- AI Summary
-
-- Strength Analysis
-
-- Weakness Analysis
-
-- Improvement Suggestions
-
-- ATS Optimization Feedback
-
----
-
-# 🎯 Interview Flow
-
-1. Login
-
-2. Select Position
-
-3. Choose Category
-
-4. Generate AI Questions
-
-5. Answer Questions
-
-6. AI Evaluation
-
-7. View Results
-
-8. Improve Skills
----
-
-# 🌐 REST API Endpoints
-
-## Authentication
-
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| POST | /api/Auth/register | Register a new user |
-| POST | /api/Auth/login | Login |
-| GET | /api/Auth/profile | Get user profile |
-| DELETE | /api/Auth/delete-account | Delete account |
-
----
-
-## Resume
-
-| Method | Endpoint |
-|---------|----------|
-| GET | /api/Resume |
-| POST | /api/Resume |
-| GET | /api/Resume/{id} |
-| DELETE | /api/Resume/{id} |
-
----
-
-## Interview
-
-| Method | Endpoint |
-|---------|----------|
-| POST | /api/Interview/start |
-| POST | /api/Interview/answer |
-| GET | /api/Interview/session/{id} |
-| GET | /api/Interview/result/{id} |
-
----
-
-## Dashboard
-
-| Method | Endpoint |
-|---------|----------|
-| GET | /api/Dashboard |
-
----
-
-## Study Plan
-
-| Method | Endpoint |
-|---------|----------|
-| POST | /api/StudyPlan |
-| GET | /api/StudyPlan |
-
----
-
-# 🚀 Deployment
-
-### Frontend
-
-Vercel
-
-### Backend
-
-Render
-
-### Database
-
-SQL Server
-
-### AI Provider
-
-Google Gemini AI
-
----
-
-# ⚙️ Environment Variables
-
-Backend
-
-```env
-ConnectionStrings__DefaultConnection=
-
-Jwt__Key=
-Jwt__Issuer=
-Jwt__Audience=
-Jwt__ExpireMinutes=
-
-AiProvider__Provider=Gemini
-AiProvider__ApiKey=
-AiProvider__Model=gemini-3.5-flash
-
-Cors__AllowedOrigins__0=
+```bash
+cd Backend
 ```
 
-Frontend
+Restore dependencies:
 
-```env
-NEXT_PUBLIC_API_BASE_URL=
+```bash
+dotnet restore
+```
+
+Configure your application settings.
+
+Example:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "YOUR_CONNECTION_STRING"
+  },
+  "Jwt": {
+    "Key": "YOUR_SECRET_KEY",
+    "Issuer": "YOUR_ISSUER",
+    "Audience": "YOUR_AUDIENCE"
+  },
+  "AI": {
+    "ApiKey": "YOUR_AI_API_KEY"
+  }
+}
+```
+
+Apply database migrations:
+
+```bash
+dotnet ef database update
+```
+
+Run the backend:
+
+```bash
+dotnet run
 ```
 
 ---
 
-# 🛣️ Roadmap
+## 3️⃣ Frontend Setup
 
-## ✅ Completed
+Open another terminal:
 
-- JWT Authentication
-- Resume Upload
-- Resume Analysis
-- AI Question Generation
-- AI Evaluation
-- AI Study Plan
-- Dashboard
-- Interview Sessions
-- Responsive UI
-- Dark Mode
-- Render Deployment
-- Vercel Deployment
+```bash
+cd Frontend
+```
 
----
+Install dependencies:
 
-## 🚀 Future Improvements
+```bash
+npm install
+```
 
-- Voice Interview
-- AI Speech Evaluation
-- Video Interview Simulation
-- Live Coding Interview
-- Interview History Analytics
-- Company Specific Interview Packs
-- Leaderboard
-- Email Notifications
-- AI Career Advisor
-- Mock HR Interview
+Start the development server:
+
+```bash
+npm run dev
+```
 
 ---
 
-# 📚 What I Learned
+# 📖 API Documentation
 
-This project helped me gain hands-on experience with
+The backend provides **Swagger / OpenAPI** documentation.
 
-- ASP.NET Core Web API
-- Clean Architecture
-- Entity Framework Core
-- SQL Server
-- JWT Authentication
-- RESTful APIs
-- Dependency Injection
-- Next.js App Router
-- React
-- TypeScript
-- TailwindCSS
-- Framer Motion
-- Google Gemini AI API
-- Prompt Engineering
-- Deployment with Render
-- Deployment with Vercel
-- Git & GitHub
+Swagger allows developers to:
+
+* Explore API endpoints
+* View request and response models
+* Test endpoints
+* Inspect authentication requirements
+
+After starting the backend, open the Swagger URL configured for the application.
 
 ---
 
-# 🤝 Contributing
+# 🌐 Deployment
 
-Contributions are welcome.
+The project uses a separate frontend and backend architecture.
 
-If you have ideas to improve this project
+```text
+             ┌──────────────────┐
+             │                  │
+             │  React Frontend  │
+             │                  │
+             └────────┬─────────┘
+                      │
+                      │ REST API
+                      ▼
+             ┌──────────────────┐
+             │                  │
+             │ ASP.NET Core API │
+             │                  │
+             └────────┬─────────┘
+                      │
+                      ▼
+             ┌──────────────────┐
+             │                  │
+             │   SQL Database   │
+             │                  │
+             └──────────────────┘
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push your branch
-5. Open a Pull Request
+### Deployment
+
+**Frontend**
+
+`Vercel`
+
+**Backend**
+
+`Render`
+
+Production configuration should use environment variables for sensitive information.
+
+> ⚠️ Never commit API keys, passwords, database credentials, or JWT secrets to GitHub.
 
 ---
 
-# 👩‍💻 Developer
-
-## Begüm Yaren ÖZTÜRK
-
-Computer Engineer
-
-MSc Student in Computer Engineering
-
-AI • .NET • Machine Learning • Data Analysis
-
-GitHub
-
-https://github.com/yaren0600
-
-LinkedIn
-
-https://linkedin.com/in/begum-yaren00
-
----
+# 🖥️ Application Preview
 
 <div align="center">
 
-# ⭐ If you like this project, don't forget to give it a star!
+### 🔐 Authentication
 
-It motivates me to build more open-source AI projects.
+<!-- Add screenshot here -->
 
-⭐ ⭐ ⭐ ⭐ ⭐
+`Login / Register`
+
+<br>
+
+### 🧠 Interview Dashboard
+
+<!-- Add screenshot here -->
+
+`Create and manage interview sessions`
+
+<br>
+
+### 🎤 Interview Session
+
+<!-- Add screenshot here -->
+
+`Answer technical interview questions`
+
+<br>
+
+### 🤖 AI Evaluation
+
+<!-- Add screenshot here -->
+
+`Receive AI-powered feedback`
+
+<br>
+
+### 📊 Interview Results
+
+<!-- Add screenshot here -->
+
+`Review performance and improvement areas`
+
+</div>
+
+---
+
+# 🔮 Roadmap
+
+The project is continuously evolving.
+
+### AI
+
+* [ ] Advanced AI answer evaluation
+* [ ] Multiple AI provider support
+* [ ] Improved evaluation criteria
+* [ ] More detailed AI feedback
+* [ ] Personalized interview generation
+
+### Interview Modes
+
+* [ ] Technical interview mode
+* [ ] Programming / coding mode
+* [ ] SQL interview mode
+* [ ] System design questions
+* [ ] Behavioral interview mode
+
+### Analytics
+
+* [ ] Detailed performance dashboard
+* [ ] Interview history
+* [ ] Progress tracking
+* [ ] Question-level analytics
+* [ ] Skill-based performance analysis
+
+### UX
+
+* [ ] Improved interview experience
+* [ ] Enhanced animations
+* [ ] More interactive AI feedback
+* [ ] Responsive improvements
+
+---
+
+# 💡 What This Project Demonstrates
+
+AI Interview Coach brings together several areas of modern software development:
+
+```text
+        ┌───────────────────────────────┐
+        │                               │
+        │        Full-Stack Development │
+        │                               │
+        └───────────────┬───────────────┘
+                        │
+       ┌────────────────┼────────────────┐
+       ▼                ▼                ▼
+   Backend           Frontend            AI
+       │                │                │
+ ASP.NET Core        React          AI Integration
+       │                │                │
+       └────────────────┼────────────────┘
+                        │
+                        ▼
+                 Database & API
+```
+
+Through this project, I practiced:
+
+* Full-stack application development
+* RESTful API design
+* ASP.NET Core Web API
+* React development
+* JWT authentication
+* Entity Framework Core
+* Database design
+* API integration
+* AI service integration
+* Environment-based configuration
+* Frontend-backend communication
+* Application deployment
+
+---
+
+# 🎓 Project Purpose
+
+This project was created as a **portfolio and learning project** to explore how AI can be integrated into a practical software application.
+
+The main focus is not only on using an AI API, but also on building the surrounding software architecture required for a real-world application:
+
+**Authentication → API → Business Logic → Database → AI → User Experience**
+
+---
+
+# 👩🏻‍💻 Author
+
+<div align="center">
+
+### **Begüm Yaren Öztürk**
+
+Computer Engineering Graduate
+Konya Technical University
+
+<br>
+
+<a href="https://github.com/yaren0600">
+<img src="https://img.shields.io/badge/GitHub-yaren0600-181717?style=for-the-badge&logo=github">
+</a>
 
 </div>
 
@@ -551,8 +583,10 @@ It motivates me to build more open-source AI projects.
 
 <div align="center">
 
-Made with ❤️ using
+### ⭐ If you find this project interesting, consider giving it a star!
 
-ASP.NET Core • Next.js • SQL Server • Google Gemini AI
+**Practice. Analyze. Improve.**
+
+🤖 **AI Interview Coach**
 
 </div>
