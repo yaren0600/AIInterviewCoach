@@ -63,6 +63,10 @@ AI Interview Coach aims to provide an interactive environment where candidates c
 
 ---
 
+
+<img width="1852" height="907" alt="image" src="https://github.com/user-attachments/assets/bbafa6d0-9703-4ad5-88ba-b70a4ef183d0" />
+
+
 # 🚀 Core Features
 
 <div align="center">
